@@ -1,15 +1,13 @@
 import AppHeader from '@/components/app-header';
-import ClientDashboard from '@/components/client-dashboard';
-import AdBanner from '@/components/ad-banner';
+import PatientManagement from '@/components/patient-management';
 
-export default function Home() {
+export default function ClinicPage() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader />
       <main className="flex-1">
-        <ClientDashboard />
+        <PatientManagement />
       </main>
-      <AdBanner />
     </div>
   );
 }
