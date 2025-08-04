@@ -1,7 +1,7 @@
 "use client"
 
 import { Bar, BarChart, Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChartTooltipContent, ChartContainer, ChartConfig } from '@/components/ui/chart';
+import { ChartTooltip, ChartTooltipContent, ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { ChartLegend, ChartLegendContent } from './ui/chart';
 
 interface ActivityChartProps {
