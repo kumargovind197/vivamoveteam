@@ -14,6 +14,7 @@ interface ActivityChartProps {
   showGoalBands?: boolean;
   average?: number;
   goal?: number;
+  yAxisMax?: number;
 }
 
 const GOAL_THRESHOLDS = {
@@ -22,8 +23,9 @@ const GOAL_THRESHOLDS = {
     green: { y1: 8000, y2: 15000, color: "hsl(var(--primary), 0.1)" }, // Assuming max goal is ~15k steps
 };
 
-export default function ActivityChart({ data, config, dataKey, timeKey, type, showGoalBands = false, average, goal }: ActivityChartProps) {
+export default function ActivityChart({ data, config, dataKey, timeKey, type, showGoalBands = false, average, goal, yAxisMax }: ActivityChartProps) {
   const ChartComponent = type === 'line' ? LineChart : BarChart;
+  const yDomain: [number, (number | string)] = [0, yAxisMax ? yAxisMax : 'dataMax + 2000'];
   
   return (
     <ChartContainer config={config} className="h-full w-full">
@@ -40,7 +42,7 @@ export default function ActivityChart({ data, config, dataKey, timeKey, type, sh
             tickLine={false}
             tickMargin={10}
             axisLine={false}
-            domain={[0, 'dataMax + 2000']} // Add some padding to the top
+            domain={yDomain}
             />
           <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />
@@ -72,3 +74,5 @@ export default function ActivityChart({ data, config, dataKey, timeKey, type, sh
     </ChartContainer>
   );
 }
+
+    

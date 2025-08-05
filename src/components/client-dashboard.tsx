@@ -33,7 +33,7 @@ const generateMonthlyData = (stepGoal: number, minuteGoal: number) => {
             day: dayNames[date.getDay()],
             date: i,
             steps: Math.floor(Math.random() * (stepGoal * 1.5)),
-            activeMinutes: Math.floor(Math.random() * (minuteGoal * 2)),
+            activeMinutes: Math.floor(Math.random() * 90),
         });
     }
     return data;
@@ -169,7 +169,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-center">
-              <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} trackColor="hsl(0, 72%, 51%, 0.2)" />
+              <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} trackColor="hsl(var(--destructive), 0.2)" />
             </CardContent>
           </Card>
         </div>
@@ -236,30 +236,10 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                     </CardContent>
                 </Card>
             </div>
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Active Minutes</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{monthlyTotalMinutes.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">in the last 30 days</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Daily Minute Average</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{monthlyAverageMinutes.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">minutes per day</p>
-                    </CardContent>
-                </Card>
+             <div className="grid gap-6 md:grid-cols-3 mb-6">
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Minute Goals Met</CardTitle>
+                        <CardTitle className="text-sm font-medium">Active Days Goal Met</CardTitle>
                         <Trophy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -267,16 +247,17 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                         <p className="text-xs text-muted-foreground">days you reached your goal</p>
                     </CardContent>
                 </Card>
-                 <Card>
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Current Minute Goal</CardTitle>
-                        <Target className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Average Daily Active Time</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{DAILY_MINUTE_GOAL.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">{monthlyAverageMinutes.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">minutes per day</p>
                     </CardContent>
                 </Card>
+                <div />
             </div>
             <div className="grid gap-6 md:grid-cols-2 mt-6">
                 <Card>
@@ -290,11 +271,11 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Daily Averages by Weekday (Minutes)</CardTitle>
+                        <CardTitle>Average Weekly Active Time</CardTitle>
                         <CardDescription>Your average active minutes for each day of the week over the last month.</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[350px]">
-                        <ActivityChart data={averageMinutesByDay} config={chartConfigMinutes} dataKey="activeMinutes" timeKey="day" type="bar" />
+                        <ActivityChart data={averageMinutesByDay} config={chartConfigMinutes} dataKey="activeMinutes" timeKey="day" type="bar" yAxisMax={120} />
                     </CardContent>
                 </Card>
             </div>
@@ -334,3 +315,5 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
     </>
   );
 }
+
+    
