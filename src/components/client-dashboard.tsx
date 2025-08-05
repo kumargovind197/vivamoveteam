@@ -51,16 +51,16 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const stepProgress = steps ? (steps / DAILY_STEP_GOAL) * 100 : 0;
   const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
   
-  const getProgressColor = (progress: number) => {
+  const getProgressColorClass = (progress: number) => {
     if (progress >= 80) return "bg-primary"; // Green
-    if (progress >= 40) return "bg-yellow-500"; // Amber
-    return "bg-red-600"; // Red
+    if (progress >= 40) return "bg-yellow-400"; // Yellow
+    return "bg-yellow-500"; // Amber
   };
 
   const getRingColor = (progress: number) => {
     if (progress >= 80) return "hsl(var(--primary))"; // Green
-    if (progress >= 40) return "hsl(48, 96%, 50%)"; // Amber
-    return "hsl(0, 72%, 51%)"; // Red
+    if (progress >= 40) return "hsl(48, 96%, 50%)"; // Yellow
+    return "hsl(36, 83%, 50%)"; // Amber
   }
   
   return (
@@ -93,7 +93,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Progress value={stepProgress} indicatorClassName={getProgressColor(stepProgress)} />
+            <Progress value={stepProgress} indicatorClassName={getProgressColorClass(stepProgress)} trackClassName="bg-red-600" />
             <div className="mt-2 flex justify-between text-xs text-muted-foreground">
               <span>Goal: {DAILY_STEP_GOAL.toLocaleString()}</span>
               <span>{Math.round(stepProgress)}%</span>
@@ -111,7 +111,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
-             <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} />
+             <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} trackColor="hsl(0, 72%, 51%)" />
           </CardContent>
         </Card>
       </div>

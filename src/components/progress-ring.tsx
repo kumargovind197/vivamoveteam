@@ -6,9 +6,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 interface ProgressRingProps {
   progress: number; // 0 to 100
   color: string;
+  trackColor?: string;
 }
 
-const ProgressRing: React.FC<ProgressRingProps> = ({ progress, color }) => {
+const ProgressRing: React.FC<ProgressRingProps> = ({ progress, color, trackColor }) => {
   const safeProgress = Math.max(0, Math.min(100, progress));
   const data = [
     { name: 'Completed', value: safeProgress },
@@ -32,7 +33,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ progress, color }) => {
             stroke="none"
           >
             <Cell fill={color} />
-            <Cell fill="hsl(var(--muted))" />
+            <Cell fill={trackColor || "hsl(var(--muted))"} />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
