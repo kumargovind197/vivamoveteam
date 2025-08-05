@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { HeartPulse, UserCircle, Building, Settings, LogOut, ChevronDown } from 'lucide-react';
 
@@ -17,33 +18,45 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
+import { auth, provider, signInWithPopup, signOut, onAuthStateChanged, User } from '@/lib/firebase';
 
 type AppHeaderProps = {
   onEnroll?: (code: string) => void;
 };
 
-// A mock user object. In a real app, this would come from your auth state.
-const user = null; // Initially, no user is logged in
-
 export default function AppHeader({ onEnroll }: AppHeaderProps) {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleEnroll = () => {
     if (onEnroll) {
-        onEnroll(invitationCode);
+      onEnroll(invitationCode);
     }
     setDialogOpen(false);
   };
   
-  const handleSignIn = () => {
-    // This is where we'll trigger the Google Sign-in flow later.
-    alert("Signing in with Google...");
+  const handleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+    }
   };
 
-  const handleSignOut = () => {
-    // This is where we'll trigger the sign-out flow later.
-    alert("Signing out...");
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out", error);
+    }
   };
 
   return (
@@ -60,7 +73,7 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://placehold.co/100x100" alt="User avatar" />
+                    <AvatarImage src={user.photoURL ?? "https://placehold.co/100x100"} alt="User avatar" />
                     <AvatarFallback>
                       <UserCircle />
                     </AvatarFallback>
@@ -71,9 +84,9 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Jane Doe</p>
+                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      jane.doe@example.com
+                      {user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
