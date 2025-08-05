@@ -14,6 +14,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -25,7 +36,8 @@ type AppHeaderProps = {
 };
 
 export default function AppHeader({ onEnroll }: AppHeaderProps) {
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isEnrollDialogOpen, setEnrollDialogOpen] = useState(false);
+  const [isAuthDialogOpen, setAuthDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
   const [user, setUser] = useState<User | null>(null);
 
@@ -40,10 +52,11 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
     if (onEnroll) {
       onEnroll(invitationCode);
     }
-    setDialogOpen(false);
+    setEnrollDialogOpen(false);
   };
   
   const handleSignIn = async () => {
+    setAuthDialogOpen(false);
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
@@ -94,7 +107,7 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
                     <span>Clinic View</span>
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDialogOpen(true)}>
+                <DropdownMenuItem onClick={() => setEnrollDialogOpen(true)}>
                   <Building className="mr-2 h-4 w-4" />
                   <span>Enroll in Clinic</span>
                 </DropdownMenuItem>
@@ -110,14 +123,31 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-             <Button onClick={handleSignIn}>
+             <Button onClick={() => setAuthDialogOpen(true)}>
               Sign in with Google
             </Button>
           )}
         </div>
       </header>
+      
+      <AlertDialog open={isAuthDialogOpen} onOpenChange={setAuthDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Connect to Google Fit</AlertDialogTitle>
+            <AlertDialogDescription>
+              To personalize your dashboard with your activity data, this app needs to connect to your Google Fit account. 
+              By continuing, you will be asked to grant permission to view your fitness data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSignIn}>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+
+      <Dialog open={isEnrollDialogOpen} onOpenChange={setEnrollDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Enroll in a Clinic</DialogTitle>
