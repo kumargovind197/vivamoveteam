@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { HeartPulse, UserCircle, Building, Settings, LogOut, ChevronDown } from 'lucide-react';
 
@@ -29,24 +29,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
-import { auth, provider, signInWithPopup, signOut, onAuthStateChanged, User } from '@/lib/firebase';
+import { auth, provider, signInWithPopup, signOut, User } from '@/lib/firebase';
 
 type AppHeaderProps = {
   onEnroll?: (code: string) => void;
+  user: User | null;
 };
 
-export default function AppHeader({ onEnroll }: AppHeaderProps) {
+export default function AppHeader({ onEnroll, user }: AppHeaderProps) {
   const [isEnrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [isAuthDialogOpen, setAuthDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const handleEnroll = () => {
     if (onEnroll) {

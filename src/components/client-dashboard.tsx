@@ -1,23 +1,25 @@
 
 "use client";
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Building, Footprints, Timer, Flame, TrendingUp } from 'lucide-react';
 import ActivityChart from '@/components/activity-chart';
+import { User } from '@/lib/firebase';
+import DataCards from './data-cards';
 
-const dailyStepsData = [
-  { time: '12am', steps: 10 }, { time: '3am', steps: 20 }, { time: '6am', steps: 150 },
-  { time: '9am', steps: 800 }, { time: '12pm', steps: 1200 }, { time: '3pm', steps: 2500 },
-  { time: '6pm', steps: 4000 }, { time: '9pm', steps: 5200 },
-];
 
 const weeklyExerciseData = [
   { day: 'Mon', Running: 30, Walking: 60 }, { day: 'Tue', Running: 45, Walking: 50 },
   { day: 'Wed', Running: 20, Walking: 70 }, { day: 'Thu', Running: 60, Walking: 40 },
   { day: 'Fri', Running: 35, Walking: 80 }, { day: 'Sat', Running: 75, Walking: 30 },
   { day: 'Sun', Running: 15, Walking: 90 },
+];
+
+const dailyStepsData = [
+  { time: '12am', steps: 10 }, { time: '3am', steps: 20 }, { time: '6am', steps: 150 },
+  { time: '9am', steps: 800 }, { time: '12pm', steps: 1200 }, { time: '3pm', steps: 2500 },
+  { time: '6pm', steps: 4000 }, { time: '9pm', steps: 5200 },
 ];
 
 const monthlyStepsData = [
@@ -36,9 +38,10 @@ const chartConfigExercise = {
 
 type ClientDashboardProps = {
   isEnrolled: boolean;
+  user: User | null;
 };
 
-export default function ClientDashboard({ isEnrolled }: ClientDashboardProps) {
+export default function ClientDashboard({ isEnrolled, user }: ClientDashboardProps) {
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -65,38 +68,7 @@ export default function ClientDashboard({ isEnrolled }: ClientDashboardProps) {
         </TabsList>
         
         <TabsContent value="daily">
-          <div className="grid gap-6 md:grid-cols-3">
-              <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Steps</CardTitle>
-                      <Footprints className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                      <div className="text-2xl font-bold">5,231</div>
-                      <p className="text-xs text-muted-foreground">+801 since yesterday</p>
-                  </CardContent>
-              </Card>
-               <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Time</CardTitle>
-                      <Timer className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                      <div className="text-2xl font-bold">1h 12m</div>
-                      <p className="text-xs text-muted-foreground">+15m from yesterday</p>
-                  </CardContent>
-              </Card>
-               <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Calories Burned</CardTitle>
-                      <Flame className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                      <div className="text-2xl font-bold">345</div>
-                      <p className="text-xs text-muted-foreground">+50 kcal from yesterday</p>
-                  </CardContent>
-              </Card>
-          </div>
+          <DataCards user={user} />
           <div className="mt-6">
               <Card>
                   <CardHeader>

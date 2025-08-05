@@ -1,15 +1,25 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppHeader from '@/components/app-header';
 import ClientDashboard from '@/components/client-dashboard';
 import AdBanner from '@/components/ad-banner';
 import { useToast } from '@/hooks/use-toast';
+import { auth, onAuthStateChanged, User } from '@/lib/firebase';
+
 
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleEnrollment = (code: string) => {
     // In a real app, you'd validate the code against a backend service
@@ -30,9 +40,9 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader onEnroll={handleEnrollment} />
+      <AppHeader onEnroll={handleEnrollment} user={user} />
       <main className="flex-1">
-        <ClientDashboard isEnrolled={isEnrolled} />
+        <ClientDashboard isEnrolled={isEnrolled} user={user} />
       </main>
       <AdBanner />
     </div>
