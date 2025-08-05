@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import ActivityChart from '@/components/activity-chart';
 import { User } from '@/lib/firebase';
 import { Progress } from './ui/progress';
-import { Footprints, Flame, Target, Trophy, CalendarDays,TrendingUp } from 'lucide-react';
+import { Footprints, Flame, Target, Trophy, CalendarDays,TrendingUp, Activity } from 'lucide-react';
 import ProgressRing from './progress-ring';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -21,7 +21,9 @@ const weeklyStepsData = [
     { day: 'Sun', steps: 6000 },
 ];
 
-const generateMonthlyData = (goal: number) => {
+const DAILY_MINUTE_GOAL = 30;
+
+const generateMonthlyData = (stepGoal: number, minuteGoal: number) => {
     const data = [];
     const daysInMonth = 30;
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -30,7 +32,8 @@ const generateMonthlyData = (goal: number) => {
         data.push({
             day: dayNames[date.getDay()],
             date: i,
-            steps: Math.floor(Math.random() * (goal * 1.5))
+            steps: Math.floor(Math.random() * (stepGoal * 1.5)),
+            activeMinutes: Math.floor(Math.random() * (minuteGoal * 2)),
         });
     }
     return data;
@@ -39,6 +42,10 @@ const generateMonthlyData = (goal: number) => {
 const chartConfigSteps = {
   steps: { label: "Steps", color: "hsl(var(--accent))" },
 };
+
+const chartConfigMinutes = {
+  activeMinutes: { label: "Active Minutes", color: "hsl(var(--chart-2))" },
+}
 
 const chartConfigDailyAverage = {
     steps: { label: "Avg Steps", color: "hsl(var(--primary))" },
@@ -52,9 +59,6 @@ type ClientDashboardProps = {
       activeMinutes: number | null;
   }
 };
-
-
-const DAILY_MINUTE_GOAL = 30;
 
 export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDashboardProps) {
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
@@ -75,7 +79,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const getRingColor = (progress: number) => {
     if (progress < 40) return "hsl(var(--destructive))";
     if (progress < 80) return "hsl(36, 83%, 50%)"; // amber
-    return "hsl(142.1, 76.2%, 36.3%)"; // primary green
+    return "hsl(var(--primary))";
   }
 
   const handleSaveGoal = () => {
@@ -85,16 +89,29 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
 
   const weeklyAverage = Math.round(weeklyStepsData.reduce((acc, curr) => acc + curr.steps, 0) / weeklyStepsData.length);
   
-  const monthlyData = generateMonthlyData(dailyStepGoal);
+  const monthlyData = generateMonthlyData(dailyStepGoal, DAILY_MINUTE_GOAL);
+  
   const monthlyTotalSteps = monthlyData.reduce((acc, curr) => acc + curr.steps, 0);
-  const monthlyAverage = Math.round(monthlyTotalSteps / monthlyData.length);
-  const daysGoalMet = monthlyData.filter(day => day.steps >= dailyStepGoal).length;
+  const monthlyAverageSteps = Math.round(monthlyTotalSteps / monthlyData.length);
+  const daysStepGoalMet = monthlyData.filter(day => day.steps >= dailyStepGoal).length;
+  
+  const monthlyTotalMinutes = monthlyData.reduce((acc, curr) => acc + curr.activeMinutes, 0);
+  const monthlyAverageMinutes = Math.round(monthlyTotalMinutes / monthlyData.length);
+  const daysMinuteGoalMet = monthlyData.filter(day => day.activeMinutes >= DAILY_MINUTE_GOAL).length;
+
   
   const averageStepsByDay = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => {
       const days = monthlyData.filter(d => d.day === dayName);
       const total = days.reduce((acc, curr) => acc + curr.steps, 0);
       const avg = days.length > 0 ? Math.round(total / days.length) : 0;
       return { day: dayName, steps: avg };
+  });
+
+  const averageMinutesByDay = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => {
+      const days = monthlyData.filter(d => d.day === dayName);
+      const total = days.reduce((acc, curr) => acc + curr.activeMinutes, 0);
+      const avg = days.length > 0 ? Math.round(total / days.length) : 0;
+      return { day: dayName, activeMinutes: avg };
   });
 
 
@@ -134,7 +151,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
               </Button>
             </CardHeader>
             <CardContent>
-              <Progress value={stepProgress} indicatorClassName={getProgressColorClass(stepProgress)} trackClassName="bg-red-800/50" />
+              <Progress value={stepProgress} trackClassName='bg-red-800/20' indicatorClassName={getProgressColorClass(stepProgress)} />
               <div className="mt-2 flex justify-between text-xs text-muted-foreground">
                 <span>Goal: {dailyStepGoal.toLocaleString()}</span>
                 <span>{Math.round(stepProgress)}%</span>
@@ -177,7 +194,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
           </TabsContent>
 
           <TabsContent value="monthly">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Steps</CardTitle>
@@ -190,27 +207,27 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Daily Average</CardTitle>
+                        <CardTitle className="text-sm font-medium">Daily Step Average</CardTitle>
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{monthlyAverage.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">{monthlyAverageSteps.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">steps per day</p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Goals Met</CardTitle>
+                        <CardTitle className="text-sm font-medium">Step Goals Met</CardTitle>
                         <Trophy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{daysGoalMet} / {monthlyData.length}</div>
+                        <div className="text-2xl font-bold">{daysStepGoalMet} / {monthlyData.length}</div>
                         <p className="text-xs text-muted-foreground">days you reached your goal</p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Current Goal</CardTitle>
+                        <CardTitle className="text-sm font-medium">Current Step Goal</CardTitle>
                         <Target className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -219,14 +236,65 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                     </CardContent>
                 </Card>
             </div>
-            <div className="mt-6">
+             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Active Minutes</CardTitle>
+                        <Activity className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{monthlyTotalMinutes.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">in the last 30 days</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Daily Minute Average</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{monthlyAverageMinutes.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">minutes per day</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Minute Goals Met</CardTitle>
+                        <Trophy className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{daysMinuteGoalMet} / {monthlyData.length}</div>
+                        <p className="text-xs text-muted-foreground">days you reached your goal</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Current Minute Goal</CardTitle>
+                        <Target className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{DAILY_MINUTE_GOAL.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">minutes per day</p>
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 mt-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Daily Averages by Weekday</CardTitle>
-                        <CardDescription>See your average step count for each day of the week over the last month.</CardDescription>
+                        <CardTitle>Daily Averages by Weekday (Steps)</CardTitle>
+                        <CardDescription>Your average step count for each day of the week over the last month.</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[350px]">
                         <ActivityChart data={averageStepsByDay} config={chartConfigDailyAverage} dataKey="steps" timeKey="day" type="bar" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Daily Averages by Weekday (Minutes)</CardTitle>
+                        <CardDescription>Your average active minutes for each day of the week over the last month.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[350px]">
+                        <ActivityChart data={averageMinutesByDay} config={chartConfigMinutes} dataKey="activeMinutes" timeKey="day" type="bar" />
                     </CardContent>
                 </Card>
             </div>
