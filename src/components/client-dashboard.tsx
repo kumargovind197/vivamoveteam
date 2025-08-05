@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import ActivityChart from '@/components/activity-chart';
 import { User } from '@/lib/firebase';
-import DataCards from './data-cards';
+import { Progress } from './ui/progress';
+import { Footprints, Flame } from 'lucide-react';
+import ProgressRing from './progress-ring';
 
 
 const weeklyExerciseData = [
@@ -14,12 +16,6 @@ const weeklyExerciseData = [
   { day: 'Wed', Running: 20, Walking: 70 }, { day: 'Thu', Running: 60, Walking: 40 },
   { day: 'Fri', Running: 35, Walking: 80 }, { day: 'Sat', Running: 75, Walking: 30 },
   { day: 'Sun', Running: 15, Walking: 90 },
-];
-
-const dailyStepsData = [
-  { time: '12am', steps: 10 }, { time: '3am', steps: 20 }, { time: '6am', steps: 150 },
-  { time: '9am', steps: 800 }, { time: '12pm', steps: 1200 }, { time: '3pm', steps: 2500 },
-  { time: '6pm', steps: 4000 }, { time: '9pm', steps: 5200 },
 ];
 
 const monthlyStepsData = [
@@ -39,9 +35,28 @@ const chartConfigExercise = {
 type ClientDashboardProps = {
   isEnrolled: boolean;
   user: User | null;
+  fitData: {
+      steps: number | null;
+      activeMinutes: number | null;
+  }
 };
 
-export default function ClientDashboard({ isEnrolled, user }: ClientDashboardProps) {
+const DAILY_STEP_GOAL = 10000;
+const DAILY_MINUTE_GOAL = 30;
+
+export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDashboardProps) {
+
+  const { steps, activeMinutes } = fitData;
+
+  const stepProgress = steps ? (steps / DAILY_STEP_GOAL) * 100 : 0;
+  const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
+  
+  const getProgressColor = (progress: number) => {
+    if (progress >= 100) return "bg-primary";
+    if (progress > 50) return "bg-accent";
+    return "bg-secondary";
+  };
+  
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -50,7 +65,7 @@ export default function ClientDashboard({ isEnrolled, user }: ClientDashboardPro
               <p className="text-muted-foreground">Here's your activity summary.</p>
           </div>
           {isEnrolled && (
-              <Card className="flex items-center gap-4 p-4">
+              <Card className="flex items-center gap-4 p-4 bg-transparent border-muted">
                   <Image data-ai-hint="medical logo" src="https://placehold.co/64x64.png" alt="Clinic Logo" width={64} height={64} className="rounded-md" />
                   <div>
                       <p className="text-sm text-muted-foreground">Enrolled with</p>
@@ -60,28 +75,48 @@ export default function ClientDashboard({ isEnrolled, user }: ClientDashboardPro
           )}
       </div>
 
-      <Tabs defaultValue="daily" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:w-[400px]">
-          <TabsTrigger value="daily">Daily</TabsTrigger>
+       <div className="grid gap-6 md:grid-cols-2 mb-6">
+        <Card className="bg-secondary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Daily Steps</span>
+              <Footprints className="h-6 w-6 text-muted-foreground" />
+            </CardTitle>
+            <CardDescription>
+              You've walked {steps?.toLocaleString() ?? 0} steps today.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Progress value={stepProgress} indicatorClassName={getProgressColor(stepProgress)} />
+            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+              <span>Goal: {DAILY_STEP_GOAL.toLocaleString()}</span>
+              <span>{Math.round(stepProgress)}%</span>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-secondary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Active Minutes</span>
+              <Flame className="h-6 w-6 text-muted-foreground" />
+            </CardTitle>
+            <CardDescription>
+              Your goal is {DAILY_MINUTE_GOAL} active minutes today.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center">
+             <ProgressRing progress={minuteProgress} />
+          </CardContent>
+        </Card>
+      </div>
+
+
+      <Tabs defaultValue="weekly" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
           <TabsTrigger value="weekly">Weekly</TabsTrigger>
           <TabsTrigger value="monthly">Monthly</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="daily">
-          <DataCards user={user} />
-          <div className="mt-6">
-              <Card>
-                  <CardHeader>
-                      <CardTitle>Today's Steps</CardTitle>
-                      <CardDescription>A summary of your steps throughout the day.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-[350px]">
-                      <ActivityChart data={dailyStepsData} config={chartConfigSteps} dataKey="steps" timeKey="time" type="bar" />
-                  </CardContent>
-              </Card>
-          </div>
-        </TabsContent>
-
         <TabsContent value="weekly">
            <Card>
               <CardHeader>

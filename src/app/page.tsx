@@ -7,22 +7,26 @@ import ClientDashboard from '@/components/client-dashboard';
 import AdBanner from '@/components/ad-banner';
 import { useToast } from '@/hooks/use-toast';
 import { auth, onAuthStateChanged, User } from '@/lib/firebase';
+import DataCards from '@/components/data-cards';
 
 
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
   const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (!currentUser) {
+        setFitData({ steps: null, activeMinutes: null });
+      }
     });
     return () => unsubscribe();
   }, []);
 
   const handleEnrollment = (code: string) => {
-    // In a real app, you'd validate the code against a backend service
     if (code) {
       setIsEnrolled(true);
       toast({
@@ -42,7 +46,8 @@ export default function Home() {
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader onEnroll={handleEnrollment} user={user} />
       <main className="flex-1">
-        <ClientDashboard isEnrolled={isEnrolled} user={user} />
+        <DataCards user={user} onDataFetched={setFitData} />
+        <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} />
       </main>
       <AdBanner />
     </div>

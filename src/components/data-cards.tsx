@@ -3,12 +3,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Footprints, Timer, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { User } from 'firebase/auth';
 import { Skeleton } from './ui/skeleton';
 
 interface DataCardsProps {
   user: User | null;
+  onDataFetched: (data: { steps: number | null, activeMinutes: number | null }) => void;
 }
 
 const STATS_API_URL = "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate";
@@ -24,15 +25,14 @@ const getNow = () => {
     return new Date().getTime();
 }
 
-export default function DataCards({ user }: DataCardsProps) {
-  const [steps, setSteps] = useState<number | null>(null);
-  const [activeMinutes, setActiveMinutes] = useState<number | null>(null);
+export default function DataCards({ user, onDataFetched }: DataCardsProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
       setLoading(false);
+      onDataFetched({ steps: null, activeMinutes: null });
       return;
     }
 
@@ -72,16 +72,14 @@ export default function DataCards({ user }: DataCardsProps) {
 
         const data = await response.json();
 
-        // Extract steps
-        const stepsBucket = data.bucket[0]?.dataset[0]?.point[0];
-        setSteps(stepsBucket?.value[0]?.intVal || 0);
+        const steps = data.bucket[0]?.dataset[0]?.point[0]?.value[0]?.intVal || 0;
+        const activeMinutes = data.bucket[0]?.dataset[1]?.point[0]?.value[0]?.intVal || 0;
 
-        // Extract active minutes
-        const activeMinutesBucket = data.bucket[0]?.dataset[1]?.point[0];
-        setActiveMinutes(activeMinutesBucket?.value[0]?.intVal || 0);
+        onDataFetched({ steps, activeMinutes });
 
       } catch (err: any) {
         setError(err.message);
+        onDataFetched({ steps: null, activeMinutes: null });
         console.error(err);
       } finally {
         setLoading(false);
@@ -89,85 +87,40 @@ export default function DataCards({ user }: DataCardsProps) {
     };
 
     fetchFitData();
-  }, [user]);
-
-  if (!user) {
-      return (
-        <Card className="mb-6 bg-yellow-50 border-yellow-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-yellow-800">Sign in to view your data</CardTitle>
-                <AlertCircle className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-yellow-700">Please sign in with your Google account to see your personalized fitness data from Google Fit.</p>
-            </CardContent>
-        </Card>
-      )
-  }
-
-  if (loading) {
-      return (
-          <div className="grid gap-6 md:grid-cols-2 mb-6">
-              <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Steps</CardTitle>
-                      <Footprints className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                      <Skeleton className="h-8 w-24" />
-                      <Skeleton className="h-4 w-32 mt-1" />
-                  </CardContent>
-              </Card>
-              <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Time</CardTitle>
-                      <Timer className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                      <Skeleton className="h-8 w-24" />
-                      <Skeleton className="h-4 w-32 mt-1" />
-                  </CardContent>
-              </Card>
-          </div>
-      )
-  }
-
+  }, [user, onDataFetched]);
+  
   if (error) {
       return (
-         <Card className="mb-6 bg-red-50 border-red-200">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-red-800">Error Fetching Data</CardTitle>
-                <AlertCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-red-700">Could not retrieve data from Google Fit. Please ensure you have granted permissions and have data available. Error: {error}</p>
-            </CardContent>
-        </Card>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <Card className="mb-6 bg-red-900/50 border-red-500/30">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-red-200">Error Fetching Data</CardTitle>
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-red-300">Could not retrieve data from Google Fit. Please ensure you have granted permissions and have data available. Error: {error}</p>
+                </CardContent>
+            </Card>
+        </div>
+      )
+  }
+  
+  if (!user && !loading) {
+       return (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <Card className="mb-6 bg-yellow-900/50 border-yellow-500/30">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-yellow-200">Sign in to view your data</CardTitle>
+                    <AlertCircle className="h-4 w-4 text-yellow-400" />
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-yellow-300">Please sign in with your Google account to see your personalized fitness data from Google Fit.</p>
+                </CardContent>
+            </Card>
+        </div>
       )
   }
 
-  return (
-    <div className="grid gap-6 md:grid-cols-2 mb-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Steps</CardTitle>
-          <Footprints className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{steps?.toLocaleString() ?? '0'}</div>
-          <p className="text-xs text-muted-foreground">Today</p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Time</CardTitle>
-          <Timer className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{activeMinutes ?? '0'}m</div>
-          <p className="text-xs text-muted-foreground">Today</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+
+  return null; // This component now only fetches data and shows errors, display is handled in ClientDashboard
 }
