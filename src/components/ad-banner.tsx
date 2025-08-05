@@ -1,14 +1,22 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { X } from 'lucide-react';
 
-export default function AdBanner() {
-  const [isVisible, setIsVisible] = useState(true);
+interface AdBannerProps {
+  isPopupVisible: boolean;
+}
+
+export default function AdBanner({ isPopupVisible }: AdBannerProps) {
+  const [isVisible, setIsVisible] = useState(isPopupVisible);
+
+  useEffect(() => {
+    setIsVisible(isPopupVisible);
+  }, [isPopupVisible]);
 
   if (!isVisible) {
     return null;

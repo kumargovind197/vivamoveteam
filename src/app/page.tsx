@@ -8,12 +8,14 @@ import AdBanner from '@/components/ad-banner';
 import { useToast } from '@/hooks/use-toast';
 import { auth, onAuthStateChanged, User } from '@/lib/firebase';
 import DataCards from '@/components/data-cards';
+import FooterAdBanner from '@/components/footer-ad-banner';
 
 
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
+  const [showPopupAd, setShowPopupAd] = useState(true); // Admin toggle for popup
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,7 +51,8 @@ export default function Home() {
         <DataCards user={user} onDataFetched={setFitData} />
         <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} />
       </main>
-      <AdBanner />
+      <AdBanner isPopupVisible={showPopupAd} />
+      <FooterAdBanner />
     </div>
   );
 }
