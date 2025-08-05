@@ -135,8 +135,7 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Connect to Google Fit</AlertDialogTitle>
             <AlertDialogDescription>
-              To personalize your dashboard with your activity data, this app needs to connect to your Google Fit account. 
-              By continuing, you will be asked to grant permission to view your fitness data.
+              To personalize your activity and fitness support we can provide and tailor it to your needs, this app will need to connect to your Google Fit account ONLY. We will never have access to any other information or personal data on your phone. By continuing, you will be asked to grant permission to view your fitness data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
