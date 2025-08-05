@@ -14,7 +14,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({ progress }) => {
     { name: 'Remaining', value: 100 - safeProgress },
   ];
   
-  const color = safeProgress >= 100 ? 'hsl(var(--primary))' : 'hsl(var(--accent))';
+  const color = safeProgress >= 80 ? 'hsl(var(--primary))' : 'hsl(var(--accent))';
 
   return (
     <div style={{ width: '150px', height: '150px', position: 'relative' }}>

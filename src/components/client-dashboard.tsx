@@ -52,9 +52,8 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
   
   const getProgressColor = (progress: number) => {
-    if (progress >= 100) return "bg-primary";
-    if (progress > 50) return "bg-accent";
-    return "bg-secondary";
+    if (progress >= 80) return "bg-primary";
+    return "bg-accent";
   };
   
   return (
