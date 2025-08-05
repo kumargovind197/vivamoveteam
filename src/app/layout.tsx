@@ -5,6 +5,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'ViVa move',
   description: 'Your personal health and activity tracker.',
+  manifest: '/manifest.ts',
 };
 
 export default function RootLayout({
