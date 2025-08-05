@@ -1,7 +1,7 @@
 
 "use client"
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceArea } from 'recharts';
+import { Line, LineChart, Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceArea, ReferenceLine } from 'recharts';
 import { ChartTooltip, ChartTooltipContent, ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { ChartLegend, ChartLegendContent } from './ui/chart';
 
@@ -12,6 +12,7 @@ interface ActivityChartProps {
   timeKey: string;
   type: 'bar' | 'line';
   showGoalBands?: boolean;
+  average?: number;
 }
 
 const GOAL_THRESHOLDS = {
@@ -20,8 +21,8 @@ const GOAL_THRESHOLDS = {
     green: { y1: 8000, y2: 15000, color: "hsl(var(--primary), 0.1)" }, // Assuming max goal is ~15k steps
 };
 
-export default function ActivityChart({ data, config, dataKey, timeKey, type, showGoalBands = false }: ActivityChartProps) {
-  const ChartComponent = type === 'bar' ? BarChart : BarChart; // Defaulting to BarChart as line is removed
+export default function ActivityChart({ data, config, dataKey, timeKey, type, showGoalBands = false, average }: ActivityChartProps) {
+  const ChartComponent = type === 'line' ? LineChart : BarChart;
   
   return (
     <ChartContainer config={config} className="h-full w-full">
@@ -51,7 +52,15 @@ export default function ActivityChart({ data, config, dataKey, timeKey, type, sh
               </>
           )}
 
-          <Bar dataKey={dataKey} fill={`var(--color-${dataKey})`} radius={4} />
+          {type === 'line' ? (
+            <Line dataKey={dataKey} type="monotone" stroke={`var(--color-${dataKey})`} strokeWidth={2} dot={{ r: 4, fill: `var(--color-${dataKey})` }} />
+          ) : (
+            <Bar dataKey={dataKey} fill={`var(--color-${dataKey})`} radius={4} />
+          )}
+
+          {average && (
+            <ReferenceLine y={average} label={{ value: `Avg: ${average.toLocaleString()}`, position: 'insideTopLeft' }} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+          )}
 
         </ChartComponent>
       </ResponsiveContainer>

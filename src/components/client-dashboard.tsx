@@ -46,18 +46,21 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const stepProgress = steps ? (steps / DAILY_STEP_GOAL) * 100 : 0;
   const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
   
-   const getProgressColorClass = (progress: number) => {
-    if (progress >= 80) return "bg-primary"; // Green
-    if (progress >= 40) return "bg-yellow-400"; // Yellow
-    return "bg-amber-500"; // Amber
+  const getProgressColorClass = (progress: number) => {
+    if (progress >= 80) return "bg-primary";
+    if (progress >= 40) return "bg-yellow-400";
+    return "bg-amber-500";
   };
-
-  const getRingColor = (progress: number) => {
-    if (progress >= 80) return "hsl(var(--primary))"; // Green
-    if (progress >= 40) return "hsl(48, 96%, 50%)"; // Yellow
-    return "hsl(36, 83%, 50%)"; // Amber
-  }
   
+  const getRingColor = (progress: number) => {
+    if (progress >= 80) return "hsl(var(--primary))";
+    if (progress >= 40) return "hsl(48, 96%, 50%)";
+    return "hsl(36, 83%, 50%)";
+  }
+
+  const weeklyAverage = Math.round(weeklyStepsData.reduce((acc, curr) => acc + curr.steps, 0) / weeklyStepsData.length);
+  const monthlyAverage = Math.round(monthlyStepsData.reduce((acc, curr) => acc + curr.steps, 0) / (monthlyStepsData.length * 7));
+
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -122,10 +125,10 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
            <Card>
               <CardHeader>
                   <CardTitle>This Week's Steps</CardTitle>
-                  <CardDescription>Your daily step count for the last 7 days.</CardDescription>
+                  <CardDescription>Your daily step count for the last 7 days. Your daily average was {weeklyAverage.toLocaleString()} steps.</CardDescription>
               </CardHeader>
               <CardContent className="h-[350px]">
-                   <ActivityChart data={weeklyStepsData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="bar" showGoalBands={true} />
+                   <ActivityChart data={weeklyStepsData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" showGoalBands={true} average={weeklyAverage} />
               </CardContent>
           </Card>
         </TabsContent>
@@ -134,10 +137,10 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
           <Card>
               <CardHeader>
                   <CardTitle>This Month's Progress</CardTitle>
-                  <CardDescription>Your total step count over the last four weeks.</CardDescription>
+                  <CardDescription>Your total step count over the last four weeks. Your daily average was {monthlyAverage.toLocaleString()} steps.</CardDescription>
               </CardHeader>
               <CardContent className="h-[350px]">
-                   <ActivityChart data={monthlyStepsData} config={chartConfigSteps} dataKey="steps" timeKey="week" type="bar" />
+                   <ActivityChart data={monthlyStepsData} config={chartConfigSteps} dataKey="steps" timeKey="week" type="bar" average={monthlyAverage * 7} />
               </CardContent>
           </Card>
         </TabsContent>
