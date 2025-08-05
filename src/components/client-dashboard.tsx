@@ -11,11 +11,11 @@ import { Footprints, Flame } from 'lucide-react';
 import ProgressRing from './progress-ring';
 
 
-const weeklyExerciseData = [
-  { day: 'Mon', Running: 30, Walking: 60 }, { day: 'Tue', Running: 45, Walking: 50 },
-  { day: 'Wed', Running: 20, Walking: 70 }, { day: 'Thu', Running: 60, Walking: 40 },
-  { day: 'Fri', Running: 35, Walking: 80 }, { day: 'Sat', Running: 75, Walking: 30 },
-  { day: 'Sun', Running: 15, Walking: 90 },
+const weeklyStepsData = [
+    { day: 'Mon', steps: 3500 }, { day: 'Tue', steps: 4200 },
+    { day: 'Wed', steps: 7800 }, { day: 'Thu', steps: 9500 },
+    { day: 'Fri', steps: 2100 }, { day: 'Sat', steps: 11000 },
+    { day: 'Sun', steps: 6000 },
 ];
 
 const monthlyStepsData = [
@@ -25,11 +25,6 @@ const monthlyStepsData = [
 
 const chartConfigSteps = {
   steps: { label: "Steps", color: "hsl(var(--chart-1))" },
-};
-
-const chartConfigExercise = {
-  Running: { label: "Running", color: "hsl(var(--chart-1))" },
-  Walking: { label: "Walking", color: "hsl(var(--chart-2))" },
 };
 
 type ClientDashboardProps = {
@@ -51,10 +46,10 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const stepProgress = steps ? (steps / DAILY_STEP_GOAL) * 100 : 0;
   const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
   
-  const getProgressColorClass = (progress: number) => {
+   const getProgressColorClass = (progress: number) => {
     if (progress >= 80) return "bg-primary"; // Green
     if (progress >= 40) return "bg-yellow-400"; // Yellow
-    return "bg-yellow-500"; // Amber
+    return "bg-amber-500"; // Amber
   };
 
   const getRingColor = (progress: number) => {
@@ -93,7 +88,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Progress value={stepProgress} indicatorClassName={getProgressColorClass(stepProgress)} trackClassName="bg-red-600" />
+            <Progress value={stepProgress} indicatorClassName={getProgressColorClass(stepProgress)} trackClassName="bg-red-800/50" />
             <div className="mt-2 flex justify-between text-xs text-muted-foreground">
               <span>Goal: {DAILY_STEP_GOAL.toLocaleString()}</span>
               <span>{Math.round(stepProgress)}%</span>
@@ -111,7 +106,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
-             <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} trackColor="hsl(0, 72%, 51%)" />
+             <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} trackColor="hsl(0, 72%, 51%, 0.2)" />
           </CardContent>
         </Card>
       </div>
@@ -126,11 +121,11 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
         <TabsContent value="weekly">
            <Card>
               <CardHeader>
-                  <CardTitle>This Week's Exercise</CardTitle>
-                  <CardDescription>Time spent on different exercises this week.</CardDescription>
+                  <CardTitle>This Week's Steps</CardTitle>
+                  <CardDescription>Your daily step count for the last 7 days.</CardDescription>
               </CardHeader>
               <CardContent className="h-[350px]">
-                   <ActivityChart data={weeklyExerciseData} config={chartConfigExercise} dataKey={["Running", "Walking"]} timeKey="day" type="line" />
+                   <ActivityChart data={weeklyStepsData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="bar" showGoalBands={true} />
               </CardContent>
           </Card>
         </TabsContent>
@@ -139,7 +134,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
           <Card>
               <CardHeader>
                   <CardTitle>This Month's Progress</CardTitle>
-                  <CardDescription>Your step count progress over the last four weeks.</CardDescription>
+                  <CardDescription>Your total step count over the last four weeks.</CardDescription>
               </CardHeader>
               <CardContent className="h-[350px]">
                    <ActivityChart data={monthlyStepsData} config={chartConfigSteps} dataKey="steps" timeKey="week" type="bar" />
