@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import ActivityChart from '@/components/activity-chart';
 import { User } from '@/lib/firebase';
 import { Progress } from './ui/progress';
-import { Footprints, Flame, Settings } from 'lucide-react';
+import { Footprints, Flame } from 'lucide-react';
 import ProgressRing from './progress-ring';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -27,7 +27,7 @@ const monthlyStepsData = [
 ];
 
 const chartConfigSteps = {
-  steps: { label: "Steps", color: "hsl(var(--chart-1))" },
+  steps: { label: "Steps", color: "hsl(var(--accent))" },
 };
 
 type ClientDashboardProps = {
@@ -53,15 +53,15 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
   
   const getProgressColorClass = (progress: number) => {
-    if (progress >= 80) return "bg-green-500";
-    if (progress >= 40) return "bg-yellow-400";
-    return "bg-amber-500";
+    if (progress < 40) return "bg-amber-500";
+    if (progress < 80) return "bg-yellow-400";
+    return "bg-green-500";
   };
   
   const getRingColor = (progress: number) => {
-    if (progress >= 80) return "hsl(142.1, 76.2%, 36.3%)"; // primary green
-    if (progress >= 40) return "hsl(48, 96%, 50%)";
-    return "hsl(36, 83%, 50%)";
+    if (progress < 40) return "hsl(36, 83%, 50%)"; // amber
+    if (progress < 80) return "hsl(48, 96%, 50%)"; // yellow
+    return "hsl(142.1, 76.2%, 36.3%)"; // primary green
   }
 
   const handleSaveGoal = () => {
@@ -93,19 +93,19 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
 
         <div className="grid gap-6 md:grid-cols-2 mb-6">
           <Card className="bg-secondary/50">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Footprints className="h-6 w-6 text-muted-foreground" />
-                  <span>Daily Steps</span>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setGoalDialogOpen(true)}>
-                  <Settings className="h-5 w-5 text-muted-foreground" />
-                </Button>
-              </CardTitle>
-              <CardDescription>
-                You've walked {steps?.toLocaleString() ?? 0} steps today.
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <CardTitle className="flex items-center gap-2">
+                    <Footprints className="h-6 w-6 text-muted-foreground" />
+                    <span>Daily Steps</span>
+                </CardTitle>
+                <CardDescription>
+                  You've walked {steps?.toLocaleString() ?? 0} steps today.
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setGoalDialogOpen(true)}>
+                Change Goal
+              </Button>
             </CardHeader>
             <CardContent>
               <Progress value={stepProgress} indicatorClassName={getProgressColorClass(stepProgress)} trackClassName="bg-red-800/50" />
@@ -145,7 +145,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                     <CardDescription>Your daily step count for the last 7 days. Your daily average was {weeklyAverage.toLocaleString()} steps.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[350px]">
-                    <ActivityChart data={weeklyStepsData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" showGoalBands={true} average={weeklyAverage} />
+                    <ActivityChart data={weeklyStepsData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" showGoalBands={true} average={weeklyAverage} goal={dailyStepGoal} />
                 </CardContent>
             </Card>
           </TabsContent>
@@ -157,7 +157,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                     <CardDescription>Your total step count over the last four weeks. Your daily average was {monthlyAverage.toLocaleString()} steps.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[350px]">
-                    <ActivityChart data={monthlyStepsData} config={chartConfigSteps} dataKey="steps" timeKey="week" type="bar" average={monthlyAverage * 7} />
+                    <ActivityChart data={monthlyStepsData} config={chartConfigSteps} dataKey="steps" timeKey="week" type="bar" average={monthlyAverage * 7} goal={dailyStepGoal * 7} />
                 </CardContent>
             </Card>
           </TabsContent>

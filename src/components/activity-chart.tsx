@@ -13,6 +13,7 @@ interface ActivityChartProps {
   type: 'bar' | 'line';
   showGoalBands?: boolean;
   average?: number;
+  goal?: number;
 }
 
 const GOAL_THRESHOLDS = {
@@ -21,7 +22,7 @@ const GOAL_THRESHOLDS = {
     green: { y1: 8000, y2: 15000, color: "hsl(var(--primary), 0.1)" }, // Assuming max goal is ~15k steps
 };
 
-export default function ActivityChart({ data, config, dataKey, timeKey, type, showGoalBands = false, average }: ActivityChartProps) {
+export default function ActivityChart({ data, config, dataKey, timeKey, type, showGoalBands = false, average, goal }: ActivityChartProps) {
   const ChartComponent = type === 'line' ? LineChart : BarChart;
   
   return (
@@ -60,6 +61,10 @@ export default function ActivityChart({ data, config, dataKey, timeKey, type, sh
 
           {average && (
             <ReferenceLine y={average} label={{ value: `Avg: ${average.toLocaleString()}`, position: 'insideTopLeft' }} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+          )}
+
+          {goal && (
+             <ReferenceLine y={goal} label={{ value: `Goal: ${goal.toLocaleString()}`, position: 'insideTopLeft', fill: 'hsl(var(--primary-foreground))' }} stroke="hsl(var(--primary))" strokeDasharray="1 0" />
           )}
 
         </ChartComponent>
