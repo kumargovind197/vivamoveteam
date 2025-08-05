@@ -5,17 +5,16 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 interface ProgressRingProps {
   progress: number; // 0 to 100
+  color: string;
 }
 
-const ProgressRing: React.FC<ProgressRingProps> = ({ progress }) => {
+const ProgressRing: React.FC<ProgressRingProps> = ({ progress, color }) => {
   const safeProgress = Math.max(0, Math.min(100, progress));
   const data = [
     { name: 'Completed', value: safeProgress },
     { name: 'Remaining', value: 100 - safeProgress },
   ];
   
-  const color = safeProgress >= 80 ? 'hsl(var(--primary))' : 'hsl(var(--accent))';
-
   return (
     <div style={{ width: '150px', height: '150px', position: 'relative' }}>
       <ResponsiveContainer>

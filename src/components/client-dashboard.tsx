@@ -52,9 +52,16 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   const minuteProgress = activeMinutes ? (activeMinutes / DAILY_MINUTE_GOAL) * 100 : 0;
   
   const getProgressColor = (progress: number) => {
-    if (progress >= 80) return "bg-primary";
-    return "bg-accent";
+    if (progress >= 80) return "bg-primary"; // Green
+    if (progress >= 40) return "bg-yellow-500"; // Amber
+    return "bg-red-600"; // Red
   };
+
+  const getRingColor = (progress: number) => {
+    if (progress >= 80) return "hsl(var(--primary))"; // Green
+    if (progress >= 40) return "hsl(48, 96%, 50%)"; // Amber
+    return "hsl(0, 72%, 51%)"; // Red
+  }
   
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -104,7 +111,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
-             <ProgressRing progress={minuteProgress} />
+             <ProgressRing progress={minuteProgress} color={getRingColor(minuteProgress)} />
           </CardContent>
         </Card>
       </div>
