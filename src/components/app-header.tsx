@@ -22,6 +22,9 @@ type AppHeaderProps = {
   onEnroll?: (code: string) => void;
 };
 
+// A mock user object. In a real app, this would come from your auth state.
+const user = null; // Initially, no user is logged in
+
 export default function AppHeader({ onEnroll }: AppHeaderProps) {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
@@ -32,6 +35,16 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
     }
     setDialogOpen(false);
   };
+  
+  const handleSignIn = () => {
+    // This is where we'll trigger the Google Sign-in flow later.
+    alert("Signing in with Google...");
+  };
+
+  const handleSignOut = () => {
+    // This is where we'll trigger the sign-out flow later.
+    alert("Signing out...");
+  };
 
   return (
     <>
@@ -41,49 +54,56 @@ export default function AppHeader({ onEnroll }: AppHeaderProps) {
             <HeartPulse className="h-7 w-7 text-primary" />
             <span className="font-headline text-2xl font-bold text-primary">ViVa move</span>
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src="https://placehold.co/100x100" alt="User avatar" />
-                  <AvatarFallback>
-                    <UserCircle />
-                  </AvatarFallback>
-                </Avatar>
-                <ChevronDown className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-background text-primary" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">Jane Doe</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    jane.doe@example.com
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/clinic">
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src="https://placehold.co/100x100" alt="User avatar" />
+                    <AvatarFallback>
+                      <UserCircle />
+                    </AvatarFallback>
+                  </Avatar>
+                  <ChevronDown className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-background text-primary" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">Jane Doe</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      jane.doe@example.com
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/clinic">
+                    <Building className="mr-2 h-4 w-4" />
+                    <span>Clinic View</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDialogOpen(true)}>
                   <Building className="mr-2 h-4 w-4" />
-                  <span>Clinic View</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDialogOpen(true)}>
-                <Building className="mr-2 h-4 w-4" />
-                <span>Enroll in Clinic</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <span>Enroll in Clinic</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+             <Button onClick={handleSignIn}>
+              Sign in with Google
+            </Button>
+          )}
         </div>
       </header>
 
