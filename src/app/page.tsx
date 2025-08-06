@@ -47,7 +47,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader onEnroll={handleEnrollment} user={user} />
+      <AppHeader onEnroll={handleEnrollment} user={user} isEnrolled={isEnrolled} />
       <main className="flex-1">
         <DataCards user={user} onDataFetched={setFitData} />
         <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} />

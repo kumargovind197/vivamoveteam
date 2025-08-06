@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { HeartPulse, UserCircle, Building, Settings, LogOut, ChevronDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -30,13 +31,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
 import { auth, provider, signInWithPopup, signOut, User } from '@/lib/firebase';
+import { Separator } from './ui/separator';
 
 type AppHeaderProps = {
   onEnroll?: (code: string) => void;
   user: User | null;
+  isEnrolled?: boolean;
 };
 
-export default function AppHeader({ onEnroll, user }: AppHeaderProps) {
+export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHeaderProps) {
   const [isEnrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [isAuthDialogOpen, setAuthDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
@@ -69,9 +72,22 @@ export default function AppHeader({ onEnroll, user }: AppHeaderProps) {
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <HeartPulse className="h-7 w-7 text-primary" />
-            <span className="font-headline text-2xl font-bold text-primary">ViVa move</span>
+          <Link href="/" className="flex items-center gap-3">
+            {isEnrolled && (
+              <>
+                <Image 
+                  data-ai-hint="medical logo"
+                  src="https://placehold.co/40x40.png" 
+                  alt="Clinic Logo" 
+                  width={40} 
+                  height={40} 
+                  className="rounded-md"
+                />
+                <Separator orientation="vertical" className="h-8" />
+              </>
+            )}
+            <HeartPulse className="h-6 w-6 text-primary" />
+            <span className="font-headline text-xl font-bold text-primary">ViVa move</span>
           </Link>
 
           {user ? (
