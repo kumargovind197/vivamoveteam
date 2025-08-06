@@ -15,7 +15,7 @@ export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
-  const [showPopupAd, setShowPopupAd] = useState(true); // Admin toggle for popup
+  const [showPopupAd, setShowPopupAd] = useState(false); // Admin toggle for popup
   const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
   const { toast } = useToast();
 
