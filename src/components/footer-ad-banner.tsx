@@ -3,7 +3,15 @@ import Image from 'next/image';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
-export default function FooterAdBanner() {
+interface FooterAdBannerProps {
+  isVisible: boolean;
+}
+
+export default function FooterAdBanner({ isVisible }: FooterAdBannerProps) {
+  if (!isVisible) {
+    return null;
+  }
+
   return (
     <footer className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">

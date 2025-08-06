@@ -16,6 +16,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
   const [showPopupAd, setShowPopupAd] = useState(true); // Admin toggle for popup
+  const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,7 +53,7 @@ export default function Home() {
         <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} />
       </main>
       <AdBanner isPopupVisible={showPopupAd} />
-      <FooterAdBanner />
+      <FooterAdBanner isVisible={showFooterAd} />
     </div>
   );
 }
