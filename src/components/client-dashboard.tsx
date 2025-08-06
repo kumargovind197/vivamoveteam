@@ -57,11 +57,12 @@ type ClientDashboardProps = {
   fitData: {
       steps: number | null;
       activeMinutes: number | null;
-  }
+  };
+  dailyStepGoal: number;
+  onStepGoalChange: (goal: number) => void;
 };
 
-export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDashboardProps) {
-  const [dailyStepGoal, setDailyStepGoal] = useState(10000);
+export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGoal, onStepGoalChange }: ClientDashboardProps) {
   const [isGoalDialogOpen, setGoalDialogOpen] = useState(false);
   const [pendingStepGoal, setPendingStepGoal] = useState(dailyStepGoal);
 
@@ -83,7 +84,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
   }
 
   const handleSaveGoal = () => {
-    setDailyStepGoal(pendingStepGoal);
+    onStepGoalChange(pendingStepGoal);
     setGoalDialogOpen(false);
   }
 
@@ -146,7 +147,10 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
                   You've walked {steps?.toLocaleString() ?? 0} steps today.
                 </CardDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setGoalDialogOpen(true)}>
+              <Button variant="outline" size="sm" onClick={() => {
+                setPendingStepGoal(dailyStepGoal);
+                setGoalDialogOpen(true)
+              }}>
                 Change Goal
               </Button>
             </CardHeader>
@@ -315,5 +319,3 @@ export default function ClientDashboard({ isEnrolled, user, fitData }: ClientDas
     </>
   );
 }
-
-    

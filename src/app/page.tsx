@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth, onAuthStateChanged, User } from '@/lib/firebase';
 import DataCards from '@/components/data-cards';
 import FooterAdBanner from '@/components/footer-ad-banner';
+import NotificationManager from '@/components/notification-manager';
 
 
 export default function Home() {
@@ -18,6 +19,7 @@ export default function Home() {
   const [showPopupAd, setShowPopupAd] = useState(false); // Admin toggle for popup
   const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
   const { toast } = useToast();
+  const [dailyStepGoal, setDailyStepGoal] = useState(10000);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -50,8 +52,13 @@ export default function Home() {
       <AppHeader onEnroll={handleEnrollment} user={user} isEnrolled={isEnrolled} />
       <main className="flex-1">
         <DataCards user={user} onDataFetched={setFitData} />
-        <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} />
+        <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
       </main>
+      <NotificationManager 
+        user={user}
+        currentSteps={fitData.steps}
+        dailyStepGoal={dailyStepGoal}
+      />
       <AdBanner isPopupVisible={showPopupAd} />
       <FooterAdBanner isVisible={showFooterAd} />
     </div>
