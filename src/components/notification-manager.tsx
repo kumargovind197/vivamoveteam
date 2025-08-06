@@ -15,9 +15,11 @@ interface NotificationManagerProps {
 
 // Milestones to trigger notifications
 const MILESTONES = [
+    { percent: 25, id: 'quarter_way' },
     { percent: 50, id: 'halfway' },
     { percent: 75, id: 'almost_there' },
     { percent: 100, id: 'goal_reached' },
+    { percent: 125, id: 'goal_crushed' },
 ];
 
 export default function NotificationManager({ user, currentSteps, dailyStepGoal }: NotificationManagerProps) {
@@ -37,14 +39,15 @@ export default function NotificationManager({ user, currentSteps, dailyStepGoal 
         localStorage.setItem('lastNotificationReset', now.toISOString());
     }
 
-    if (!user || currentSteps === null || isGenerating) {
+    if (!user || currentSteps === null || isGenerating || dailyStepGoal === 0) {
       return;
     }
 
     const checkAndSendNotification = async () => {
       const progress = (currentSteps / dailyStepGoal) * 100;
       
-      for (const milestone of MILESTONES) {
+      // Iterate backwards to send the highest achieved milestone notification first
+      for (const milestone of [...MILESTONES].reverse()) {
         if (progress >= milestone.percent && !sentNotifications.current.has(milestone.id)) {
           
           setIsGenerating(true);

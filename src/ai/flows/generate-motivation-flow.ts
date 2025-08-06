@@ -4,7 +4,7 @@
  *
  * - generateMotivation - A function that creates a short, encouraging message for a user based on their step progress.
  * - GenerateMotivationInput - The input type for the generateMotivation function.
- * - GenerateMotivationOutput - The return type for the generateMotivation function.
+ * - GenerateMotivationOutput - The return type for the generate-generation-flow function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -39,10 +39,12 @@ User's Current Steps Today: {{{currentSteps}}}
 
 Analyze the user's progress. The progress percentage is (currentSteps / stepGoal) * 100.
 - If currentSteps is 0, provide a friendly "good morning" type of message to start their day.
-- If they have made some progress but are less than 50% of the way, give them a light nudge.
-- If they are at 50% or more, congratulate them on the milestone.
+- If they have made some progress but are less than 25% of the way, give them a light nudge.
+- If they are at 25% or more, tell them they've made a great start.
+- If they are at 50% or more, congratulate them on the halfway milestone.
 - If they are at 75% or more, give them a final push to the finish line.
 - If they have met or exceeded their goal (100%+), write a congratulatory message.
+- If they have crushed their goal (125%+), write an extra enthusiastic congratulatory message.
 
 Keep the message concise (2-3 sentences max) and always positive. Address the user by their name. Do not repeat the same message.`,
 });
