@@ -1,34 +1,20 @@
-// Basic service worker for PWA
+// This is a basic service worker file.
+// It's the foundation for enabling push notifications.
 
-const CACHE_NAME = 'viva-move-cache-v1';
-const urlsToCache = [
-  '/',
-  '/styles/globals.css',
-  '/app/page.tsx',
-  // Add other important assets here
-];
+self.addEventListener('push', (event) => {
+  const data = event.data.json();
+  const title = data.title || 'ViVa move';
+  const options = {
+    body: data.body,
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png'
+  };
 
-self.addEventListener('install', event => {
-  // Perform install steps
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
-  );
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  // This can be customized to open a specific URL
+  event.waitUntil(clients.openWindow('/'));
 });
