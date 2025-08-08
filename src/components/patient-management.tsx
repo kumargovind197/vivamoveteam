@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, UserPlus, MessageSquare, Edit, Trash2 } from "lucide-react"
+import { Search, UserPlus, MessageSquare, Edit, Trash2, Info } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -22,6 +22,8 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
 import { Textarea } from './ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const initialPatientsData = [
   { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
@@ -33,6 +35,8 @@ const initialPatientsData = [
 ];
 
 type Patient = typeof initialPatientsData[0];
+
+const MAX_PATIENTS = 200;
 
 const getPercentageBadgeClass = (progress: number) => {
     if (progress < 40) return "bg-red-500/20 text-red-300";
@@ -111,6 +115,9 @@ export default function PatientManagement() {
     setSelectedPatientIds([]);
   }, [searchQuery, activeTab, stepFilter, minuteFilter]);
 
+  const currentPatientCount = patientsData.length;
+  const remainingSlots = MAX_PATIENTS - currentPatientCount;
+  const isAtCapacity = currentPatientCount >= MAX_PATIENTS;
 
   const handleRowClick = (e: React.MouseEvent, patientId: string) => {
     const target = e.target as HTMLElement;
@@ -338,17 +345,28 @@ export default function PatientManagement() {
   }
 
   return (
-    <>
+    <TooltipProvider>
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h1 className="font-headline text-3xl font-bold tracking-tight">Patient Management</h1>
               <p className="text-muted-foreground">View, search for, and enroll your patients.</p>
             </div>
-            <Button onClick={() => setAddPatientDialogOpen(true)}>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add New Patient
-            </Button>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div className="inline-block"> 
+                        <Button onClick={() => setAddPatientDialogOpen(true)} disabled={isAtCapacity}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Add New Patient
+                        </Button>
+                    </div>
+                </TooltipTrigger>
+                {isAtCapacity && (
+                    <TooltipContent>
+                        <p>Cannot add new patients, clinic is at full capacity.</p>
+                    </TooltipContent>
+                )}
+            </Tooltip>
         </div>
 
         <div className="mb-6 flex items-center">
@@ -405,74 +423,92 @@ export default function PatientManagement() {
                 {renderReportTable(filteredPatients, 'monthly')}
             </TabsContent>
             <TabsContent value="maintenance">
-                 <div className="rounded-lg border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>UHID</TableHead>
-                        <TableHead>Full Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPatients.map(patient => (
-                        <TableRow key={patient.id}>
-                          <TableCell className="font-mono">{patient.uhid}</TableCell>
-                          <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
-                          <TableCell>{patient.email}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                               <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
-                                   setPatientToEdit(patient);
-                                   setEditPatientDialogOpen(true);
-                               }}>
-                                   <Edit className="mr-2 h-3 w-3" />
-                                   Edit
-                               </Button>
-                               <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setPatientToRemove(patient)}>
-                                        <Trash2 className="mr-2 h-3 w-3" />
-                                        Remove
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  {patientToRemove && patientToRemove.id === patient.id && (
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          This action cannot be undone. This will permanently remove <span className="font-semibold">{`${patient.firstName} ${patient.surname}`}</span> from your clinic and revoke their access.
-                                          <br/><br/>
-                                          To confirm, please type <strong className="text-foreground">delete</strong> below.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <Input 
-                                        id="delete-confirm"
-                                        value={deleteConfirmationInput}
-                                        onChange={(e) => setDeleteConfirmationInput(e.target.value)}
-                                        className="mt-2"
-                                        autoFocus
-                                      />
-                                      <AlertDialogFooter className='mt-4'>
-                                        <AlertDialogCancel onClick={() => setPatientToRemove(null)}>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction 
-                                            onClick={() => handleRemovePatient(patient.id)}
-                                            disabled={deleteConfirmationInput !== 'delete'}
-                                            className={buttonVariants({ variant: "destructive" })}
-                                        >
-                                          Proceed
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  )}
-                                </AlertDialog>
+                 <div className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Clinic Capacity</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Total Enrolled Patients</p>
+                                <p className="text-2xl font-bold">{currentPatientCount} / {MAX_PATIENTS}</p>
                             </div>
-                          </TableCell>
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Available Slots</p>
+                                <p className="text-2xl font-bold">{remainingSlots}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <div className="rounded-lg border">
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>UHID</TableHead>
+                            <TableHead>Full Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                        </TableHeader>
+                        <TableBody>
+                        {filteredPatients.map(patient => (
+                            <TableRow key={patient.id}>
+                            <TableCell className="font-mono">{patient.uhid}</TableCell>
+                            <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
+                            <TableCell>{patient.email}</TableCell>
+                            <TableCell className="text-right">
+                                <div className="flex justify-end gap-2">
+                                <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
+                                    setPatientToEdit(patient);
+                                    setEditPatientDialogOpen(true);
+                                }}>
+                                    <Edit className="mr-2 h-3 w-3" />
+                                    Edit
+                                </Button>
+                                <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setPatientToRemove(patient)}>
+                                            <Trash2 className="mr-2 h-3 w-3" />
+                                            Remove
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    {patientToRemove && patientToRemove.id === patient.id && (
+                                        <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently remove <span className="font-semibold">{`${patient.firstName} ${patient.surname}`}</span> from your clinic and revoke their access.
+                                            <br/><br/>
+                                            To confirm, please type <strong className="text-foreground">delete</strong> below.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <Input 
+                                            id="delete-confirm"
+                                            value={deleteConfirmationInput}
+                                            onChange={(e) => setDeleteConfirmationInput(e.target.value)}
+                                            className="mt-2"
+                                            autoFocus
+                                        />
+                                        <AlertDialogFooter className='mt-4'>
+                                            <AlertDialogCancel onClick={() => setPatientToRemove(null)}>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction 
+                                                onClick={() => handleRemovePatient(patient.id)}
+                                                disabled={deleteConfirmationInput !== 'delete'}
+                                                className={buttonVariants({ variant: "destructive" })}
+                                            >
+                                            Proceed
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    )}
+                                    </AlertDialog>
+                                </div>
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                    </div>
                 </div>
             </TabsContent>
         </Tabs>
@@ -539,7 +575,7 @@ export default function PatientManagement() {
                   <Label htmlFor="firstName" className="text-right">
                     First Name
                   </Label>
-                  <Input id="firstName" value={patientToEdit.firstName} onChange={handleEditInputChange} className="col-span-3" />
+                  <Input id="firstName" value={patientToEit.firstName} onChange={handleEditInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="surname" className="text-right">
@@ -584,6 +620,6 @@ export default function PatientManagement() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </TooltipProvider>
   )
 }
