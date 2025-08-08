@@ -12,20 +12,29 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, UserPlus } from "lucide-react"
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from './ui/progress';
 
 const initialPatientsData = [
-  { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com' },
-  { id: '2', uhid: 'UHID-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com' },
-  { id: '3', uhid: 'UHID-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com' },
-  { id: '4', uhid: 'UHID-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com' },
-  { id: '5', uhid: 'UHID-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com' },
-  { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com' },
+  { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
+  { id: '2', uhid: 'UHID-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', weeklySteps: 42, weeklyMinutes: 57, monthlySteps: 55, monthlyMinutes: 65 },
+  { id: '3', uhid: 'UHID-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', weeklySteps: 100, weeklyMinutes: 100, monthlySteps: 90, monthlyMinutes: 93 },
+  { id: '4', uhid: 'UHID-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', weeklySteps: 28, weeklyMinutes: 14, monthlySteps: 40, monthlyMinutes: 30 },
+  { id: '5', uhid: 'UHID-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', weeklySteps: 71, weeklyMinutes: 85, monthlySteps: 65, monthlyMinutes: 70 },
+  { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', weeklySteps: 57, weeklyMinutes: 42, monthlySteps: 70, monthlyMinutes: 60 },
 ];
+
+const getProgressColorClass = (progress: number) => {
+    if (progress < 40) return "bg-red-500";
+    if (progress < 70) return "bg-yellow-400";
+    return "bg-green-500";
+};
+
 
 export default function PatientManagement() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,7 +68,14 @@ export default function PatientManagement() {
 
   const handleAddPatient = () => {
     if (newPatient.uhid && newPatient.firstName && newPatient.surname && newPatient.email) {
-      const newPatientWithId = { ...newPatient, id: (patientsData.length + 1).toString() };
+      const newPatientWithId = { 
+          ...newPatient, 
+          id: (patientsData.length + 1).toString(),
+          weeklySteps: Math.floor(Math.random() * 101),
+          weeklyMinutes: Math.floor(Math.random() * 101),
+          monthlySteps: Math.floor(Math.random() * 101),
+          monthlyMinutes: Math.floor(Math.random() * 101),
+      };
       setPatientsData(prev => [...prev, newPatientWithId]);
       
       toast({
@@ -76,6 +92,50 @@ export default function PatientManagement() {
         description: "Please fill out all fields to add a patient.",
       });
     }
+  }
+  
+  const renderReportTable = (data: typeof patientsData, period: 'weekly' | 'monthly') => {
+      const stepKey = period === 'weekly' ? 'weeklySteps' : 'monthlySteps';
+      const minuteKey = period === 'weekly' ? 'weeklyMinutes' : 'monthlyMinutes';
+
+      return (
+        <div className="rounded-lg border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>UHID</TableHead>
+                        <TableHead>Full Name</TableHead>
+                        <TableHead className="w-[30%]">Step Goal %</TableHead>
+                        <TableHead className="w-[30%]">Active Time %</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {data.map(patient => (
+                        <TableRow 
+                          key={patient.id} 
+                          onClick={() => handleRowClick(patient.id)}
+                          className="cursor-pointer hover:bg-muted/50"
+                        >
+                            <TableCell className="font-mono">{patient.uhid}</TableCell>
+                            <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-4">
+                                    <Progress value={patient[stepKey]} indicatorClassName={getProgressColorClass(patient[stepKey])} className="h-2" />
+                                    <span>{patient[stepKey]}%</span>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-4">
+                                    <Progress value={patient[minuteKey]} indicatorClassName={getProgressColorClass(patient[minuteKey])} className="h-2"/>
+                                    <span>{patient[minuteKey]}%</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </div>
+      )
   }
 
   return (
@@ -104,32 +164,48 @@ export default function PatientManagement() {
           </div>
         </div>
 
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>UHID</TableHead>
-                <TableHead>First Name</TableHead>
-                <TableHead>Surname</TableHead>
-                <TableHead>Email</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPatients.map(patient => (
-                <TableRow 
-                  key={patient.id} 
-                  onClick={() => handleRowClick(patient.id)}
-                  className="cursor-pointer hover:bg-muted/50"
-                >
-                  <TableCell className="font-mono">{patient.uhid}</TableCell>
-                  <TableCell className="font-medium">{patient.firstName}</TableCell>
-                  <TableCell className="font-medium">{patient.surname}</TableCell>
-                  <TableCell>{patient.email}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <Tabs defaultValue="all-patients">
+            <TabsList>
+                <TabsTrigger value="all-patients">All Patients</TabsTrigger>
+                <TabsTrigger value="weekly-report">Weekly Report</TabsTrigger>
+                <TabsTrigger value="monthly-report">Monthly Report</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all-patients">
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>UHID</TableHead>
+                        <TableHead>First Name</TableHead>
+                        <TableHead>Surname</TableHead>
+                        <TableHead>Email</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredPatients.map(patient => (
+                        <TableRow 
+                          key={patient.id} 
+                          onClick={() => handleRowClick(patient.id)}
+                          className="cursor-pointer hover:bg-muted/50"
+                        >
+                          <TableCell className="font-mono">{patient.uhid}</TableCell>
+                          <TableCell className="font-medium">{patient.firstName}</TableCell>
+                          <TableCell className="font-medium">{patient.surname}</TableCell>
+                          <TableCell>{patient.email}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+            </TabsContent>
+            <TabsContent value="weekly-report">
+                {renderReportTable(filteredPatients, 'weekly')}
+            </TabsContent>
+            <TabsContent value="monthly-report">
+                {renderReportTable(filteredPatients, 'monthly')}
+            </TabsContent>
+        </Tabs>
+
       </div>
 
       <Dialog open={isAddPatientDialogOpen} onOpenChange={setAddPatientDialogOpen}>
@@ -175,3 +251,5 @@ export default function PatientManagement() {
     </>
   )
 }
+
+    
