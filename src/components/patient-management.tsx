@@ -60,6 +60,8 @@ export default function PatientManagement() {
   const [isAddPatientDialogOpen, setAddPatientDialogOpen] = useState(false);
   const [isEditPatientDialogOpen, setEditPatientDialogOpen] = useState(false);
   const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null);
+  const [patientToRemove, setPatientToRemove] = useState<Patient | null>(null);
+  const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
   const [newPatient, setNewPatient] = useState({ uhid: '', firstName: '', surname: '', email: '' });
   const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
   const [isMessageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -191,6 +193,8 @@ export default function PatientManagement() {
         title: "Patient Removed",
         description: "The patient has been successfully removed from the clinic list.",
       });
+      setPatientToRemove(null);
+      setDeleteConfirmationInput('');
   }
 
 
@@ -426,27 +430,42 @@ export default function PatientManagement() {
                                    <Edit className="mr-2 h-3 w-3" />
                                    Edit
                                </Button>
-                               <AlertDialog>
+                               <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
                                   <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm" data-action-button="true">
+                                    <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setPatientToRemove(patient)}>
                                         <Trash2 className="mr-2 h-3 w-3" />
                                         Remove
                                     </Button>
                                   </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        This action cannot be undone. This will permanently remove {`${patient.firstName} ${patient.surname}`} from your clinic and revoke their access.
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleRemovePatient(patient.id)}>
-                                        Proceed
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
+                                  {patientToRemove && patientToRemove.id === patient.id && (
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone. This will permanently remove <span className="font-semibold">{`${patient.firstName} ${patient.surname}`}</span> from your clinic and revoke their access.
+                                          <br/><br/>
+                                          To confirm, please type <strong className="text-foreground">delete</strong> below.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <Input 
+                                        id="delete-confirm"
+                                        value={deleteConfirmationInput}
+                                        onChange={(e) => setDeleteConfirmationInput(e.target.value)}
+                                        className="mt-2"
+                                        autoFocus
+                                      />
+                                      <AlertDialogFooter className='mt-4'>
+                                        <AlertDialogCancel onClick={() => setPatientToRemove(null)}>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction 
+                                            onClick={() => handleRemovePatient(patient.id)}
+                                            disabled={deleteConfirmationInput !== 'delete'}
+                                            className={buttonVariants({ variant: "destructive" })}
+                                        >
+                                          Proceed
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  )}
                                 </AlertDialog>
                             </div>
                           </TableCell>
