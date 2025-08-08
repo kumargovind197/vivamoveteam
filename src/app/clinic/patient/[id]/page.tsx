@@ -70,8 +70,8 @@ export default function PatientDetailPage({ params }: { params: { id: string } }
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: 5432, activeMinutes: 25 });
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
 
-  // In a real app, you would use params.id to fetch the patient's data
-  console.log("Viewing patient with ID:", params.id);
+  // In a real app, you would use params.id to fetch the patient's data.
+  // The console.log causing the warning has been removed.
 
   return (
     <div className="flex min-h-screen w-full flex-col">
