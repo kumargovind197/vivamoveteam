@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, UserPlus, MessageSquare } from "lucide-react"
+import { Search, UserPlus, MessageSquare, Edit, Trash2 } from "lucide-react"
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
@@ -30,6 +31,8 @@ const initialPatientsData = [
   { id: '5', uhid: 'UHID-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', weeklySteps: 71, weeklyMinutes: 85, monthlySteps: 65, monthlyMinutes: 70 },
   { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', weeklySteps: 57, weeklyMinutes: 42, monthlySteps: 70, monthlyMinutes: 60 },
 ];
+
+type Patient = typeof initialPatientsData[0];
 
 const getPercentageBadgeClass = (progress: number) => {
     if (progress < 40) return "bg-red-500/20 text-red-300";
@@ -55,6 +58,8 @@ export default function PatientManagement() {
   const [minuteFilter, setMinuteFilter] = useState<FilterOption>('all');
   const [patientsData, setPatientsData] = useState(initialPatientsData);
   const [isAddPatientDialogOpen, setAddPatientDialogOpen] = useState(false);
+  const [isEditPatientDialogOpen, setEditPatientDialogOpen] = useState(false);
+  const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null);
   const [newPatient, setNewPatient] = useState({ uhid: '', firstName: '', surname: '', email: '' });
   const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
   const [isMessageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -75,7 +80,7 @@ export default function PatientManagement() {
         );
     }
     
-    if (activeTab !== 'all-patients') {
+    if (activeTab === 'weekly-report' || activeTab === 'monthly-report') {
         const stepKey = activeTab === 'weekly-report' ? 'weeklySteps' : 'monthlySteps';
         const minuteKey = activeTab === 'weekly-report' ? 'weeklyMinutes' : 'monthlyMinutes';
 
@@ -107,8 +112,8 @@ export default function PatientManagement() {
 
   const handleRowClick = (e: React.MouseEvent, patientId: string) => {
     const target = e.target as HTMLElement;
-    // Prevent navigation if a checkbox or the cell containing it was clicked
-    if (target.closest('td:first-child')) {
+    // Prevent navigation if a checkbox or the cell containing it was clicked, or an action button
+    if (target.closest('td:first-child') || target.closest('[data-action-button]')) {
       return;
     }
     router.push(`/clinic/patient/${patientId}`);
@@ -119,6 +124,12 @@ export default function PatientManagement() {
     setNewPatient(prev => ({ ...prev, [id]: value }));
   }
   
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!patientToEdit) return;
+    const { id, value } = e.target;
+    setPatientToEdit(prev => prev ? { ...prev, [id]: value } : null);
+  }
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedPatientIds(filteredPatients.map(p => p.id));
@@ -163,6 +174,26 @@ export default function PatientManagement() {
     }
   }
 
+  const handleEditPatient = () => {
+      if (!patientToEdit) return;
+      setPatientsData(prev => prev.map(p => p.id === patientToEdit.id ? patientToEdit : p));
+      toast({
+          title: "Patient Details Updated",
+          description: `Details for ${patientToEdit.firstName} ${patientToEdit.surname} have been saved.`,
+      });
+      setEditPatientDialogOpen(false);
+      setPatientToEdit(null);
+  }
+
+  const handleRemovePatient = (patientId: string) => {
+      setPatientsData(prev => prev.filter(p => p.id !== patientId));
+      toast({
+        title: "Patient Removed",
+        description: "The patient has been successfully removed from the clinic list.",
+      });
+  }
+
+
   const handleOpenMessageDialog = () => {
     const stepIndex = filterPrecedence.indexOf(stepFilter);
     const minuteIndex = filterPrecedence.indexOf(minuteFilter);
@@ -178,7 +209,11 @@ export default function PatientManagement() {
       }
     }
 
-    setBulkMessage(messageKey ? SUGGESTED_MESSAGES[messageKey] || '' : '');
+    if (messageKey && SUGGESTED_MESSAGES[messageKey]) {
+      setBulkMessage(SUGGESTED_MESSAGES[messageKey] || '');
+    } else {
+      setBulkMessage('');
+    }
     setMessageDialogOpen(true);
   }
 
@@ -325,10 +360,11 @@ export default function PatientManagement() {
         </div>
 
         <Tabs defaultValue="all-patients" onValueChange={setActiveTab}>
-            <TabsList>
+            <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="all-patients">All Patients</TabsTrigger>
                 <TabsTrigger value="weekly-report">Weekly Report</TabsTrigger>
                 <TabsTrigger value="monthly-report">Monthly Report</TabsTrigger>
+                <TabsTrigger value="maintenance">Clinic List Maintenance</TabsTrigger>
             </TabsList>
             <TabsContent value="all-patients">
                 <div className="rounded-lg border">
@@ -363,6 +399,62 @@ export default function PatientManagement() {
             </TabsContent>
             <TabsContent value="monthly-report">
                 {renderReportTable(filteredPatients, 'monthly')}
+            </TabsContent>
+            <TabsContent value="maintenance">
+                 <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>UHID</TableHead>
+                        <TableHead>Full Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredPatients.map(patient => (
+                        <TableRow key={patient.id}>
+                          <TableCell className="font-mono">{patient.uhid}</TableCell>
+                          <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
+                          <TableCell>{patient.email}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                               <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
+                                   setPatientToEdit(patient);
+                                   setEditPatientDialogOpen(true);
+                               }}>
+                                   <Edit className="mr-2 h-3 w-3" />
+                                   Edit
+                               </Button>
+                               <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm" data-action-button="true">
+                                        <Trash2 className="mr-2 h-3 w-3" />
+                                        Remove
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone. This will permanently remove {`${patient.firstName} ${patient.surname}`} from your clinic and revoke their access.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleRemovePatient(patient.id)}>
+                                        Proceed
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
             </TabsContent>
         </Tabs>
       </div>
@@ -408,6 +500,49 @@ export default function PatientManagement() {
         </DialogContent>
       </Dialog>
       
+      {patientToEdit && (
+         <Dialog open={isEditPatientDialogOpen} onOpenChange={setEditPatientDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Edit Patient Details</DialogTitle>
+                <DialogDescription>
+                  Update the patient's information below. UHID cannot be changed.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="uhid-edit" className="text-right">
+                    UHID
+                  </Label>
+                  <Input id="uhid-edit" value={patientToEdit.uhid} className="col-span-3" disabled />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="firstName" className="text-right">
+                    First Name
+                  </Label>
+                  <Input id="firstName" value={patientToEdit.firstName} onChange={handleEditInputChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="surname" className="text-right">
+                    Surname
+                  </Label>
+                  <Input id="surname" value={patientToEdit.surname} onChange={handleEditInputChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="email" className="text-right">
+                    Email
+                  </Label>
+                  <Input id="email" type="email" value={patientToEdit.email} onChange={handleEditInputChange} className="col-span-3" />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditPatientDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleEditPatient}>Save Changes</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+      )}
+
       <Dialog open={isMessageDialogOpen} onOpenChange={setMessageDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -433,3 +568,5 @@ export default function PatientManagement() {
     </>
   )
 }
+
+    
