@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app-header';
 import ClientDashboard from '@/components/client-dashboard';
 import AdBanner from '@/components/ad-banner';
@@ -20,16 +21,18 @@ export default function Home() {
   const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
   const { toast } = useToast();
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) {
-        setFitData({ steps: null, activeMinutes: null });
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        router.push('/login');
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const handleEnrollment = (code: string) => {
     if (code) {
@@ -47,9 +50,17 @@ export default function Home() {
     }
   };
 
+  if (!user) {
+    return (
+        <div className="flex min-h-screen w-full flex-col items-center justify-center">
+            <p>Loading...</p>
+        </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader onEnroll={handleEnrollment} user={user} isEnrolled={isEnrolled} />
+      <AppHeader onEnroll={handleEnrollment} user={user} isEnrolled={isEnrolled} view="client"/>
       <main className="flex-1">
         <DataCards user={user} onDataFetched={setFitData} />
         <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />

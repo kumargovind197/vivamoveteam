@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { HeartPulse, UserCircle, Building, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { HeartPulse, UserCircle, Building, Settings, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -15,33 +15,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
-import { auth, provider, signInWithPopup, signOut, User } from '@/lib/firebase';
+import { auth, signOut, User } from '@/lib/firebase';
 import { Separator } from './ui/separator';
 
 type AppHeaderProps = {
   onEnroll?: (code: string) => void;
   user: User | null;
   isEnrolled?: boolean;
+  view: 'client' | 'clinic';
 };
 
-export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHeaderProps) {
+export default function AppHeader({ onEnroll, user, isEnrolled = false, view }: AppHeaderProps) {
   const [isEnrollDialogOpen, setEnrollDialogOpen] = useState(false);
-  const [isAuthDialogOpen, setAuthDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
 
   const handleEnroll = () => {
@@ -49,15 +39,6 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHea
       onEnroll(invitationCode);
     }
     setEnrollDialogOpen(false);
-  };
-  
-  const handleSignIn = async () => {
-    setAuthDialogOpen(false);
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Error signing in with Google", error);
-    }
   };
 
   const handleSignOut = async () => {
@@ -90,7 +71,7 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHea
             <span className="font-headline text-xl font-bold text-primary">ViVa move</span>
           </Link>
 
-          {user ? (
+          {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -106,20 +87,33 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHea
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName?.split(' ')[0]}</p>
+                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{view === 'clinic' ? 'Clinic Staff' : 'Patient'}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/clinic">
-                    <Building className="mr-2 h-4 w-4" />
-                    <span>Clinic View</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setEnrollDialogOpen(true)}>
-                  <Building className="mr-2 h-4 w-4" />
-                  <span>Enroll in Clinic</span>
-                </DropdownMenuItem>
+                {view === 'client' && (
+                    <>
+                        <DropdownMenuItem onClick={() => setEnrollDialogOpen(true)}>
+                          <Building className="mr-2 h-4 w-4" />
+                          <span>Enroll in Clinic</span>
+                        </DropdownMenuItem>
+                         <DropdownMenuItem asChild>
+                            <Link href="/clinic">
+                                <Building className="mr-2 h-4 w-4" />
+                                <span>Clinic View</span>
+                            </Link>
+                         </DropdownMenuItem>
+                    </>
+                )}
+                 {view === 'clinic' && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            <span>Patient View</span>
+                        </Link>
+                    </DropdownMenuItem>
+                )}
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
@@ -131,31 +125,9 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHea
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-             <Button onClick={() => setAuthDialogOpen(true)}>
-              Sign in with Google
-            </Button>
           )}
         </div>
       </header>
-      
-      <AlertDialog open={isAuthDialogOpen} onOpenChange={setAuthDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Connect to Google Fit</AlertDialogTitle>
-            <AlertDialogDescription>
-              To use this app, you must have the Google Fit app installed on your phone. This app needs to work with google fit to provide personalized insights.
-              <br /><br />
-              By continuing, you will be asked to grant permission to view your fitness data. We will never have access to any other information on your Google account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleSignIn}>Continue</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
 
       <Dialog open={isEnrollDialogOpen} onOpenChange={setEnrollDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
