@@ -2,13 +2,10 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
 import AppHeader from '@/components/app-header';
 import ClientDashboard from '@/components/client-dashboard';
-import AdBanner from '@/components/ad-banner';
-import { useToast } from '@/hooks/use-toast';
 import DataCards from '@/components/data-cards';
-import FooterAdBanner from '@/components/footer-ad-banner';
-import NotificationManager from '@/components/notification-manager';
 import type { User } from 'firebase/auth';
 
 // Mock user for development purposes - this would be the patient's user object
@@ -66,17 +63,18 @@ const mockClinicUser: User = {
 };
 
 
-export default function PatientDetailPage({ params }: { params: { id: string } }) {
+export default function PatientDetailPage() {
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: 5432, activeMinutes: 25 });
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
+  const params = useParams();
+  const patientId = params.id as string;
 
-  // In a real app, you would use params.id to fetch the patient's data.
-  // The console.log causing the warning has been removed.
+  // In a real app, you would use patientId to fetch the patient's data.
 
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* The header knows it's in a patient detail view from the 'clinic' view context */}
-      <AppHeader user={mockClinicUser} view="clinic" patientId={params.id} patientName={mockPatientUser.displayName || 'Patient'} />
+      <AppHeader user={mockClinicUser} view="clinic" patientId={patientId} patientName={mockPatientUser.displayName || 'Patient'} />
       <main className="flex-1">
         {/* These components are for the patient being viewed */}
         <DataCards user={mockPatientUser} onDataFetched={setFitData} />
