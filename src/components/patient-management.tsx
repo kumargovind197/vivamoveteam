@@ -445,7 +445,7 @@ export default function PatientManagement() {
                                           This action cannot be undone. This will permanently remove <span className="font-semibold">{`${patient.firstName} ${patient.surname}`}</span> from your clinic and revoke their access.
                                           <br/><br/>
                                           To confirm, please type <strong className="text-foreground">delete</strong> below.
-                                        </DrawingDescription>
+                                        </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <Input 
                                         id="delete-confirm"
