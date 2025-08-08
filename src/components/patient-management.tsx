@@ -22,7 +22,7 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from './ui/checkbox';
 import { Textarea } from './ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const initialPatientsData = [
@@ -426,19 +426,22 @@ export default function PatientManagement() {
             <TabsContent value="maintenance">
                  <div className="space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle>Clinic Capacity</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className='text-base font-semibold'>Clinic Capacity</CardTitle>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Enrolled Patients</p>
-                                <p className="text-2xl font-bold">{currentPatientCount} / {maxPatients}</p>
+                        <CardContent className="flex items-center justify-between p-4 pt-0">
+                            <div className="text-sm">
+                                <p className="text-muted-foreground">Enrolled / Capacity</p>
+                                <p className="text-lg font-bold">{currentPatientCount} / {maxPatients}</p>
                             </div>
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Available Slots</p>
-                                <p className="text-2xl font-bold">{remainingSlots}</p>
+                            <div className="text-sm text-right">
+                                <p className="text-muted-foreground">Available Slots</p>
+                                <p className="text-lg font-bold">{remainingSlots}</p>
                             </div>
                         </CardContent>
+                        <CardFooter className='text-xs text-muted-foreground pt-0 p-4'>
+                            If you need more patient slots, please contact the ViVa move team.
+                        </CardFooter>
                     </Card>
 
                     <div className="rounded-lg border">
