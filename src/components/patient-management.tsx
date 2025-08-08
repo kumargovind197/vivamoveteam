@@ -13,12 +13,12 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, UserPlus } from "lucide-react"
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Progress } from './ui/progress';
 
 const initialPatientsData = [
   { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
@@ -35,9 +35,12 @@ const getPercentageBadgeClass = (progress: number) => {
     return "bg-green-500/20 text-green-300";
 };
 
+type FilterOption = 'all' | '<30' | '30-50' | '50-80' | '>80';
 
 export default function PatientManagement() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('all-patients');
+  const [filter, setFilter] = useState<FilterOption>('all');
   const [patientsData, setPatientsData] = useState(initialPatientsData);
   const [isAddPatientDialogOpen, setAddPatientDialogOpen] = useState(false);
   const [newPatient, setNewPatient] = useState({ uhid: '', firstName: '', surname: '', email: '' });
@@ -45,17 +48,35 @@ export default function PatientManagement() {
   const { toast } = useToast();
   
   const filteredPatients = useMemo(() => {
-    if (!searchQuery) {
-      return patientsData;
+    // Start with search filter
+    let patients = patientsData;
+    if (searchQuery) {
+        const lowercasedQuery = searchQuery.toLowerCase();
+        patients = patientsData.filter(patient =>
+            patient.uhid.toLowerCase().includes(lowercasedQuery) ||
+            patient.firstName.toLowerCase().includes(lowercasedQuery) ||
+            patient.surname.toLowerCase().includes(lowercasedQuery) ||
+            patient.email.toLowerCase().includes(lowercasedQuery)
+        );
     }
-    const lowercasedQuery = searchQuery.toLowerCase();
-    return patientsData.filter(patient =>
-      patient.uhid.toLowerCase().includes(lowercasedQuery) ||
-      patient.firstName.toLowerCase().includes(lowercasedQuery) ||
-      patient.surname.toLowerCase().includes(lowercasedQuery) ||
-      patient.email.toLowerCase().includes(lowercasedQuery)
-    );
-  }, [searchQuery, patientsData]);
+    
+    // Apply percentage filter if not on 'all-patients' tab
+    if (activeTab !== 'all-patients' && filter !== 'all') {
+        const stepKey = activeTab === 'weekly-report' ? 'weeklySteps' : 'monthlySteps';
+        return patients.filter(patient => {
+            const percentage = patient[stepKey];
+            switch (filter) {
+                case '<30': return percentage < 30;
+                case '30-50': return percentage >= 30 && percentage <= 50;
+                case '50-80': return percentage > 50 && percentage <= 80;
+                case '>80': return percentage > 80;
+                default: return true;
+            }
+        });
+    }
+
+    return patients;
+  }, [searchQuery, patientsData, activeTab, filter]);
 
   const handleRowClick = (patientId: string) => {
     router.push(`/clinic/patient/${patientId}`);
@@ -99,39 +120,61 @@ export default function PatientManagement() {
       const minuteKey = period === 'weekly' ? 'weeklyMinutes' : 'monthlyMinutes';
 
       return (
-        <div className="rounded-lg border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>UHID</TableHead>
-                        <TableHead>Full Name</TableHead>
-                        <TableHead>Step Goal %</TableHead>
-                        <TableHead>Active Time %</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map(patient => (
-                        <TableRow 
-                          key={patient.id} 
-                          onClick={() => handleRowClick(patient.id)}
-                          className="cursor-pointer hover:bg-muted/50"
-                        >
-                            <TableCell className="font-mono">{patient.uhid}</TableCell>
-                            <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
-                            <TableCell>
-                               <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[stepKey])}`}>
-                                 {patient[stepKey]}%
-                               </span>
-                            </TableCell>
-                            <TableCell>
-                                <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[minuteKey])}`}>
-                                  {patient[minuteKey]}%
-                                </span>
-                            </TableCell>
+        <div className="space-y-4">
+            <div className="flex justify-end">
+                <Select value={filter} onValueChange={(value) => setFilter(value as FilterOption)}>
+                    <SelectTrigger className="w-[220px]">
+                        <SelectValue placeholder="Filter by Step Goal %" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Patients</SelectItem>
+                        <SelectItem value="<30">{'< 30% Goal Met'}</SelectItem>
+                        <SelectItem value="30-50">30% - 50% Goal Met</SelectItem>
+                        <SelectItem value="50-80">50% - 80% Goal Met</SelectItem>
+                        <SelectItem value=">80">{'> 80% Goal Met'}</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>UHID</TableHead>
+                            <TableHead>Full Name</TableHead>
+                            <TableHead>Step Goal %</TableHead>
+                            <TableHead>Active Time %</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {data.length > 0 ? data.map(patient => (
+                            <TableRow 
+                            key={patient.id} 
+                            onClick={() => handleRowClick(patient.id)}
+                            className="cursor-pointer hover:bg-muted/50"
+                            >
+                                <TableCell className="font-mono">{patient.uhid}</TableCell>
+                                <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
+                                <TableCell>
+                                <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[stepKey])}`}>
+                                    {patient[stepKey]}%
+                                </span>
+                                </TableCell>
+                                <TableCell>
+                                    <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[minuteKey])}`}>
+                                    {patient[minuteKey]}%
+                                    </span>
+                                </TableCell>
+                            </TableRow>
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No patients match the current filter.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
       )
   }
@@ -162,7 +205,7 @@ export default function PatientManagement() {
           </div>
         </div>
 
-        <Tabs defaultValue="all-patients">
+        <Tabs defaultValue="all-patients" onValueChange={setActiveTab}>
             <TabsList>
                 <TabsTrigger value="all-patients">All Patients</TabsTrigger>
                 <TabsTrigger value="weekly-report">Weekly Report</TabsTrigger>
@@ -213,7 +256,7 @@ export default function PatientManagement() {
             <DialogDescription>
               Enter the patient's details below to enroll them in the clinic.
             </DialogDescription>
-          </DialogHeader>
+          </Header>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="uhid" className="text-right">
@@ -249,3 +292,4 @@ export default function PatientManagement() {
     </>
   )
 }
+
