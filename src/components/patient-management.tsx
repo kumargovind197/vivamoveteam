@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from "@/components/ui/input"
 import {
@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, UserPlus } from "lucide-react"
+import { Search, UserPlus, MessageSquare } from "lucide-react"
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from './ui/checkbox';
+import { Textarea } from './ui/textarea';
 
 const initialPatientsData = [
   { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
@@ -40,19 +42,23 @@ type FilterOption = 'all' | '<30' | '30-50' | '50-80' | '>80';
 export default function PatientManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all-patients');
-  const [filter, setFilter] = useState<FilterOption>('all');
+  const [stepFilter, setStepFilter] = useState<FilterOption>('all');
+  const [minuteFilter, setMinuteFilter] = useState<FilterOption>('all');
   const [patientsData, setPatientsData] = useState(initialPatientsData);
   const [isAddPatientDialogOpen, setAddPatientDialogOpen] = useState(false);
   const [newPatient, setNewPatient] = useState({ uhid: '', firstName: '', surname: '', email: '' });
+  const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
+  const [isMessageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState('');
   const router = useRouter();
   const { toast } = useToast();
   
   const filteredPatients = useMemo(() => {
-    // Start with search filter
     let patients = patientsData;
+
     if (searchQuery) {
         const lowercasedQuery = searchQuery.toLowerCase();
-        patients = patientsData.filter(patient =>
+        patients = patients.filter(patient =>
             patient.uhid.toLowerCase().includes(lowercasedQuery) ||
             patient.firstName.toLowerCase().includes(lowercasedQuery) ||
             patient.surname.toLowerCase().includes(lowercasedQuery) ||
@@ -60,25 +66,42 @@ export default function PatientManagement() {
         );
     }
     
-    // Apply percentage filter if not on 'all-patients' tab
-    if (activeTab !== 'all-patients' && filter !== 'all') {
+    if (activeTab !== 'all-patients') {
         const stepKey = activeTab === 'weekly-report' ? 'weeklySteps' : 'monthlySteps';
-        return patients.filter(patient => {
-            const percentage = patient[stepKey];
+        const minuteKey = activeTab === 'weekly-report' ? 'weeklyMinutes' : 'monthlyMinutes';
+
+        const filterByPercentage = (patientValue: number, filter: FilterOption) => {
+            if (filter === 'all') return true;
             switch (filter) {
-                case '<30': return percentage < 30;
-                case '30-50': return percentage >= 30 && percentage <= 50;
-                case '50-80': return percentage > 50 && percentage <= 80;
-                case '>80': return percentage > 80;
+                case '<30': return patientValue < 30;
+                case '30-50': return patientValue >= 30 && patientValue <= 50;
+                case '50-80': return patientValue > 50 && patientValue <= 80;
+                case '>80': return patientValue > 80;
                 default: return true;
             }
-        });
+        }
+        
+        return patients.filter(patient => 
+            filterByPercentage(patient[stepKey], stepFilter) && 
+            filterByPercentage(patient[minuteKey], minuteFilter)
+        );
     }
 
     return patients;
-  }, [searchQuery, patientsData, activeTab, filter]);
+  }, [searchQuery, patientsData, activeTab, stepFilter, minuteFilter]);
+  
+  // Reset selection when filters change
+  useEffect(() => {
+    setSelectedPatientIds([]);
+  }, [searchQuery, activeTab, stepFilter, minuteFilter]);
 
-  const handleRowClick = (patientId: string) => {
+
+  const handleRowClick = (e: React.MouseEvent, patientId: string) => {
+    const target = e.target as HTMLElement;
+    // Prevent navigation if a checkbox or the cell containing it was clicked
+    if (target.closest('td:first-child')) {
+      return;
+    }
     router.push(`/clinic/patient/${patientId}`);
   };
 
@@ -86,6 +109,22 @@ export default function PatientManagement() {
     const { id, value } = e.target;
     setNewPatient(prev => ({ ...prev, [id]: value }));
   }
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedPatientIds(filteredPatients.map(p => p.id));
+    } else {
+      setSelectedPatientIds([]);
+    }
+  };
+  
+  const handleSelectPatient = (patientId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPatientIds(prev => [...prev, patientId]);
+    } else {
+      setSelectedPatientIds(prev => prev.filter(id => id !== patientId));
+    }
+  };
 
   const handleAddPatient = () => {
     if (newPatient.uhid && newPatient.firstName && newPatient.surname && newPatient.email) {
@@ -114,6 +153,23 @@ export default function PatientManagement() {
       });
     }
   }
+
+  const handleSendBulkMessage = () => {
+    if (bulkMessage.trim() && selectedPatientIds.length > 0) {
+        toast({
+            title: "Message Sent",
+            description: `Your message has been queued to be sent to ${selectedPatientIds.length} patient(s).`
+        });
+        setBulkMessage('');
+        setMessageDialogOpen(false);
+    } else {
+        toast({
+            variant: 'destructive',
+            title: "Error",
+            description: "Cannot send an empty message.",
+        });
+    }
+  }
   
   const renderReportTable = (data: typeof patientsData, period: 'weekly' | 'monthly') => {
       const stepKey = period === 'weekly' ? 'weeklySteps' : 'monthlySteps';
@@ -121,24 +177,52 @@ export default function PatientManagement() {
 
       return (
         <div className="space-y-4">
-            <div className="flex justify-end">
-                <Select value={filter} onValueChange={(value) => setFilter(value as FilterOption)}>
-                    <SelectTrigger className="w-[220px]">
-                        <SelectValue placeholder="Filter by Step Goal %" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Patients</SelectItem>
-                        <SelectItem value="<30">{'< 30% Goal Met'}</SelectItem>
-                        <SelectItem value="30-50">30% - 50% Goal Met</SelectItem>
-                        <SelectItem value="50-80">50% - 80% Goal Met</SelectItem>
-                        <SelectItem value=">80">{'> 80% Goal Met'}</SelectItem>
-                    </SelectContent>
-                </Select>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                 <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+                    <Select value={stepFilter} onValueChange={(value) => setStepFilter(value as FilterOption)}>
+                        <SelectTrigger className="w-full sm:w-[220px]">
+                            <SelectValue placeholder="Filter by Step Goal %" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Step Goals</SelectItem>
+                            <SelectItem value="<30">{'< 30% Goal Met'}</SelectItem>
+                            <SelectItem value="30-50">30% - 50% Goal Met</SelectItem>
+                            <SelectItem value="50-80">50% - 80% Goal Met</SelectItem>
+                            <SelectItem value=">80">{'> 80% Goal Met'}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                     <Select value={minuteFilter} onValueChange={(value) => setMinuteFilter(value as FilterOption)}>
+                        <SelectTrigger className="w-full sm:w-[220px]">
+                            <SelectValue placeholder="Filter by Active Time %" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Active Times</SelectItem>
+                            <SelectItem value="<30">{'< 30% Goal Met'}</SelectItem>
+                            <SelectItem value="30-50">30% - 50% Goal Met</SelectItem>
+                            <SelectItem value="50-80">50% - 80% Goal Met</SelectItem>
+                            <SelectItem value=">80">{'> 80% Goal Met'}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Button 
+                  onClick={() => setMessageDialogOpen(true)}
+                  disabled={selectedPatientIds.length === 0}
+                >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Message Selected ({selectedPatientIds.length})
+                </Button>
             </div>
             <div className="rounded-lg border">
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[50px]">
+                               <Checkbox 
+                                 checked={selectedPatientIds.length > 0 && selectedPatientIds.length === filteredPatients.length}
+                                 onCheckedChange={handleSelectAll}
+                                 aria-label="Select all"
+                               />
+                            </TableHead>
                             <TableHead>UHID</TableHead>
                             <TableHead>Full Name</TableHead>
                             <TableHead>Step Goal %</TableHead>
@@ -149,26 +233,33 @@ export default function PatientManagement() {
                         {data.length > 0 ? data.map(patient => (
                             <TableRow 
                             key={patient.id} 
-                            onClick={() => handleRowClick(patient.id)}
+                            onClick={(e) => handleRowClick(e, patient.id)}
                             className="cursor-pointer hover:bg-muted/50"
                             >
+                                <TableCell>
+                                    <Checkbox
+                                        checked={selectedPatientIds.includes(patient.id)}
+                                        onCheckedChange={(checked) => handleSelectPatient(patient.id, !!checked)}
+                                        aria-label={`Select patient ${patient.firstName}`}
+                                    />
+                                </TableCell>
                                 <TableCell className="font-mono">{patient.uhid}</TableCell>
                                 <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
                                 <TableCell>
-                                <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[stepKey])}`}>
-                                    {patient[stepKey]}%
-                                </span>
+                                  <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${getPercentageBadgeClass(patient[stepKey])}`}>
+                                      {patient[stepKey]}%
+                                  </span>
                                 </TableCell>
                                 <TableCell>
-                                    <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[minuteKey])}`}>
-                                    {patient[minuteKey]}%
+                                    <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-md ${getPercentageBadgeClass(patient[minuteKey])}`}>
+                                      {patient[minuteKey]}%
                                     </span>
                                 </TableCell>
                             </TableRow>
                         )) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    No patients match the current filter.
+                                <TableCell colSpan={5} className="h-24 text-center">
+                                    No patients match the current filters.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -226,7 +317,7 @@ export default function PatientManagement() {
                       {filteredPatients.map(patient => (
                         <TableRow 
                           key={patient.id} 
-                          onClick={() => handleRowClick(patient.id)}
+                          onClick={(e) => handleRowClick(e, patient.id)}
                           className="cursor-pointer hover:bg-muted/50"
                         >
                           <TableCell className="font-mono">{patient.uhid}</TableCell>
@@ -246,7 +337,6 @@ export default function PatientManagement() {
                 {renderReportTable(filteredPatients, 'monthly')}
             </TabsContent>
         </Tabs>
-
       </div>
 
       <Dialog open={isAddPatientDialogOpen} onOpenChange={setAddPatientDialogOpen}>
@@ -287,6 +377,29 @@ export default function PatientManagement() {
             <Button variant="outline" onClick={() => setAddPatientDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleAddPatient}>Add Patient</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isMessageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Send Bulk Message</DialogTitle>
+                <DialogDescription>
+                    Write a message to send to the {selectedPatientIds.length} selected patient(s).
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <Textarea 
+                    placeholder="Type your message here..."
+                    value={bulkMessage}
+                    onChange={(e) => setBulkMessage(e.target.value)}
+                    rows={5}
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setMessageDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleSendBulkMessage}>Send Message</Button>
+            </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
