@@ -4,24 +4,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { HeartPulse, UserCircle, Building, Settings, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { HeartPulse, Building, LayoutDashboard, UserCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
-import { auth, signOut, User } from '@/lib/firebase';
 import { Separator } from './ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { User } from 'firebase/auth';
 
 type AppHeaderProps = {
   onEnroll?: (code: string) => void;
@@ -39,14 +30,6 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false, view }: 
       onEnroll(invitationCode);
     }
     setEnrollDialogOpen(false);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Error signing out", error);
-    }
   };
 
   return (
@@ -71,61 +54,38 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false, view }: 
             <span className="font-headline text-xl font-bold text-primary">ViVa move</span>
           </Link>
 
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
+          <div className="flex items-center gap-4">
+             {view === 'client' && (
+               <>
+                <Button variant="ghost" onClick={() => setEnrollDialogOpen(true)}>
+                  <Building className="mr-2 h-4 w-4" />
+                  <span>Enroll in Clinic</span>
+                </Button>
+                 <Button asChild variant="outline">
+                    <Link href="/clinic">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Clinic View</span>
+                    </Link>
+                 </Button>
+               </>
+            )}
+             {view === 'clinic' && (
+                <Button asChild variant="outline">
+                    <Link href="/">
+                        <UserCircle className="mr-2 h-4 w-4" />
+                        <span>Patient View</span>
+                    </Link>
+                </Button>
+            )}
+            {user && (
+                 <Avatar className="h-10 w-10">
                     <AvatarImage src={user.photoURL ?? "https://placehold.co/100x100"} alt="User avatar" />
                     <AvatarFallback>
                       <UserCircle />
                     </AvatarFallback>
                   </Avatar>
-                  <ChevronDown className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-background text-primary" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{view === 'clinic' ? 'Clinic Staff' : 'Patient'}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {view === 'client' && (
-                    <>
-                        <DropdownMenuItem onClick={() => setEnrollDialogOpen(true)}>
-                          <Building className="mr-2 h-4 w-4" />
-                          <span>Enroll in Clinic</span>
-                        </DropdownMenuItem>
-                         <DropdownMenuItem asChild>
-                            <Link href="/clinic">
-                                <Building className="mr-2 h-4 w-4" />
-                                <span>Clinic View</span>
-                            </Link>
-                         </DropdownMenuItem>
-                    </>
-                )}
-                 {view === 'clinic' && (
-                    <DropdownMenuItem asChild>
-                        <Link href="/">
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            <span>Patient View</span>
-                        </Link>
-                    </DropdownMenuItem>
-                )}
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+            )}
+          </div>
         </div>
       </header>
 

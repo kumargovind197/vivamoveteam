@@ -30,9 +30,13 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    // In a real scenario, we'd check if the user is a mock user or a real one.
+    // For now, we assume if a user object exists, we can try to fetch.
+    // We will disable fetching for the mock user to avoid console errors.
+    if (!user || user.uid.startsWith('mock-')) {
       setLoading(false);
-      onDataFetched({ steps: null, activeMinutes: null });
+      // We return some mock data to make the UI look populated
+      onDataFetched({ steps: 5432, activeMinutes: 25 });
       return;
     }
 
@@ -105,22 +109,19 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
       )
   }
   
-  if (!user && !loading) {
+  // This component now only fetches data and shows errors, display is handled elsewhere.
+  // We can show a loading skeleton if we want, but for now, null is fine.
+  if (loading) {
        return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <Card className="mb-6 bg-yellow-900/50 border-yellow-500/30">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-yellow-200">Sign in to view your data</CardTitle>
-                    <AlertCircle className="h-4 w-4 text-yellow-400" />
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-yellow-300">Please sign in with your Google account to see your personalized fitness data from Google Fit.</p>
-                </CardContent>
-            </Card>
+          <div className="mb-6 grid gap-6 md:grid-cols-2">
+              <Skeleton className="h-[120px]" />
+              <Skeleton className="h-[120px]" />
+          </div>
         </div>
-      )
+      );
   }
 
 
-  return null; // This component now only fetches data and shows errors, display is handled in ClientDashboard
+  return null;
 }

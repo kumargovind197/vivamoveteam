@@ -2,39 +2,50 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app-header';
 import ClientDashboard from '@/components/client-dashboard';
 import AdBanner from '@/components/ad-banner';
 import { useToast } from '@/hooks/use-toast';
-import { auth, onAuthStateChanged, User } from '@/lib/firebase';
 import DataCards from '@/components/data-cards';
 import FooterAdBanner from '@/components/footer-ad-banner';
 import NotificationManager from '@/components/notification-manager';
+import type { User } from 'firebase/auth';
+
+// Mock user for development purposes
+const mockUser: User = {
+  uid: 'mock-user-id',
+  email: 'patient@example.com',
+  displayName: 'John Doe',
+  photoURL: 'https://placehold.co/100x100',
+  providerId: 'password',
+  emailVerified: true,
+  isAnonymous: false,
+  metadata: {},
+  providerData: [],
+  tenantId: null,
+  delete: async () => {},
+  getIdToken: async () => 'mock-token',
+  getIdTokenResult: async () => ({
+    token: 'mock-token',
+    expirationTime: '',
+    authTime: '',
+    issuedAtTime: '',
+    signInProvider: null,
+    signInSecondFactor: null,
+    claims: {},
+  }),
+  reload: async () => {},
+  toJSON: () => ({}),
+};
 
 
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
+  const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: 5432, activeMinutes: 25 });
   const [showPopupAd, setShowPopupAd] = useState(false); // Admin toggle for popup
   const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
   const { toast } = useToast();
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
-  const router = useRouter();
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        router.push('/login');
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [router]);
 
   const handleEnrollment = (code: string) => {
     if (code) {
@@ -52,28 +63,16 @@ export default function Home() {
     }
   };
 
-  if (loading) {
-    return (
-        <div className="flex min-h-screen w-full flex-col items-center justify-center">
-            <p>Loading...</p>
-        </div>
-    );
-  }
-
-  if (!user) {
-    // This state should ideally not be reached due to the redirect, but it's a good failsafe.
-    return null; 
-  }
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader onEnroll={handleEnrollment} user={user} isEnrolled={isEnrolled} view="client"/>
+      <AppHeader onEnroll={handleEnrollment} user={mockUser} isEnrolled={isEnrolled} view="client"/>
       <main className="flex-1">
-        <DataCards user={user} onDataFetched={setFitData} />
-        <ClientDashboard isEnrolled={isEnrolled} user={user} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
+        <DataCards user={mockUser} onDataFetched={setFitData} />
+        <ClientDashboard isEnrolled={isEnrolled} user={mockUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
       </main>
       <NotificationManager 
-        user={user}
+        user={mockUser}
         currentSteps={fitData.steps}
         dailyStepGoal={dailyStepGoal}
       />
