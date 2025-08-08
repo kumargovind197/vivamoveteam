@@ -16,6 +16,7 @@ import NotificationManager from '@/components/notification-manager';
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
   const [showPopupAd, setShowPopupAd] = useState(false); // Admin toggle for popup
   const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
@@ -30,6 +31,7 @@ export default function Home() {
       } else {
         router.push('/login');
       }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, [router]);
@@ -50,12 +52,17 @@ export default function Home() {
     }
   };
 
-  if (!user) {
+  if (loading) {
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center">
             <p>Loading...</p>
         </div>
     );
+  }
+
+  if (!user) {
+    // This state should ideally not be reached due to the redirect, but it's a good failsafe.
+    return null; 
   }
 
   return (

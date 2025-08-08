@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { auth, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithPopup, provider } from '@/lib/firebase';
+import { auth, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithPopup, provider, User } from '@/lib/firebase';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
@@ -36,10 +36,16 @@ export default function LoginPage() {
         },
     });
 
+    // This effect can be useful for scenarios where the user is already logged in
+    // and lands on the login page, but we will keep it simple for now to avoid loops.
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                router.push('/');
+                // To avoid loops, we only redirect if the user is already authenticated when they land on the page.
+                // The main redirect logic will be in the sign-in handlers.
+                 if (window.location.pathname === '/login') {
+                    router.push('/');
+                 }
             }
         });
         return () => unsubscribe();
