@@ -29,10 +29,10 @@ const initialPatientsData = [
   { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', weeklySteps: 57, weeklyMinutes: 42, monthlySteps: 70, monthlyMinutes: 60 },
 ];
 
-const getProgressColorClass = (progress: number) => {
-    if (progress < 40) return "bg-red-500";
-    if (progress < 70) return "bg-yellow-400";
-    return "bg-green-500";
+const getPercentageBadgeClass = (progress: number) => {
+    if (progress < 40) return "bg-red-500/20 text-red-300";
+    if (progress < 70) return "bg-yellow-400/20 text-yellow-300";
+    return "bg-green-500/20 text-green-300";
 };
 
 
@@ -105,8 +105,8 @@ export default function PatientManagement() {
                     <TableRow>
                         <TableHead>UHID</TableHead>
                         <TableHead>Full Name</TableHead>
-                        <TableHead className="w-[30%]">Step Goal %</TableHead>
-                        <TableHead className="w-[30%]">Active Time %</TableHead>
+                        <TableHead>Step Goal %</TableHead>
+                        <TableHead>Active Time %</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -119,16 +119,14 @@ export default function PatientManagement() {
                             <TableCell className="font-mono">{patient.uhid}</TableCell>
                             <TableCell className="font-medium">{`${patient.firstName} ${patient.surname}`}</TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-4">
-                                    <Progress value={patient[stepKey]} indicatorClassName={getProgressColorClass(patient[stepKey])} className="h-2" />
-                                    <span>{patient[stepKey]}%</span>
-                                </div>
+                               <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[stepKey])}`}>
+                                 {patient[stepKey]}%
+                               </span>
                             </TableCell>
                             <TableCell>
-                                <div className="flex items-center gap-4">
-                                    <Progress value={patient[minuteKey]} indicatorClassName={getProgressColorClass(patient[minuteKey])} className="h-2"/>
-                                    <span>{patient[minuteKey]}%</span>
-                                </div>
+                                <span className={`px-2.5 py-1 text-sm font-semibold rounded-md ${getPercentageBadgeClass(patient[minuteKey])}`}>
+                                  {patient[minuteKey]}%
+                                </span>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -251,5 +249,3 @@ export default function PatientManagement() {
     </>
   )
 }
-
-    
