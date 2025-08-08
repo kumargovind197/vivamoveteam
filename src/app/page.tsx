@@ -10,6 +10,7 @@ import DataCards from '@/components/data-cards';
 import FooterAdBanner from '@/components/footer-ad-banner';
 import NotificationManager from '@/components/notification-manager';
 import type { User } from 'firebase/auth';
+import MessageInbox from '@/components/message-inbox';
 
 // Mock user for development purposes
 const mockUser: User = {
@@ -70,6 +71,7 @@ export default function Home() {
       <main className="flex-1">
         <DataCards user={mockUser} onDataFetched={setFitData} />
         <ClientDashboard view="client" isEnrolled={isEnrolled} user={mockUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
+        <MessageInbox />
       </main>
       <NotificationManager 
         user={mockUser}
