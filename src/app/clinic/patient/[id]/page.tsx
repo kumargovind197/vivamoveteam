@@ -80,7 +80,7 @@ export default function PatientDetailPage({ params }: { params: { id: string } }
       <main className="flex-1">
         {/* These components are for the patient being viewed */}
         <DataCards user={mockPatientUser} onDataFetched={setFitData} />
-        <ClientDashboard isEnrolled={true} user={mockPatientUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
+        <ClientDashboard view="clinic" isEnrolled={true} user={mockPatientUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
       </main>
       {/* Ads and notifications would typically be disabled in a clinical view */}
     </div>

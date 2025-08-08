@@ -69,7 +69,7 @@ export default function Home() {
       <AppHeader onEnroll={handleEnrollment} user={mockUser} isEnrolled={isEnrolled} view="client"/>
       <main className="flex-1">
         <DataCards user={mockUser} onDataFetched={setFitData} />
-        <ClientDashboard isEnrolled={isEnrolled} user={mockUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
+        <ClientDashboard view="client" isEnrolled={isEnrolled} user={mockUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
       </main>
       <NotificationManager 
         user={mockUser}

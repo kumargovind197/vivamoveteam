@@ -5,9 +5,9 @@ import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import ActivityChart from '@/components/activity-chart';
-import { User } from '@/lib/firebase';
+import { User } from 'firebase/auth';
 import { Progress } from './ui/progress';
-import { Footprints, Flame, Target, Trophy, CalendarDays,TrendingUp, Activity } from 'lucide-react';
+import { Footprints, Flame, Target, Trophy, CalendarDays,TrendingUp, Activity, BarChart3, Clock } from 'lucide-react';
 import ProgressRing from './progress-ring';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -39,6 +39,26 @@ const generateMonthlyData = (stepGoal: number, minuteGoal: number) => {
     return data;
 };
 
+const generateAnnualData = (stepGoal: number, minuteGoal: number) => {
+    const data = [];
+    const today = new Date();
+    // Decide randomly if patient has 3, 6, 9, or 12 months of data
+    const monthOptions = [3, 6, 9, 12];
+    const totalMonths = monthOptions[Math.floor(Math.random() * monthOptions.length)];
+    const daysOfData = totalMonths * 30;
+
+    for (let i = 0; i < daysOfData; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        data.push({
+            date: date.toISOString().split('T')[0],
+            steps: Math.floor(Math.random() * (stepGoal * 1.8)),
+            activeMinutes: Math.floor(Math.random() * 120),
+        });
+    }
+    return data.reverse(); // Return in chronological order
+}
+
 const chartConfigSteps = {
   steps: { label: "Steps", color: "hsl(var(--accent))" },
 };
@@ -60,9 +80,10 @@ type ClientDashboardProps = {
   };
   dailyStepGoal: number;
   onStepGoalChange: (goal: number) => void;
+  view: 'client' | 'clinic';
 };
 
-export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGoal, onStepGoalChange }: ClientDashboardProps) {
+export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGoal, onStepGoalChange, view }: ClientDashboardProps) {
   const [isGoalDialogOpen, setGoalDialogOpen] = useState(false);
   const [pendingStepGoal, setPendingStepGoal] = useState(dailyStepGoal);
 
@@ -94,11 +115,11 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
   
   const monthlyTotalSteps = monthlyData.reduce((acc, curr) => acc + curr.steps, 0);
   const monthlyAverageSteps = Math.round(monthlyTotalSteps / monthlyData.length);
-  const daysStepGoalMet = monthlyData.filter(day => day.steps >= dailyStepGoal).length;
+  const daysStepGoalMetMonthly = monthlyData.filter(day => day.steps >= dailyStepGoal).length;
   
   const monthlyTotalMinutes = monthlyData.reduce((acc, curr) => acc + curr.activeMinutes, 0);
   const monthlyAverageMinutes = Math.round(monthlyTotalMinutes / monthlyData.length);
-  const daysMinuteGoalMet = monthlyData.filter(day => day.activeMinutes >= DAILY_MINUTE_GOAL).length;
+  const daysMinuteGoalMetMonthly = monthlyData.filter(day => day.activeMinutes >= DAILY_MINUTE_GOAL).length;
 
   
   const averageStepsByDay = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => {
@@ -115,13 +136,23 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
       return { day: dayName, activeMinutes: avg };
   });
 
+  // Annual data calculations
+  const annualData = generateAnnualData(dailyStepGoal, DAILY_MINUTE_GOAL);
+  const annualTotalSteps = annualData.reduce((acc, curr) => acc + curr.steps, 0);
+  const annualAverageSteps = annualData.length > 0 ? Math.round(annualTotalSteps / annualData.length) : 0;
+  const daysStepGoalMetAnnual = annualData.filter(day => day.steps >= dailyStepGoal).length;
+  const annualTotalMinutes = annualData.reduce((acc, curr) => acc + curr.activeMinutes, 0);
+  const annualAverageMinutes = annualData.length > 0 ? Math.round(annualTotalMinutes / annualData.length) : 0;
+  const daysMinuteGoalMetAnnual = annualData.filter(day => day.activeMinutes >= DAILY_MINUTE_GOAL).length;
+  const totalMonthsOfData = Math.round(annualData.length / 30);
+
 
   return (
     <>
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-                <h1 className="font-headline text-3xl font-bold tracking-tight">Welcome back!</h1>
+                <h1 className="font-headline text-3xl font-bold tracking-tight">Welcome back, {user?.displayName?.split(' ')[0] || 'User'}!</h1>
                 <p className="text-muted-foreground">Here's your activity summary.</p>
             </div>
             {isEnrolled && (
@@ -180,9 +211,10 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
 
 
         <Tabs defaultValue="weekly" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
+          <TabsList className={`grid w-full ${view === 'clinic' ? 'grid-cols-3' : 'grid-cols-2'} md:w-[450px]`}>
             <TabsTrigger value="weekly">Weekly</TabsTrigger>
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
+            {view === 'clinic' && <TabsTrigger value="annual">Annual Summary</TabsTrigger>}
           </TabsList>
           
           <TabsContent value="weekly">
@@ -225,7 +257,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                         <Trophy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{daysStepGoalMet} / {monthlyData.length}</div>
+                        <div className="text-2xl font-bold">{daysStepGoalMetMonthly} / {monthlyData.length}</div>
                         <p className="text-xs text-muted-foreground">days you reached your goal</p>
                     </CardContent>
                 </Card>
@@ -247,7 +279,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                         <Trophy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{daysMinuteGoalMet} / {monthlyData.length}</div>
+                        <div className="text-2xl font-bold">{daysMinuteGoalMetMonthly} / {monthlyData.length}</div>
                         <p className="text-xs text-muted-foreground">days you reached your goal</p>
                     </CardContent>
                 </Card>
@@ -284,6 +316,58 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                 </Card>
             </div>
           </TabsContent>
+           {view === 'clinic' && (
+            <TabsContent value="annual">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Annual Summary</CardTitle>
+                        <CardDescription>A high-level overview of patient activity for the last {totalMonthsOfData} months.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Days Step Goal Met</CardTitle>
+                                <Trophy className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{daysStepGoalMetAnnual}</div>
+                                <p className="text-xs text-muted-foreground">out of {annualData.length} days</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Average Daily Steps</CardTitle>
+                                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{annualAverageSteps.toLocaleString()}</div>
+                                <p className="text-xs text-muted-foreground">over {totalMonthsOfData} months</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Days Active Goal Met</CardTitle>
+                                <Trophy className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{daysMinuteGoalMetAnnual}</div>
+                                <p className="text-xs text-muted-foreground">out of {annualData.length} days</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Average Daily Active Time</CardTitle>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{annualAverageMinutes.toLocaleString()} min</div>
+                                <p className="text-xs text-muted-foreground">over {totalMonthsOfData} months</p>
+                            </CardContent>
+                        </Card>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
