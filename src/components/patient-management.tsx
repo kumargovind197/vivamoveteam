@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, UserPlus, MessageSquare, Edit, Trash2, Info } from "lucide-react"
+import { Search, UserPlus, MessageSquare, Edit, Trash2 } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -35,8 +35,6 @@ const initialPatientsData = [
 ];
 
 type Patient = typeof initialPatientsData[0];
-
-const MAX_PATIENTS = 200;
 
 const getPercentageBadgeClass = (progress: number) => {
     if (progress < 40) return "bg-red-500/20 text-red-300";
@@ -73,6 +71,9 @@ export default function PatientManagement() {
   const router = useRouter();
   const { toast } = useToast();
   
+  // This would be fetched from a config or passed as a prop in a real app
+  const maxPatients = 200;
+
   const filteredPatients = useMemo(() => {
     let patients = patientsData;
 
@@ -116,8 +117,8 @@ export default function PatientManagement() {
   }, [searchQuery, activeTab, stepFilter, minuteFilter]);
 
   const currentPatientCount = patientsData.length;
-  const remainingSlots = MAX_PATIENTS - currentPatientCount;
-  const isAtCapacity = currentPatientCount >= MAX_PATIENTS;
+  const remainingSlots = maxPatients - currentPatientCount;
+  const isAtCapacity = currentPatientCount >= maxPatients;
 
   const handleRowClick = (e: React.MouseEvent, patientId: string) => {
     const target = e.target as HTMLElement;
@@ -431,7 +432,7 @@ export default function PatientManagement() {
                         <CardContent className="grid grid-cols-2 gap-4">
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Total Enrolled Patients</p>
-                                <p className="text-2xl font-bold">{currentPatientCount} / {MAX_PATIENTS}</p>
+                                <p className="text-2xl font-bold">{currentPatientCount} / {maxPatients}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-muted-foreground">Available Slots</p>
@@ -575,7 +576,7 @@ export default function PatientManagement() {
                   <Label htmlFor="firstName" className="text-right">
                     First Name
                   </Label>
-                  <Input id="firstName" value={patientToEit.firstName} onChange={handleEditInputChange} className="col-span-3" />
+                  <Input id="firstName" value={patientToEdit.firstName} onChange={handleEditInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="surname" className="text-right">
