@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, UserPlus, MessageSquare, Edit, Trash2 } from "lucide-react"
-import { Button } from './ui/button';
+import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Label } from './ui/label';
@@ -445,7 +445,7 @@ export default function PatientManagement() {
                                           This action cannot be undone. This will permanently remove <span className="font-semibold">{`${patient.firstName} ${patient.surname}`}</span> from your clinic and revoke their access.
                                           <br/><br/>
                                           To confirm, please type <strong className="text-foreground">delete</strong> below.
-                                        </AlertDialogDescription>
+                                        </DrawingDescription>
                                       </AlertDialogHeader>
                                       <Input 
                                         id="delete-confirm"
@@ -587,5 +587,3 @@ export default function PatientManagement() {
     </>
   )
 }
-
-    
