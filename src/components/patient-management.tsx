@@ -39,12 +39,11 @@ const getPercentageBadgeClass = (progress: number) => {
 
 type FilterOption = 'all' | '<30' | '30-50' | '50-80' | '>80';
 
-const SUGGESTED_MESSAGES: Record<FilterOption, string> = {
+const SUGGESTED_MESSAGES: Partial<Record<FilterOption, string>> = {
     '<30': "Just checking in. Remember that every single step counts, no matter how small. Let's try to build a little momentum with a short walk today. We're here to support you!",
     '30-50': "We're seeing some good effort from you! Let's focus on consistency this week and see if we can make activity a daily habit. You are on the right track—keep it up!",
     '50-80': "Great work! You are so close to hitting your goals consistently. Let's give it a final push and finish the week/month strong. We're impressed with your dedication!",
     '>80': "Fantastic effort! Your consistency and hard work are truly paying off. Keep up the amazing work and continue inspiring others!",
-    'all': "Just a quick reminder to keep up with your daily goals. Every step you take is a step towards a healthier you. Have a great week!"
 };
 
 const filterPrecedence: FilterOption[] = ['<30', '30-50', '50-80', '>80', 'all'];
@@ -168,18 +167,18 @@ export default function PatientManagement() {
     const stepIndex = filterPrecedence.indexOf(stepFilter);
     const minuteIndex = filterPrecedence.indexOf(minuteFilter);
     
-    let messageKey: FilterOption = 'all';
+    let messageKey: FilterOption | null = null;
 
     if (stepFilter !== 'all' || minuteFilter !== 'all') {
       // Prioritize the filter for the lower performance bracket
-      if (stepIndex < minuteIndex) {
+      if (stepFilter !== 'all' && (stepIndex < minuteIndex || minuteFilter === 'all')) {
         messageKey = stepFilter;
-      } else {
+      } else if (minuteFilter !== 'all') {
         messageKey = minuteFilter;
       }
     }
 
-    setBulkMessage(SUGGESTED_MESSAGES[messageKey]);
+    setBulkMessage(messageKey ? SUGGESTED_MESSAGES[messageKey] || '' : '');
     setMessageDialogOpen(true);
   }
 
