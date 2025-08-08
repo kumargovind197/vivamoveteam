@@ -256,7 +256,7 @@ export default function PatientManagement() {
             <DialogDescription>
               Enter the patient's details below to enroll them in the clinic.
             </DialogDescription>
-          </Header>
+          </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="uhid" className="text-right">
@@ -292,4 +292,3 @@ export default function PatientManagement() {
     </>
   )
 }
-
