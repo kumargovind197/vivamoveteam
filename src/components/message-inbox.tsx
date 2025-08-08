@@ -61,7 +61,7 @@ export default function MessageInbox() {
             <MessageSquareText className="h-6 w-6 text-primary" />
             <div>
               <CardTitle>Message Inbox</CardTitle>
-              <CardDescription>Recent messages from your clinic. Showing last 5.</CardDescription>
+              <CardDescription>Showing last 5 of the most recent messages.</CardDescription>
             </div>
           </div>
         </CardHeader>
