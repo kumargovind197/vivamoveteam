@@ -178,6 +178,13 @@ export default function PatientManagement() {
       return (
         <div className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <Button 
+                  onClick={() => setMessageDialogOpen(true)}
+                  disabled={selectedPatientIds.length === 0}
+                >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Message Selected ({selectedPatientIds.length})
+                </Button>
                  <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
                     <Select value={stepFilter} onValueChange={(value) => setStepFilter(value as FilterOption)}>
                         <SelectTrigger className="w-full sm:w-[220px]">
@@ -204,13 +211,6 @@ export default function PatientManagement() {
                         </SelectContent>
                     </Select>
                 </div>
-                <Button 
-                  onClick={() => setMessageDialogOpen(true)}
-                  disabled={selectedPatientIds.length === 0}
-                >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Message Selected ({selectedPatientIds.length})
-                </Button>
             </div>
             <div className="rounded-lg border">
                 <Table>
