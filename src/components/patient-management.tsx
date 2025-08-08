@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -24,6 +25,7 @@ const patientsData = [
 
 export default function PatientManagement() {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
   
   const filteredPatients = useMemo(() => {
     if (!searchQuery) {
@@ -36,6 +38,10 @@ export default function PatientManagement() {
       patient.surname.toLowerCase().includes(lowercasedQuery)
     );
   }, [searchQuery]);
+
+  const handleRowClick = (patientId: string) => {
+    router.push(`/clinic/patient/${patientId}`);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -67,7 +73,11 @@ export default function PatientManagement() {
           </TableHeader>
           <TableBody>
             {filteredPatients.map(patient => (
-              <TableRow key={patient.id}>
+              <TableRow 
+                key={patient.id} 
+                onClick={() => handleRowClick(patient.id)}
+                className="cursor-pointer"
+              >
                 <TableCell className="font-mono">{patient.uhid}</TableCell>
                 <TableCell className="font-medium">{patient.firstName}</TableCell>
                 <TableCell className="font-medium">{patient.surname}</TableCell>

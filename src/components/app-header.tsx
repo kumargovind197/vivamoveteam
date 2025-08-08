@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { HeartPulse, Building, LayoutDashboard, UserCircle } from 'lucide-react';
+import { HeartPulse, Building, LayoutDashboard, UserCircle, ArrowLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -15,13 +15,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from 'firebase/auth';
 
 type AppHeaderProps = {
-  onEnroll?: (code: string) => void;
   user: User | null;
-  isEnrolled?: boolean;
   view: 'client' | 'clinic';
+  isEnrolled?: boolean;
+  onEnroll?: (code: string) => void;
+  patientId?: string; // Used in clinic view when looking at a specific patient
+  patientName?: string;
 };
 
-export default function AppHeader({ onEnroll, user, isEnrolled = false, view }: AppHeaderProps) {
+export default function AppHeader({ user, view, isEnrolled = false, onEnroll, patientId, patientName }: AppHeaderProps) {
   const [isEnrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
 
@@ -36,23 +38,38 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false, view }: 
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-3">
-            {isEnrolled && (
-              <>
-                <Image 
-                  data-ai-hint="medical logo"
-                  src="https://placehold.co/40x40.png" 
-                  alt="Clinic Logo" 
-                  width={40} 
-                  height={40} 
-                  className="rounded-md"
-                />
-                <Separator orientation="vertical" className="h-8" />
-              </>
-            )}
-            <HeartPulse className="h-6 w-6 text-primary" />
-            <span className="font-headline text-xl font-bold text-primary">ViVa move</span>
-          </Link>
+          {patientId ? (
+            <div className='flex items-center gap-4'>
+                <Button asChild variant="outline" size="icon">
+                    <Link href="/clinic">
+                        <ArrowLeft />
+                    </Link>
+                </Button>
+                <div>
+                    <p className="text-sm text-muted-foreground">Viewing Patient</p>
+                    <p className="font-semibold">{patientName}</p>
+                </div>
+            </div>
+          ) : (
+             <Link href="/" className="flex items-center gap-3">
+              {isEnrolled && view === 'client' && (
+                <>
+                  <Image 
+                    data-ai-hint="medical logo"
+                    src="https://placehold.co/40x40.png" 
+                    alt="Clinic Logo" 
+                    width={40} 
+                    height={40} 
+                    className="rounded-md"
+                  />
+                  <Separator orientation="vertical" className="h-8" />
+                </>
+              )}
+              <HeartPulse className="h-6 w-6 text-primary" />
+              <span className="font-headline text-xl font-bold text-primary">ViVa move</span>
+            </Link>
+          )}
+
 
           <div className="flex items-center gap-4">
              {view === 'client' && (
@@ -69,7 +86,7 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false, view }: 
                  </Button>
                </>
             )}
-             {view === 'clinic' && (
+             {view === 'clinic' && !patientId && (
                 <Button asChild variant="outline">
                     <Link href="/">
                         <UserCircle className="mr-2 h-4 w-4" />
