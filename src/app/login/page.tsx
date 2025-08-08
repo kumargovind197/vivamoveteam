@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { auth, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail } from '@/lib/firebase';
+import { auth, signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithPopup, provider } from '@/lib/firebase';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
@@ -59,6 +59,20 @@ export default function LoginPage() {
         }
     };
     
+    const handleGoogleSignIn = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+            router.push('/');
+        } catch (error: any) {
+             console.error("Error signing in with Google", error);
+            toast({
+                variant: "destructive",
+                title: "Sign In Failed",
+                description: error.message || "An unknown error occurred.",
+            });
+        }
+    };
+
     const handlePasswordReset = async () => {
         if (!resetEmail) {
              toast({
@@ -98,39 +112,54 @@ export default function LoginPage() {
                     <CardDescription>Sign in to continue to your health dashboard.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(handleSignIn)} className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="name@example.com" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Password</FormLabel>
-                                        <FormControl>
-                                            <Input type="password" placeholder="••••••••" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                                {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
-                            </Button>
-                        </form>
-                    </Form>
+                    <div className="space-y-4">
+                        <Button onClick={handleGoogleSignIn} variant="outline" className="w-full">
+                            Sign In with Google
+                        </Button>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-card px-2 text-muted-foreground">
+                                    Or continue with
+                                </span>
+                            </div>
+                        </div>
+                         <Form {...form}>
+                            <form onSubmit={form.handleSubmit(handleSignIn)} className="space-y-4">
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Email</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="name@example.com" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Password</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="••••••••" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                                    {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
+                                </Button>
+                            </form>
+                        </Form>
+                    </div>
                      <div className="mt-4 text-center text-sm">
                         <Button variant="link" className="px-0" onClick={() => setIsResetDialogOpen(true)}>
                             Forgot your password?
