@@ -40,11 +40,11 @@ const getPercentageBadgeClass = (progress: number) => {
 type FilterOption = 'all' | '<30' | '30-50' | '50-80' | '>80';
 
 const SUGGESTED_MESSAGES: Record<FilterOption, string> = {
-    '<30': "Hi everyone, we're just checking in. Remember that every single step counts, no matter how small. Let's try to build a little momentum with a short walk today. We're here to support you!",
-    '30-50': "Hello team! We're seeing some good effort from you. Let's focus on consistency this week and see if we can make activity a daily habit. You are on the right track—keep it up!",
-    '50-80': "Great work, everyone! You are so close to hitting your goals consistently. Let's give it a final push and finish the week/month strong. We're impressed with your dedication!",
-    '>80': "Fantastic effort, team! Your consistency and hard work are truly paying off, and you're leading the way. Keep up the amazing work and continue inspiring others!",
-    'all': "Hi team, a quick reminder to keep up with your daily goals. Every step you take is a step towards a healthier you. Have a great week!"
+    '<30': "Just checking in. Remember that every single step counts, no matter how small. Let's try to build a little momentum with a short walk today. We're here to support you!",
+    '30-50': "We're seeing some good effort from you! Let's focus on consistency this week and see if we can make activity a daily habit. You are on the right track—keep it up!",
+    '50-80': "Great work! You are so close to hitting your goals consistently. Let's give it a final push and finish the week/month strong. We're impressed with your dedication!",
+    '>80': "Fantastic effort! Your consistency and hard work are truly paying off. Keep up the amazing work and continue inspiring others!",
+    'all': "Just a quick reminder to keep up with your daily goals. Every step you take is a step towards a healthier you. Have a great week!"
 };
 
 const filterPrecedence: FilterOption[] = ['<30', '30-50', '50-80', '>80', 'all'];
