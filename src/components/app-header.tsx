@@ -144,7 +144,9 @@ export default function AppHeader({ onEnroll, user, isEnrolled = false }: AppHea
           <AlertDialogHeader>
             <AlertDialogTitle>Connect to Google Fit</AlertDialogTitle>
             <AlertDialogDescription>
-              To personalize your activity and fitness support we can provide and tailor it to your needs, this app will need to connect to your Google Fit account ONLY. We will never have access to any other information or personal data on your phone. By continuing, you will be asked to grant permission to view your fitness data.
+              To use this app, you must have the Google Fit app installed on your phone. This app reads your step and activity data from Google Fit to provide personalized insights.
+              <br /><br />
+              By continuing, you will be asked to grant permission to view your fitness data. We will never have access to any other information on your Google account.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
