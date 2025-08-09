@@ -7,18 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Speaker } from 'lucide-react';
+import { Upload, PlusCircle, Building, Speaker, Edit } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
 import { Textarea } from './ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 
 // Mock data for existing clinics
 const existingClinics = [
-    { id: 'clinic-1', name: 'Wellness Clinic', capacity: 200, enrolled: 6, logo: 'https://placehold.co/128x128.png' },
-    { id: 'clinic-2', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png' },
-    { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png' },
+    { id: 'clinic-1', name: 'Wellness Clinic', capacity: 200, enrolled: 6, logo: 'https://placehold.co/128x128.png', password: 'password123' },
+    { id: 'clinic-2', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123' },
+    { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123' },
 ];
+
+type Clinic = typeof existingClinics[0];
 
 interface AdSettings {
     showPopupAd: boolean;
@@ -44,19 +47,30 @@ interface AdminPanelProps {
 
 
 export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProps) {
+  const [clinics, setClinics] = useState(existingClinics);
   const [newClinicName, setNewClinicName] = useState('');
   const [newPatientCapacity, setNewPatientCapacity] = useState(100);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [clinicToEdit, setClinicToEdit] = useState<Clinic | null>(null);
+  const [editedLogoFile, setEditedLogoFile] = useState<File | null>(null);
+  const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
+
   const { toast } = useToast();
 
-  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'new' | 'edit') => {
     const file = event.target.files?.[0];
     if (file) {
-      setNewLogoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setNewLogoPreview(reader.result as string);
+        if (type === 'new') {
+            setNewLogoFile(file);
+            setNewLogoPreview(reader.result as string);
+        } else {
+            setEditedLogoFile(file);
+            setEditedLogoPreview(reader.result as string);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -75,6 +89,15 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
       title: "Clinic Enrolled",
       description: `${newClinicName} has been successfully created.`,
     });
+    // In a real app, this would be an API call
+    setClinics(prev => [...prev, {
+        id: `clinic-${prev.length + 1}`,
+        name: newClinicName,
+        capacity: newPatientCapacity,
+        enrolled: 0,
+        logo: newLogoPreview || 'https://placehold.co/128x128.png',
+        password: 'password123' // default password
+    }])
     setNewClinicName('');
     setNewPatientCapacity(100);
     setNewLogoFile(null);
@@ -100,7 +123,32 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
       });
   }
 
+  const openEditDialog = (clinic: Clinic) => {
+      setClinicToEdit(clinic);
+      setEditedLogoPreview(clinic.logo);
+      setEditedLogoFile(null);
+      setEditDialogOpen(true);
+  }
+
+  const handleUpdateClinic = () => {
+      if (!clinicToEdit) return;
+      
+      const updatedClinics = clinics.map(c => 
+          c.id === clinicToEdit.id ? clinicToEdit : c
+      );
+      setClinics(updatedClinics);
+
+      toast({
+          title: "Clinic Updated",
+          description: `Details for ${clinicToEdit.name} have been successfully updated.`
+      });
+      
+      setEditDialogOpen(false);
+      setClinicToEdit(null);
+  }
+
   return (
+    <>
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
        <div className="space-y-1 mb-8">
             <h1 className="font-headline text-2xl font-bold">Developer Admin Panel</h1>
@@ -140,7 +188,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {existingClinics.map((clinic) => (
+                                        {clinics.map((clinic) => (
                                             <TableRow key={clinic.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
                                                     <img src={clinic.logo} alt={`${clinic.name} logo`} className="h-10 w-10 rounded-md object-cover bg-muted" />
@@ -149,7 +197,10 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                                                 <TableCell>{clinic.enrolled}</TableCell>
                                                 <TableCell>{clinic.capacity}</TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="outline" size="sm">Edit</Button>
+                                                    <Button variant="outline" size="sm" onClick={() => openEditDialog(clinic)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Edit
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -199,7 +250,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="logo-upload" className="sr-only">Upload Logo</Label>
                                 <div className="flex items-center gap-2">
-                                    <Input id="logo-upload" type="file" accept="image/*" onChange={handleLogoChange} className="hidden" />
+                                    <Input id="logo-upload" type="file" accept="image/*" onChange={(e) => handleLogoChange(e, 'new')} className="hidden" />
                                     <Button asChild variant="outline">
                                         <label htmlFor="logo-upload" className="cursor-pointer">
                                             <Upload className="mr-2 h-4 w-4" />
@@ -280,5 +331,72 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
         </div>
       </Tabs>
     </div>
+
+    {/* Edit Clinic Dialog */}
+    <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Edit Clinic: {clinicToEdit?.name}</DialogTitle>
+                <DialogDescription>Update the details for this clinic.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="edit-clinic-name">Clinic Name</Label>
+                    <Input
+                        id="edit-clinic-name"
+                        value={clinicToEdit?.name || ''}
+                        onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, name: e.target.value } : null)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="edit-patient-capacity">Patient Capacity</Label>
+                    <Input
+                        id="edit-patient-capacity"
+                        type="number"
+                        value={clinicToEdit?.capacity || 0}
+                        onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, capacity: Number(e.target.value) } : null)}
+                    />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="edit-password">Set/Reset Password</Label>
+                    <Input
+                        id="edit-password"
+                        type="text"
+                        placeholder="Enter new password"
+                        onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, password: e.target.value } : null)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Clinic Logo</Label>
+                    <div className="flex items-center gap-4">
+                        {editedLogoPreview ? (
+                            <img src={editedLogoPreview} alt="Clinic Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
+                        ) : (
+                             <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center">
+                                <PlusCircle className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                        )}
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Input id="edit-logo-upload" type="file" accept="image/*" onChange={(e) => handleLogoChange(e, 'edit')} className="hidden" />
+                            <Button asChild variant="outline">
+                                <label htmlFor="edit-logo-upload" className="cursor-pointer">
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Change Logo
+                                </label>
+                            </Button>
+                            {editedLogoFile && <p className="text-sm text-muted-foreground">{editedLogoFile.name}</p>}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleUpdateClinic}>Save Changes</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
+
+    
