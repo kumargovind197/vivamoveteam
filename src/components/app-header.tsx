@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { HeartPulse, Building, LayoutDashboard, UserCircle, ArrowLeft } from 'lucide-react';
+import { HeartPulse, Building, LayoutDashboard, UserCircle, ArrowLeft, Wrench } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -73,7 +73,7 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
 
           <div className="flex items-center gap-4">
              {view === 'client' && (
-               <>
+               <div className="hidden items-center gap-2 md:flex">
                 <Button variant="ghost" onClick={() => setEnrollDialogOpen(true)}>
                   <Building className="mr-2 h-4 w-4" />
                   <span>Enroll in Clinic</span>
@@ -84,7 +84,13 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
                         <span>Clinic View</span>
                     </Link>
                  </Button>
-               </>
+                 <Button asChild variant="outline">
+                    <Link href="/admin">
+                        <Wrench className="mr-2 h-4 w-4" />
+                        <span>Admin</span>
+                    </Link>
+                 </Button>
+               </div>
             )}
              {view === 'clinic' && !patientId && (
                 <Button asChild variant="outline">
