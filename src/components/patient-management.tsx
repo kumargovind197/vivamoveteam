@@ -3,6 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -414,7 +415,7 @@ export default function PatientManagement() {
             <TabsContent value="maintenance">
                  <div className="space-y-4">
                     <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4">
                             <CardTitle className='text-base font-semibold'>Clinic Capacity</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-3 items-center p-4 pt-0">
@@ -422,14 +423,22 @@ export default function PatientManagement() {
                                 <p className="text-muted-foreground">Enrolled / Capacity</p>
                                 <p className="text-lg font-bold">{currentPatientCount} / {maxPatients}</p>
                             </div>
-                            {/* Empty div for logo placeholder */}
-                            <div className="flex justify-center"></div>
+                            <div className="flex justify-center">
+                                 <Image 
+                                    data-ai-hint="medical logo"
+                                    src="https://placehold.co/40x40.png" 
+                                    alt="Clinic Logo Placeholder" 
+                                    width={40} 
+                                    height={40} 
+                                    className="rounded-md"
+                                  />
+                            </div>
                             <div className="text-sm text-right">
                                 <p className="text-muted-foreground">Available Slots</p>
                                 <p className="text-lg font-bold">{remainingSlots}</p>
                             </div>
                         </CardContent>
-                        <CardFooter className='text-xs text-muted-foreground pt-0 p-4'>
+                        <CardFooter className='text-xs text-muted-foreground pt-0 pb-4 px-4'>
                             If you need more patient slots, please contact the ViVa move team.
                         </CardFooter>
                     </Card>
@@ -627,3 +636,5 @@ export default function PatientManagement() {
     </TooltipProvider>
   )
 }
+
+    
