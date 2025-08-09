@@ -8,10 +8,10 @@ import { X } from 'lucide-react';
 import Link from 'next/link';
 
 interface AdContent {
-  headline: string;
   description: string;
   imageUrl: string;
   imageHint: string;
+  targetUrl: string;
 }
 
 interface AdBannerProps {
@@ -45,11 +45,11 @@ export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
           >
             <X className="h-4 w-4" />
           </button>
-          <Link href="#" passHref>
+          <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
              <Image 
                 data-ai-hint={adContent.imageHint}
                 src={adContent.imageUrl} 
-                alt={adContent.headline} 
+                alt={adContent.description} 
                 width={400} 
                 height={300}
                 className="rounded-lg object-cover aspect-[4/3] cursor-pointer"

@@ -27,6 +27,7 @@ type Ad = {
     description: string;
     imageUrl: string;
     imageHint: string;
+    targetUrl: string;
 };
 
 interface AdSettings {
@@ -134,7 +135,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   }
 
   const openAdDialog = (ad: Ad | null, list: 'popupAds' | 'footerAds') => {
-    setAdToEdit(ad ? {...ad} : { id: Date.now(), description: '', imageUrl: 'https://placehold.co/400x300.png', imageHint: '' });
+    setAdToEdit(ad ? {...ad} : { id: Date.now(), description: '', imageUrl: 'https://placehold.co/400x300.png', imageHint: '', targetUrl: '' });
     setAdImagePreview(ad ? ad.imageUrl : 'https://placehold.co/400x300.png');
     setAdImageFile(null);
     setCurrentAdList(list);
@@ -443,6 +444,10 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                     <Textarea id="ad-description" placeholder="e.g. 'Summer running shoes campaign'" value={adToEdit?.description || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, description: e.target.value} : null)} />
                 </div>
                 <div className="space-y-2">
+                    <Label htmlFor="ad-targetUrl">Target URL</Label>
+                    <Input id="ad-targetUrl" placeholder="https://example.com/product" value={adToEdit?.targetUrl || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, targetUrl: e.target.value} : null)} />
+                </div>
+                <div className="space-y-2">
                     <Label>Ad Image</Label>
                      <div className="flex items-center gap-4">
                         {adImagePreview ? (
@@ -478,5 +483,3 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </>
   );
 }
-
-    

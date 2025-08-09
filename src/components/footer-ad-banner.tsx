@@ -4,10 +4,10 @@ import { Card, CardContent } from './ui/card';
 import Link from 'next/link';
 
 interface AdContent {
-  headline: string;
   description: string;
   imageUrl: string;
   imageHint: string;
+  targetUrl: string;
 }
 
 interface FooterAdBannerProps {
@@ -25,11 +25,11 @@ export default function FooterAdBanner({ isVisible, adContent }: FooterAdBannerP
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <Card className="my-2 max-w-3xl mx-auto overflow-hidden border-accent/50 shadow-lg">
           <CardContent className="p-0 flex items-center justify-center">
-             <Link href="#" passHref>
+             <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
                <Image 
                 data-ai-hint={adContent.imageHint}
                 src={adContent.imageUrl}
-                alt={adContent.headline}
+                alt={adContent.description}
                 width={728}
                 height={90}
                 className="object-cover cursor-pointer"
