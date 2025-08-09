@@ -45,8 +45,9 @@ const mockUser: User = {
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: 5432, activeMinutes: 25 });
-  const [showPopupAd, setShowPopupAd] = useState(false); // Admin toggle for popup
-  const [showFooterAd, setShowFooterAd] = useState(false); // Admin toggle for footer
+  // In a real app, this ad configuration would be fetched from a database
+  const [showPopupAd, setShowPopupAd] = useState(false); 
+  const [showFooterAd, setShowFooterAd] = useState(false); 
   const { toast } = useToast();
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
 
@@ -87,6 +88,7 @@ export default function Home() {
         currentSteps={fitData.steps}
         dailyStepGoal={dailyStepGoal}
       />
+      {/* In a real app, the content props would be fetched from a database */}
       <AdBanner isPopupVisible={showPopupAd} />
       <FooterAdBanner isVisible={showFooterAd} />
     </div>

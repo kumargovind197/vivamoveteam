@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import AppHeader from '@/components/app-header';
 import AdminPanel from '@/components/admin-panel';
 import type { User } from 'firebase/auth';
@@ -35,11 +35,31 @@ const mockUser: User = {
 
 
 export default function AdminPage() {
+  // In a real app, this state would be persisted to a database (e.g., Firestore)
+  // and likely managed with a global state manager or context.
+  const [adSettings, setAdSettings] = useState({
+    showPopupAd: false,
+    popupAdContent: {
+      headline: 'Healthy You Supplements',
+      description: 'Get 20% off your first order and boost your wellness journey!',
+      imageUrl: 'https://placehold.co/400x300.png',
+      imageHint: 'supplements bottle',
+    },
+    showFooterAd: false,
+    footerAdContent: {
+        headline: 'Step Up Your Game!',
+        description: 'Find the perfect pair of running shoes to crush your goals. 30% off for new customers!',
+        imageUrl: 'https://placehold.co/150x100.png',
+        imageHint: 'running shoes',
+    }
+  });
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader user={mockUser} view="client" />
       <main className="flex-1">
-        <AdminPanel />
+        {/* Ad settings are passed down to the panel */}
+        <AdminPanel adSettings={adSettings} setAdSettings={setAdSettings} />
       </main>
     </div>
   );

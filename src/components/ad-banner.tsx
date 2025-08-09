@@ -9,9 +9,19 @@ import { X } from 'lucide-react';
 
 interface AdBannerProps {
   isPopupVisible: boolean;
+  headline?: string;
+  description?: string;
+  imageUrl?: string;
+  imageHint?: string;
 }
 
-export default function AdBanner({ isPopupVisible }: AdBannerProps) {
+export default function AdBanner({ 
+  isPopupVisible, 
+  headline = 'Healthy You Supplements',
+  description = 'Get 20% off your first order and boost your wellness journey!',
+  imageUrl = 'https://placehold.co/400x300.png',
+  imageHint = 'supplements bottle',
+}: AdBannerProps) {
   const [isVisible, setIsVisible] = useState(isPopupVisible);
 
   useEffect(() => {
@@ -34,18 +44,18 @@ export default function AdBanner({ isPopupVisible }: AdBannerProps) {
             <X className="h-4 w-4" />
           </button>
           <Image 
-            data-ai-hint="supplements bottle"
-            src="https://placehold.co/400x300.png" 
-            alt="Ad for supplements" 
+            data-ai-hint={imageHint}
+            src={imageUrl} 
+            alt={headline} 
             width={400} 
             height={300}
             className="rounded-t-lg object-cover aspect-[4/3]"
           />
         </div>
         <CardContent className="p-4">
-            <h3 className="font-headline text-lg font-semibold">Healthy You Supplements</h3>
+            <h3 className="font-headline text-lg font-semibold">{headline}</h3>
             <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Get 20% off your first order and boost your wellness journey!
+                {description}
             </p>
             <Button size="sm" className="w-full bg-accent hover:bg-accent/90">
                 Shop Now
