@@ -39,19 +39,25 @@ export default function AdminPage() {
   // and likely managed with a global state manager or context.
   const [adSettings, setAdSettings] = useState({
     showPopupAd: false,
-    popupAdContent: {
-      headline: 'Healthy You Supplements',
-      description: 'Get 20% off your first order and boost your wellness journey!',
-      imageUrl: 'https://placehold.co/400x300.png',
-      imageHint: 'supplements bottle',
-    },
+    popupAds: [
+      {
+        id: 1,
+        headline: 'Healthy You Supplements',
+        description: 'Get 20% off your first order and boost your wellness journey!',
+        imageUrl: 'https://placehold.co/400x300.png',
+        imageHint: 'supplements bottle',
+      }
+    ],
     showFooterAd: false,
-    footerAdContent: {
+    footerAds: [
+        {
+        id: 1,
         headline: 'Step Up Your Game!',
         description: 'Find the perfect pair of running shoes to crush your goals. 30% off for new customers!',
         imageUrl: 'https://placehold.co/150x100.png',
         imageHint: 'running shoes',
     }
+    ]
   });
 
   return (

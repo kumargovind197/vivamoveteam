@@ -3,22 +3,20 @@ import Image from 'next/image';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 
-interface FooterAdBannerProps {
-  isVisible: boolean;
-  headline?: string;
-  description?: string;
-  imageUrl?: string;
-  imageHint?: string;
+interface AdContent {
+  headline: string;
+  description: string;
+  imageUrl: string;
+  imageHint: string;
 }
 
-export default function FooterAdBanner({ 
-  isVisible,
-  headline = 'Step Up Your Game!',
-  description = 'Find the perfect pair of running shoes to crush your goals. 30% off for new customers!',
-  imageUrl = 'https://placehold.co/150x100.png',
-  imageHint = 'running shoes',
-}: FooterAdBannerProps) {
-  if (!isVisible) {
+interface FooterAdBannerProps {
+  isVisible: boolean;
+  adContent: AdContent | null;
+}
+
+export default function FooterAdBanner({ isVisible, adContent }: FooterAdBannerProps) {
+  if (!isVisible || !adContent) {
     return null;
   }
 
@@ -29,23 +27,23 @@ export default function FooterAdBanner({
           <CardContent className="p-0 flex items-center">
             <div className="flex-shrink-0">
                <Image 
-                data-ai-hint={imageHint}
-                src={imageUrl}
-                alt={headline}
+                data-ai-hint={adContent.imageHint}
+                src={adContent.imageUrl}
+                alt={adContent.headline}
                 width={150}
                 height={100}
                 className="object-cover h-full"
               />
             </div>
             <div className="p-4 flex-grow">
-              <h3 className="font-headline font-semibold">{headline}</h3>
+              <h3 className="font-headline font-semibold">{adContent.headline}</h3>
               <p className="text-sm text-muted-foreground">
-                {description}
+                {adContent.description}
               </p>
             </div>
             <div className="p-4 flex-shrink-0">
               <Button size="sm" className="bg-accent hover:bg-accent/80">
-                Shop Shoes
+                Shop Now
               </Button>
             </div>
           </CardContent>

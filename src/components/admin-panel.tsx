@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Speaker, Edit } from 'lucide-react';
+import { Upload, PlusCircle, Building, Speaker, Edit, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
@@ -22,22 +22,19 @@ const existingClinics = [
 ];
 
 type Clinic = typeof existingClinics[0];
+type Ad = {
+    id: number;
+    headline: string;
+    description: string;
+    imageUrl: string;
+    imageHint: string;
+};
 
 interface AdSettings {
     showPopupAd: boolean;
-    popupAdContent: {
-      headline: string;
-      description: string;
-      imageUrl: string;
-      imageHint: string;
-    };
+    popupAds: Ad[];
     showFooterAd: boolean;
-    footerAdContent: {
-      headline: string;
-      description: string;
-      imageUrl: string;
-      imageHint: string;
-    }
+    footerAds: Ad[];
 }
 
 interface AdminPanelProps {
@@ -52,10 +49,15 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const [newPatientCapacity, setNewPatientCapacity] = useState(100);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
+  
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [clinicToEdit, setClinicToEdit] = useState<Clinic | null>(null);
   const [editedLogoFile, setEditedLogoFile] = useState<File | null>(null);
   const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
+  
+  const [isAdDialogOpen, setAdDialogOpen] = useState(false);
+  const [adToEdit, setAdToEdit] = useState<Ad | null>(null);
+  const [currentAdList, setCurrentAdList] = useState<'popupAds' | 'footerAds' | null>(null);
 
   const { toast } = useToast();
 
@@ -89,39 +91,19 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
       title: "Clinic Enrolled",
       description: `${newClinicName} has been successfully created.`,
     });
-    // In a real app, this would be an API call
     setClinics(prev => [...prev, {
         id: `clinic-${prev.length + 1}`,
         name: newClinicName,
         capacity: newPatientCapacity,
         enrolled: 0,
         logo: newLogoPreview || 'https://placehold.co/128x128.png',
-        password: 'password123' // default password
+        password: 'password123'
     }])
     setNewClinicName('');
     setNewPatientCapacity(100);
     setNewLogoFile(null);
     setNewLogoPreview(null);
   };
-  
-  const handleAdContentChange = (ad_type: 'popup' | 'footer', field: string, value: string) => {
-      const contentKey = ad_type === 'popup' ? 'popupAdContent' : 'footerAdContent';
-      setAdSettings(prev => ({
-        ...prev,
-        [contentKey]: {
-            ...prev[contentKey],
-            [field]: value,
-        }
-      }));
-  }
-
-  const handleUpdateAd = (ad_type: 'popup' | 'footer') => {
-      // In a real app, this would save the adSettings to a database
-      toast({
-          title: "Advertisement Updated",
-          description: `The ${ad_type === 'popup' ? 'Popup Banner' : 'Footer Banner'} content has been saved.`,
-      });
-  }
 
   const openEditDialog = (clinic: Clinic) => {
       setClinicToEdit(clinic);
@@ -132,20 +114,109 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
 
   const handleUpdateClinic = () => {
       if (!clinicToEdit) return;
-      
       const updatedClinics = clinics.map(c => 
           c.id === clinicToEdit.id ? clinicToEdit : c
       );
       setClinics(updatedClinics);
-
       toast({
           title: "Clinic Updated",
           description: `Details for ${clinicToEdit.name} have been successfully updated.`
       });
-      
       setEditDialogOpen(false);
       setClinicToEdit(null);
   }
+
+  const openAdDialog = (ad: Ad | null, list: 'popupAds' | 'footerAds') => {
+    setAdToEdit(ad ? {...ad} : { id: Date.now(), headline: '', description: '', imageUrl: '', imageHint: '' });
+    setCurrentAdList(list);
+    setAdDialogOpen(true);
+  }
+
+  const handleSaveAd = () => {
+    if (!adToEdit || !currentAdList) return;
+
+    setAdSettings(prev => {
+        const list = prev[currentAdList!];
+        const adExists = list.some(ad => ad.id === adToEdit.id);
+        
+        let newList;
+        if (adExists) {
+            // Update existing ad
+            newList = list.map(ad => ad.id === adToEdit.id ? adToEdit : ad);
+        } else {
+            // Add new ad
+            newList = [...list, adToEdit];
+        }
+        
+        return { ...prev, [currentAdList!]: newList };
+    });
+
+    toast({
+        title: adToEdit.id ? 'Ad Updated' : 'Ad Added',
+        description: 'The ad content has been successfully saved.'
+    });
+
+    setAdDialogOpen(false);
+    setAdToEdit(null);
+    setCurrentAdList(null);
+  }
+
+  const handleRemoveAd = (adId: number, list: 'popupAds' | 'footerAds') => {
+    setAdSettings(prev => ({
+        ...prev,
+        [list]: prev[list].filter(ad => ad.id !== adId)
+    }));
+    toast({
+        variant: 'destructive',
+        title: 'Ad Removed',
+        description: 'The ad has been removed from the list.'
+    });
+  }
+
+  const renderAdList = (list: 'popupAds' | 'footerAds', title: string) => (
+    <div className="space-y-4 p-4 border rounded-lg">
+        <div className="flex items-center justify-between">
+            <div className='space-y-1'>
+                <Label className="text-lg font-medium">{title}</Label>
+                 <Switch 
+                    id={`${list}-switch`}
+                    checked={list === 'popupAds' ? adSettings.showPopupAd : adSettings.showFooterAd}
+                    onCheckedChange={(checked) => setAdSettings(prev => ({ ...prev, [list === 'popupAds' ? 'showPopupAd' : 'showFooterAd']: checked }))}
+                />
+            </div>
+            <Button size="sm" onClick={() => openAdDialog(null, list)}>
+                <PlusCircle className="mr-2" /> Add Ad
+            </Button>
+        </div>
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Headline</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {adSettings[list].map(ad => (
+                    <TableRow key={ad.id}>
+                        <TableCell>{ad.headline}</TableCell>
+                        <TableCell>{ad.description}</TableCell>
+                        <TableCell className="text-right space-x-2">
+                             <Button variant="outline" size="icon" onClick={() => openAdDialog(ad, list)}>
+                                <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="destructive" size="icon" onClick={() => handleRemoveAd(ad.id, list)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+        {adSettings[list].length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No ads configured for this slot.</p>}
+    </div>
+  )
+
 
   return (
     <>
@@ -274,57 +345,11 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                  <Card>
                     <CardHeader>
                         <CardTitle>Advertisement Management</CardTitle>
-                        <CardDescription>Control the ads displayed in the client application.</CardDescription>
+                        <CardDescription>Control the ads displayed in the client application. Ads are rotated randomly on each page load.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-8">
-                        {/* Popup Ad Section */}
-                        <div className="space-y-4 p-4 border rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="popup-ad-switch" className="text-lg font-medium">Popup Ad Banner</Label>
-                                <Switch 
-                                    id="popup-ad-switch"
-                                    checked={adSettings.showPopupAd}
-                                    onCheckedChange={(checked) => setAdSettings(prev => ({ ...prev, showPopupAd: checked }))}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="popup-headline">Headline</Label>
-                                <Input id="popup-headline" value={adSettings.popupAdContent.headline} onChange={(e) => handleAdContentChange('popup', 'headline', e.target.value)} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="popup-description">Description</Label>
-                                <Textarea id="popup-description" value={adSettings.popupAdContent.description} onChange={(e) => handleAdContentChange('popup', 'description', e.target.value)} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="popup-image">Image URL</Label>
-                                <Input id="popup-image" value={adSettings.popupAdContent.imageUrl} onChange={(e) => handleAdContentChange('popup', 'imageUrl', e.target.value)} />
-                            </div>
-                            <Button size="sm" onClick={() => handleUpdateAd('popup')}>Update Popup Ad</Button>
-                        </div>
-                         {/* Footer Ad Section */}
-                         <div className="space-y-4 p-4 border rounded-lg">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="footer-ad-switch" className="text-lg font-medium">Footer Ad Banner</Label>
-                                <Switch 
-                                    id="footer-ad-switch"
-                                    checked={adSettings.showFooterAd}
-                                    onCheckedChange={(checked) => setAdSettings(prev => ({ ...prev, showFooterAd: checked }))}
-                                />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="footer-headline">Headline</Label>
-                                <Input id="footer-headline" value={adSettings.footerAdContent.headline} onChange={(e) => handleAdContentChange('footer', 'headline', e.target.value)} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="footer-description">Description</Label>
-                                <Textarea id="footer-description" value={adSettings.footerAdContent.description} onChange={(e) => handleAdContentChange('footer', 'description', e.target.value)} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="footer-image">Image URL</Label>
-                                <Input id="footer-image" value={adSettings.footerAdContent.imageUrl} onChange={(e) => handleAdContentChange('footer', 'imageUrl', e.target.value)} />
-                            </div>
-                            <Button size="sm" onClick={() => handleUpdateAd('footer')}>Update Footer Ad</Button>
-                        </div>
+                        {renderAdList('popupAds', 'Popup Ad Banner')}
+                        {renderAdList('footerAds', 'Footer Ad Banner')}
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -395,8 +420,40 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
             </DialogFooter>
         </DialogContent>
     </Dialog>
+
+    {/* Add/Edit Ad Dialog */}
+    <Dialog open={isAdDialogOpen} onOpenChange={setAdDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{adToEdit?.id && adSettings[currentAdList!]?.some(ad => ad.id === adToEdit.id) ? 'Edit' : 'Add'} Advertisement</DialogTitle>
+                <DialogDescription>
+                    Fill in the details for this ad creative.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="ad-headline">Headline</Label>
+                    <Input id="ad-headline" value={adToEdit?.headline || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, headline: e.target.value} : null)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="ad-description">Description</Label>
+                    <Textarea id="ad-description" value={adToEdit?.description || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, description: e.target.value} : null)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="ad-imageUrl">Image URL</Label>
+                    <Input id="ad-imageUrl" value={adToEdit?.imageUrl || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, imageUrl: e.target.value} : null)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="ad-imageHint">Image Hint</Label>
+                    <Input id="ad-imageHint" value={adToEdit?.imageHint || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, imageHint: e.target.value} : null)} />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setAdDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleSaveAd}>Save Ad</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
     </>
   );
 }
-
-    

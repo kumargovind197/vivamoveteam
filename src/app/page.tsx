@@ -42,15 +42,44 @@ const mockUser: User = {
   toJSON: () => ({}),
 };
 
+// Mock ad data that would be fetched from the admin settings
+const MOCK_AD_SETTINGS = {
+    showPopupAd: true,
+    popupAds: [
+      { id: 1, headline: 'Healthy You Supplements', description: 'Get 20% off your first order!', imageUrl: 'https://placehold.co/400x300.png', imageHint: 'supplements bottle' },
+      { id: 2, headline: 'Mindful Meditation App', description: 'Find your calm in just 5 minutes a day.', imageUrl: 'https://placehold.co/400x300.png', imageHint: 'meditation app' },
+    ],
+    showFooterAd: true,
+    footerAds: [
+      { id: 1, headline: 'Step Up Your Game!', description: '30% off new running shoes.', imageUrl: 'https://placehold.co/150x100.png', imageHint: 'running shoes' },
+      { id: 2, headline: 'Fresh Organic Meals', description: 'Healthy eating, delivered to you.', imageUrl: 'https://placehold.co/150x100.png', imageHint: 'healthy food' },
+    ]
+};
+
 
 export default function Home() {
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: 5432, activeMinutes: 25 });
-  // In a real app, this ad configuration would be fetched from a database
-  const [showPopupAd, setShowPopupAd] = useState(false); 
-  const [showFooterAd, setShowFooterAd] = useState(false); 
-  const { toast } = useToast();
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
+
+  const [adSettings] = useState(MOCK_AD_SETTINGS);
+  const [popupAdToShow, setPopupAdToShow] = useState<typeof adSettings.popupAds[0] | null>(null);
+  const [footerAdToShow, setFooterAdToShow] = useState<typeof adSettings.footerAds[0] | null>(null);
+
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Ad rotation logic
+    if (adSettings.showPopupAd && adSettings.popupAds.length > 0) {
+        const randomIndex = Math.floor(Math.random() * adSettings.popupAds.length);
+        setPopupAdToShow(adSettings.popupAds[randomIndex]);
+    }
+    if (adSettings.showFooterAd && adSettings.footerAds.length > 0) {
+        const randomIndex = Math.floor(Math.random() * adSettings.footerAds.length);
+        setFooterAdToShow(adSettings.footerAds[randomIndex]);
+    }
+  }, [adSettings]);
+
 
   const handleEnrollment = (code: string) => {
     if (code) {
@@ -98,9 +127,15 @@ export default function Home() {
         currentSteps={fitData.steps}
         dailyStepGoal={dailyStepGoal}
       />
-      {/* In a real app, the content props would be fetched from a database */}
-      <AdBanner isPopupVisible={showPopupAd} />
-      <FooterAdBanner isVisible={showFooterAd} />
+      
+      <AdBanner 
+        isPopupVisible={adSettings.showPopupAd && !!popupAdToShow} 
+        adContent={popupAdToShow}
+      />
+      <FooterAdBanner 
+        isVisible={adSettings.showFooterAd && !!footerAdToShow}
+        adContent={footerAdToShow}
+      />
     </div>
   );
 }

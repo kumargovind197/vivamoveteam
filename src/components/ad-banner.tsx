@@ -7,28 +7,26 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { X } from 'lucide-react';
 
-interface AdBannerProps {
-  isPopupVisible: boolean;
-  headline?: string;
-  description?: string;
-  imageUrl?: string;
-  imageHint?: string;
+interface AdContent {
+  headline: string;
+  description: string;
+  imageUrl: string;
+  imageHint: string;
 }
 
-export default function AdBanner({ 
-  isPopupVisible, 
-  headline = 'Healthy You Supplements',
-  description = 'Get 20% off your first order and boost your wellness journey!',
-  imageUrl = 'https://placehold.co/400x300.png',
-  imageHint = 'supplements bottle',
-}: AdBannerProps) {
+interface AdBannerProps {
+  isPopupVisible: boolean;
+  adContent: AdContent | null;
+}
+
+export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
   const [isVisible, setIsVisible] = useState(isPopupVisible);
 
   useEffect(() => {
     setIsVisible(isPopupVisible);
   }, [isPopupVisible]);
 
-  if (!isVisible) {
+  if (!isVisible || !adContent) {
     return null;
   }
 
@@ -44,18 +42,18 @@ export default function AdBanner({
             <X className="h-4 w-4" />
           </button>
           <Image 
-            data-ai-hint={imageHint}
-            src={imageUrl} 
-            alt={headline} 
+            data-ai-hint={adContent.imageHint}
+            src={adContent.imageUrl} 
+            alt={adContent.headline} 
             width={400} 
             height={300}
             className="rounded-t-lg object-cover aspect-[4/3]"
           />
         </div>
         <CardContent className="p-4">
-            <h3 className="font-headline text-lg font-semibold">{headline}</h3>
+            <h3 className="font-headline text-lg font-semibold">{adContent.headline}</h3>
             <p className="text-sm text-muted-foreground mt-1 mb-4">
-                {description}
+                {adContent.description}
             </p>
             <Button size="sm" className="w-full bg-accent hover:bg-accent/90">
                 Shop Now
