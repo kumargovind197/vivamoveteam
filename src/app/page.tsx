@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import AppHeader from '@/components/app-header';
 import ClientDashboard from '@/components/client-dashboard';
 import AdBanner from '@/components/ad-banner';
@@ -12,7 +13,7 @@ import NotificationManager from '@/components/notification-manager';
 import type { User } from 'firebase/auth';
 import MessageInbox from '@/components/message-inbox';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, LogIn } from 'lucide-react';
 
 // Mock user for development purposes
 const mockUser: User = {
@@ -79,6 +80,15 @@ export default function Home() {
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader onEnroll={handleEnrollment} user={mockUser} isEnrolled={isEnrolled} view="client"/>
       <main className="flex-1">
+        {/* In a real app, a user would be redirected to /login if not authenticated */}
+        <div className="container mx-auto px-4 py-4 text-center">
+            <Button asChild>
+                <Link href="/login">
+                    <LogIn className="mr-2" />
+                    Go to Login Page (Prototype)
+                </Link>
+            </Button>
+        </div>
         <DataCards user={mockUser} onDataFetched={setFitData} />
         <ClientDashboard view="client" isEnrolled={isEnrolled} user={mockUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
         <MessageInbox />
