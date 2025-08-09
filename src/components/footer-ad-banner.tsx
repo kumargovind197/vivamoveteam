@@ -6,7 +6,6 @@ import Link from 'next/link';
 interface AdContent {
   description: string;
   imageUrl: string;
-  imageHint: string;
   targetUrl: string;
 }
 
@@ -27,7 +26,6 @@ export default function FooterAdBanner({ isVisible, adContent }: FooterAdBannerP
           <CardContent className="p-0 flex items-center justify-center">
              <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
                <Image 
-                data-ai-hint={adContent.imageHint}
                 src={adContent.imageUrl}
                 alt={adContent.description}
                 width={728}

@@ -44,7 +44,6 @@ export default function AdminPage() {
         id: 1,
         description: 'Get 20% off your first order and boost your wellness journey!',
         imageUrl: 'https://placehold.co/400x300.png',
-        imageHint: 'supplements bottle',
         targetUrl: 'https://example.com/supplements'
       }
     ],
@@ -54,7 +53,6 @@ export default function AdminPage() {
         id: 1,
         description: 'Find the perfect pair of running shoes to crush your goals. 30% off for new customers!',
         imageUrl: 'https://placehold.co/150x100.png',
-        imageHint: 'running shoes',
         targetUrl: 'https://example.com/shoes'
     }
     ]

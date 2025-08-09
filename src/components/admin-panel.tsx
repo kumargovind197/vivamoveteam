@@ -26,7 +26,6 @@ type Ad = {
     id: number;
     description: string;
     imageUrl: string;
-    imageHint: string;
     targetUrl: string;
 };
 
@@ -56,7 +55,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
   
   const [isAdDialogOpen, setAdDialogOpen] = useState(false);
-  const [adToEdit, setAdToEdit] = useState<Ad | null>(null);
+  const [adToEdit, setAdToEdit] = useState<Omit<Ad, 'id'> & { id: number | null }> | null>(null);
   const [currentAdList, setCurrentAdList] = useState<'popupAds' | 'footerAds' | null>(null);
   const [adImageFile, setAdImageFile] = useState<File | null>(null);
   const [adImagePreview, setAdImagePreview] = useState<string | null>(null);
@@ -135,7 +134,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   }
 
   const openAdDialog = (ad: Ad | null, list: 'popupAds' | 'footerAds') => {
-    setAdToEdit(ad ? {...ad} : { id: Date.now(), description: '', imageUrl: 'https://placehold.co/400x300.png', imageHint: '', targetUrl: '' });
+    setAdToEdit(ad ? {...ad} : { id: null, description: '', imageUrl: 'https://placehold.co/400x300.png', targetUrl: '' });
     setAdImagePreview(ad ? ad.imageUrl : 'https://placehold.co/400x300.png');
     setAdImageFile(null);
     setCurrentAdList(list);
@@ -147,15 +146,19 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
 
     setAdSettings(prev => {
         const list = prev[currentAdList!];
-        const adExists = list.some(ad => ad.id === adToEdit.id);
+        const adExists = adToEdit.id !== null && list.some(ad => ad.id === adToEdit.id);
         
         let newList;
         if (adExists) {
             // Update existing ad
-            newList = list.map(ad => ad.id === adToEdit.id ? adToEdit : ad);
+            newList = list.map(ad => ad.id === adToEdit.id ? (adToEdit as Ad) : ad);
         } else {
             // Add new ad
-            newList = [...list, adToEdit];
+            const newAd: Ad = {
+                ...adToEdit,
+                id: Date.now(), // Assign a new ID
+            };
+            newList = [...list, newAd];
         }
         
         return { ...prev, [currentAdList!]: newList };
@@ -433,7 +436,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     <Dialog open={isAdDialogOpen} onOpenChange={setAdDialogOpen}>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>{adToEdit?.id && adSettings[currentAdList!]?.some(ad => ad.id === adToEdit.id) ? 'Edit' : 'Add'} Advertisement</DialogTitle>
+                <DialogTitle>{adToEdit?.id ? 'Edit' : 'Add'} Advertisement</DialogTitle>
                 <DialogDescription>
                     Provide a short description (for your reference) and upload the ad image.
                 </DialogDescription>
@@ -468,10 +471,6 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                             {adImageFile && <p className="text-sm text-muted-foreground">{adImageFile.name}</p>}
                         </div>
                     </div>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="ad-imageHint">Image Hint (for AI)</Label>
-                    <Input id="ad-imageHint" placeholder="e.g. 'running shoes'" value={adToEdit?.imageHint || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, imageHint: e.target.value} : null)} />
                 </div>
             </div>
             <DialogFooter>

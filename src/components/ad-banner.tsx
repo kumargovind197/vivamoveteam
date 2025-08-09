@@ -10,7 +10,6 @@ import Link from 'next/link';
 interface AdContent {
   description: string;
   imageUrl: string;
-  imageHint: string;
   targetUrl: string;
 }
 
@@ -47,7 +46,6 @@ export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
           </button>
           <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
              <Image 
-                data-ai-hint={adContent.imageHint}
                 src={adContent.imageUrl} 
                 alt={adContent.description} 
                 width={400} 

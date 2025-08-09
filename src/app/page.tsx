@@ -46,13 +46,13 @@ const mockUser: User = {
 const MOCK_AD_SETTINGS = {
     showPopupAd: true,
     popupAds: [
-      { id: 1, headline: 'Healthy You Supplements', description: 'Get 20% off your first order!', imageUrl: 'https://placehold.co/400x300.png', imageHint: 'supplements bottle' },
-      { id: 2, headline: 'Mindful Meditation App', description: 'Find your calm in just 5 minutes a day.', imageUrl: 'https://placehold.co/400x300.png', imageHint: 'meditation app' },
+      { id: 1, description: 'Get 20% off your first order!', imageUrl: 'https://placehold.co/400x300.png', targetUrl: 'https://example.com/supplements' },
+      { id: 2, description: 'Find your calm in just 5 minutes a day.', imageUrl: 'https://placehold.co/400x300.png', targetUrl: 'https://example.com/meditation' },
     ],
     showFooterAd: true,
     footerAds: [
-      { id: 1, headline: 'Step Up Your Game!', description: '30% off new running shoes.', imageUrl: 'https://placehold.co/150x100.png', imageHint: 'running shoes' },
-      { id: 2, headline: 'Fresh Organic Meals', description: 'Healthy eating, delivered to you.', imageUrl: 'https://placehold.co/150x100.png', imageHint: 'healthy food' },
+      { id: 1, description: '30% off new running shoes.', imageUrl: 'https://placehold.co/150x100.png', targetUrl: 'https://example.com/shoes' },
+      { id: 2, description: 'Healthy eating, delivered to you.', imageUrl: 'https://placehold.co/150x100.png', targetUrl: 'https://example.com/meals' },
     ]
 };
 
@@ -63,8 +63,8 @@ export default function Home() {
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
 
   const [adSettings] = useState(MOCK_AD_SETTINGS);
-  const [popupAdToShow, setPopupAdToShow] = useState<typeof adSettings.popupAds[0] | null>(null);
-  const [footerAdToShow, setFooterAdToShow] = useState<typeof adSettings.footerAds[0] | null>(null);
+  const [popupAdToShow, setPopupAdToShow] = useState<(typeof adSettings.popupAds)[0] | null>(null);
+  const [footerAdToShow, setFooterAdToShow] = useState<(typeof adSettings.footerAds)[0] | null>(null);
 
   const { toast } = useToast();
   
