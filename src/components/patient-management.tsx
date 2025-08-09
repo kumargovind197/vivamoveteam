@@ -370,18 +370,6 @@ export default function PatientManagement() {
             </Tooltip>
         </div>
 
-        <div className="mb-6 flex items-center">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by UHID, name, or email..." 
-              className="pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
         <Tabs defaultValue="all-patients" onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="all-patients">All Patients</TabsTrigger>
@@ -429,11 +417,13 @@ export default function PatientManagement() {
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className='text-base font-semibold'>Clinic Capacity</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex items-center justify-between p-4 pt-0">
-                            <div className="text-sm">
+                        <CardContent className="grid grid-cols-3 items-center p-4 pt-0">
+                            <div className="text-sm text-left">
                                 <p className="text-muted-foreground">Enrolled / Capacity</p>
                                 <p className="text-lg font-bold">{currentPatientCount} / {maxPatients}</p>
                             </div>
+                            {/* Empty div for logo placeholder */}
+                            <div className="flex justify-center"></div>
                             <div className="text-sm text-right">
                                 <p className="text-muted-foreground">Available Slots</p>
                                 <p className="text-lg font-bold">{remainingSlots}</p>
@@ -443,6 +433,16 @@ export default function PatientManagement() {
                             If you need more patient slots, please contact the ViVa move team.
                         </CardFooter>
                     </Card>
+
+                    <div className="relative w-full max-w-sm">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Search by UHID, name, or email..." 
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
 
                     <div className="rounded-lg border">
                     <Table>
