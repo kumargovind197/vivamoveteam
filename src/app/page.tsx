@@ -11,6 +11,8 @@ import FooterAdBanner from '@/components/footer-ad-banner';
 import NotificationManager from '@/components/notification-manager';
 import type { User } from 'firebase/auth';
 import MessageInbox from '@/components/message-inbox';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
 
 // Mock user for development purposes
 const mockUser: User = {
@@ -53,7 +55,14 @@ export default function Home() {
       setIsEnrolled(true);
       toast({
         title: "Successfully Enrolled!",
-        description: "You are now connected with 'Wellness Clinic'.",
+        description: "You are now connected with 'Wellness Clinic'. Consider adding this app to your home screen for easy access.",
+        duration: 10000, // Keep toast on screen longer
+        action: (
+          <Button>
+              <Download className="mr-2"/>
+              Install App
+          </Button>
+        ),
       });
     } else {
       toast({
