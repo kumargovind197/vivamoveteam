@@ -24,7 +24,6 @@ const existingClinics = [
 type Clinic = typeof existingClinics[0];
 type Ad = {
     id: number;
-    headline: string;
     description: string;
     imageUrl: string;
     imageHint: string;
@@ -58,20 +57,28 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const [isAdDialogOpen, setAdDialogOpen] = useState(false);
   const [adToEdit, setAdToEdit] = useState<Ad | null>(null);
   const [currentAdList, setCurrentAdList] = useState<'popupAds' | 'footerAds' | null>(null);
+  const [adImageFile, setAdImageFile] = useState<File | null>(null);
+  const [adImagePreview, setAdImagePreview] = useState<string | null>(null);
 
   const { toast } = useToast();
 
-  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'new' | 'edit') => {
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'new' | 'edit' | 'ad') => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        const result = reader.result as string;
         if (type === 'new') {
             setNewLogoFile(file);
-            setNewLogoPreview(reader.result as string);
-        } else {
+            setNewLogoPreview(result);
+        } else if (type === 'edit') {
             setEditedLogoFile(file);
-            setEditedLogoPreview(reader.result as string);
+            setEditedLogoPreview(result);
+            setClinicToEdit(prev => prev ? { ...prev, logo: result } : null);
+        } else if (type === 'ad') {
+            setAdImageFile(file);
+            setAdImagePreview(result);
+            setAdToEdit(prev => prev ? { ...prev, imageUrl: result } : null);
         }
       };
       reader.readAsDataURL(file);
@@ -127,7 +134,9 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   }
 
   const openAdDialog = (ad: Ad | null, list: 'popupAds' | 'footerAds') => {
-    setAdToEdit(ad ? {...ad} : { id: Date.now(), headline: '', description: '', imageUrl: '', imageHint: '' });
+    setAdToEdit(ad ? {...ad} : { id: Date.now(), description: '', imageUrl: 'https://placehold.co/400x300.png', imageHint: '' });
+    setAdImagePreview(ad ? ad.imageUrl : 'https://placehold.co/400x300.png');
+    setAdImageFile(null);
     setCurrentAdList(list);
     setAdDialogOpen(true);
   }
@@ -191,7 +200,6 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Headline</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -199,7 +207,6 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
             <TableBody>
                 {adSettings[list].map(ad => (
                     <TableRow key={ad.id}>
-                        <TableCell>{ad.headline}</TableCell>
                         <TableCell>{ad.description}</TableCell>
                         <TableCell className="text-right space-x-2">
                              <Button variant="outline" size="icon" onClick={() => openAdDialog(ad, list)}>
@@ -427,25 +434,39 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
             <DialogHeader>
                 <DialogTitle>{adToEdit?.id && adSettings[currentAdList!]?.some(ad => ad.id === adToEdit.id) ? 'Edit' : 'Add'} Advertisement</DialogTitle>
                 <DialogDescription>
-                    Fill in the details for this ad creative.
+                    Provide a short description (for your reference) and upload the ad image.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                    <Label htmlFor="ad-headline">Headline</Label>
-                    <Input id="ad-headline" value={adToEdit?.headline || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, headline: e.target.value} : null)} />
+                    <Label htmlFor="ad-description">Description (Admin only)</Label>
+                    <Textarea id="ad-description" placeholder="e.g. 'Summer running shoes campaign'" value={adToEdit?.description || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, description: e.target.value} : null)} />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="ad-description">Description</Label>
-                    <Textarea id="ad-description" value={adToEdit?.description || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, description: e.target.value} : null)} />
+                    <Label>Ad Image</Label>
+                     <div className="flex items-center gap-4">
+                        {adImagePreview ? (
+                            <img src={adImagePreview} alt="Ad image preview" className="h-24 w-auto rounded-md object-contain bg-muted" />
+                        ) : (
+                             <div className="h-24 w-32 rounded-md bg-muted flex items-center justify-center">
+                                <PlusCircle className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                        )}
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Input id="ad-image-upload" type="file" accept="image/*" onChange={(e) => handleLogoChange(e, 'ad')} className="hidden" />
+                            <Button asChild variant="outline">
+                                <label htmlFor="ad-image-upload" className="cursor-pointer">
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload Ad
+                                </label>
+                            </Button>
+                            {adImageFile && <p className="text-sm text-muted-foreground">{adImageFile.name}</p>}
+                        </div>
+                    </div>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="ad-imageUrl">Image URL</Label>
-                    <Input id="ad-imageUrl" value={adToEdit?.imageUrl || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, imageUrl: e.target.value} : null)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="ad-imageHint">Image Hint</Label>
-                    <Input id="ad-imageHint" value={adToEdit?.imageHint || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, imageHint: e.target.value} : null)} />
+                    <Label htmlFor="ad-imageHint">Image Hint (for AI)</Label>
+                    <Input id="ad-imageHint" placeholder="e.g. 'running shoes'" value={adToEdit?.imageHint || ''} onChange={(e) => setAdToEdit(prev => prev ? {...prev, imageHint: e.target.value} : null)} />
                 </div>
             </div>
             <DialogFooter>
@@ -457,3 +478,5 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </>
   );
 }
+
+    
