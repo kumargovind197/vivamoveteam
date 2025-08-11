@@ -14,17 +14,18 @@ import { Switch } from './ui/switch';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { MOCK_USERS, addClinicUser } from '@/lib/mock-data';
 
 // Mock data for existing clinics
 const existingClinics = [
-    { id: 'clinic-1', name: 'Wellness Clinic', capacity: 200, enrolled: 6, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: false },
-    { id: 'clinic-2', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: false, footerAdsEnabled: false },
-    { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: true },
+    { id: 'clinic-wellness', name: 'Wellness Clinic', capacity: 200, enrolled: 6, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: false },
+    { id: 'clinic-heartbeat', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: false, footerAdsEnabled: false },
+    { id: 'clinic-stepforward', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: true },
 ];
 
 // This now includes historical data for the CSV export feature
 const mockPatientHistoricalData = {
-    'clinic-1': [
+    'clinic-wellness': [
         { patientId: '1', patientName: 'John Smith', status: 'active', data: [
             { month: '2024-05', totalSteps: 150234, totalMinutes: 3450, dailyAvgSteps: 4846, dailyAvgMinutes: 111 },
             { month: '2024-06', totalSteps: 180456, totalMinutes: 4100, dailyAvgSteps: 6015, dailyAvgMinutes: 137 },
@@ -43,12 +44,12 @@ const mockPatientHistoricalData = {
              { month: '2024-01', totalSteps: 50000, totalMinutes: 1000, dailyAvgSteps: 1613, dailyAvgMinutes: 32 },
         ]}
     ],
-    'clinic-2': [
+    'clinic-heartbeat': [
         { patientId: '4', patientName: 'Sarah Miller', status: 'active', data: [
             { month: '2024-07', totalSteps: 210890, totalMinutes: 5200, dailyAvgSteps: 6803, dailyAvgMinutes: 168 },
         ]},
     ],
-    'clinic-3': [
+    'clinic-stepforward': [
         { patientId: '5', patientName: 'David Wilson', status: 'active', data: [
             { month: '2024-06', totalSteps: 123456, totalMinutes: 3012, dailyAvgSteps: 4115, dailyAvgMinutes: 100 },
             { month: '2024-07', totalSteps: 140000, totalMinutes: 3500, dailyAvgSteps: 4516, dailyAvgMinutes: 113 },
@@ -81,6 +82,8 @@ type AdToEdit = (Omit<Ad, 'id'> & { id: number | null }) | null;
 export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProps) {
   const [clinics, setClinics] = useState(existingClinics);
   const [newClinicName, setNewClinicName] = useState('');
+  const [newClinicId, setNewClinicId] = useState('');
+  const [newClinicPassword, setNewClinicPassword] = useState('');
   const [newPatientCapacity, setNewPatientCapacity] = useState(100);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
@@ -124,7 +127,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   };
 
   const handleEnrollClinic = () => {
-    if (!newClinicName || !newPatientCapacity) {
+    if (!newClinicName || !newPatientCapacity || !newClinicId || !newClinicPassword) {
          toast({
             variant: "destructive",
             title: "Validation Error",
@@ -132,21 +135,39 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
         });
         return;
     }
-    toast({
-      title: "Clinic Enrolled",
-      description: `${newClinicName} has been successfully created.`,
-    });
+    
+    // Add to the mock auth system
+    const userAdded = addClinicUser(newClinicId, newClinicPassword);
+    if (!userAdded) {
+        toast({
+            variant: "destructive",
+            title: "Enrollment Failed",
+            description: `A user with the Clinic ID '${newClinicId}' already exists. Please choose a different ID.`,
+        });
+        return;
+    }
+    
+    // Add to the local state for the admin panel UI
     setClinics(prev => [...prev, {
-        id: `clinic-${prev.length + 1}`,
+        id: newClinicId,
         name: newClinicName,
         capacity: newPatientCapacity,
         enrolled: 0,
         logo: newLogoPreview || 'https://placehold.co/128x128.png',
-        password: 'password123',
+        password: newClinicPassword,
         popupAdsEnabled: false,
         footerAdsEnabled: false,
-    }])
+    }]);
+
+    toast({
+      title: "Clinic Enrolled",
+      description: `${newClinicName} has been successfully created. You can now log in with the new credentials.`,
+    });
+
+    // Reset form
     setNewClinicName('');
+    setNewClinicId('');
+    setNewClinicPassword('');
     setNewPatientCapacity(100);
     setNewLogoFile(null);
     setNewLogoPreview(null);
@@ -165,6 +186,10 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
           c.id === clinicToEdit.id ? clinicToEdit : c
       );
       setClinics(updatedClinics);
+      
+      // Update the password in the mock auth system as well
+      addClinicUser(clinicToEdit.id, clinicToEdit.password, true);
+
       toast({
           title: "Clinic Updated",
           description: `Details for ${clinicToEdit.name} have been successfully updated.`
@@ -491,6 +516,25 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                             value={newClinicName}
                             onChange={(e) => setNewClinicName(e.target.value)}
                             placeholder="Enter the new clinic's name"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="clinic-id">Clinic ID (for login)</Label>
+                            <Input
+                            id="clinic-id"
+                            value={newClinicId}
+                            onChange={(e) => setNewClinicId(e.target.value)}
+                            placeholder="e.g. clinic-uptown"
+                            />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="clinic-password">Password</Label>
+                            <Input
+                            id="clinic-password"
+                            type="password"
+                            value={newClinicPassword}
+                            onChange={(e) => setNewClinicPassword(e.target.value)}
+                            placeholder="Set initial password"
                             />
                         </div>
                         <div className="space-y-2">
