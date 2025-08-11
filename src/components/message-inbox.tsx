@@ -8,46 +8,25 @@ import { MessageSquareText } from 'lucide-react';
 const mockMessages = [
     {
         id: 1,
-        subject: "Your Weekly Progress",
-        content: "Hi John, just checking in. You've had a great week, keep up the momentum! Remember to take a walk after dinner, it really helps.",
+        subject: "Welcome to the Step-Up Challenge!",
+        content: "Hi Alex, welcome to the challenge! We're excited to have you on board. Remember to sync your device daily. Let's get stepping!",
         received: "2 hours ago",
         read: false,
     },
     {
         id: 2,
-        subject: "Quick Reminder",
-        content: "Don't forget your appointment tomorrow at 10 AM. Please make sure to bring your updated food diary.",
+        subject: "New Challenge Starting Monday!",
+        content: "A new quarterly challenge is starting this Monday. Get ready to compete and win prizes for your department!",
         received: "1 day ago",
         read: true,
     },
     {
         id: 3,
-        subject: "New Article for You",
-        content: "We thought you might find this article on 'The Benefits of Morning Stretches' interesting. Let us know your thoughts!",
+        subject: "You're on the Leaderboard!",
+        content: "Great work this month, you've made it to the top 5! Keep up the fantastic effort.",
         received: "3 days ago",
         read: true,
     },
-    {
-        id: 4,
-        subject: "Following Up",
-        content: "Hello! We noticed your activity was a bit lower last weekend. Is everything okay? Let us know if we can help with anything.",
-        received: "5 days ago",
-        read: true,
-    },
-    {
-        id: 5,
-        subject: "Welcome to the Program!",
-        content: "Welcome to the ViVa move program with Wellness Clinic! We're excited to have you on board and look forward to helping you reach your health goals.",
-        received: "1 week ago",
-        read: true,
-    },
-    {
-        id: 6,
-        subject: "This one is too old",
-        content: "This message should not be displayed as it is the 6th message.",
-        received: "2 weeks ago",
-        read: true,
-    }
 ];
 
 export default function MessageInbox() {
@@ -97,5 +76,3 @@ export default function MessageInbox() {
     </div>
   );
 }
-
-    

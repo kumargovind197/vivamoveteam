@@ -4,12 +4,12 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserCircle, Wrench, ShieldQuestion, Hospital, ChevronLeft } from 'lucide-react';
+import { UserCircle, Wrench, ShieldQuestion, Users, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { User } from 'firebase/auth';
-import { MOCK_CLINICS } from '@/lib/mock-data';
+import { MOCK_GROUPS } from '@/lib/mock-data';
 
-type Clinic = typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS];
+type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
 
 const VivaMoveLogo = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -21,21 +21,21 @@ const VivaMoveLogo = () => (
 
 type AppHeaderProps = {
   user: User | null;
-  clinic: Clinic | null;
-  view: 'client' | 'clinic' | 'admin';
-  patientId?: string;
-  patientName?: string;
+  group: Group | null;
+  view: 'member' | 'group' | 'admin';
+  memberId?: string;
+  memberName?: string;
 };
 
-export default function AppHeader({ user, clinic, view, patientId, patientName }: AppHeaderProps) {
+export default function AppHeader({ user, group, view, memberId, memberName }: AppHeaderProps) {
 
-  const renderClinicBranding = () => {
-    if (clinic) {
+  const renderGroupBranding = () => {
+    if (group) {
         return (
             <Image
-                data-ai-hint="medical logo"
-                src={clinic.logo}
-                alt={`${clinic.name} Logo`}
+                data-ai-hint="company logo"
+                src={group.logo}
+                alt={`${group.name} Logo`}
                 width={40}
                 height={40}
                 className="rounded-md"
@@ -56,22 +56,22 @@ export default function AppHeader({ user, clinic, view, patientId, patientName }
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           
           <div className="flex items-center">
-            {view === 'client' && renderClinicBranding()}
-            {(view === 'clinic' && !patientId && clinic) && (
+            {view === 'member' && renderGroupBranding()}
+            {(view === 'group' && !memberId && group) && (
                 <Image
-                    data-ai-hint="medical logo"
-                    src={clinic.logo}
-                    alt={`${clinic.name} Logo`}
+                    data-ai-hint="company logo"
+                    src={group.logo}
+                    alt={`${group.name} Logo`}
                     width={40}
                     height={40}
                     className="rounded-md"
                 />
             )}
-             {view === 'clinic' && patientId && (
+             {view === 'group' && memberId && (
                 <Button asChild variant="outline" size="sm">
-                    <Link href="/clinic">
+                    <Link href="/group">
                         <ChevronLeft className="mr-2" />
-                        <span>Back to All Patients</span>
+                        <span>Back to All Members</span>
                     </Link>
                 </Button>
             )}
@@ -80,9 +80,9 @@ export default function AppHeader({ user, clinic, view, patientId, patientName }
                     <Wrench className="h-6 w-6 text-muted-foreground"/>
                 </div>
             )}
-             {patientName && (
+             {memberName && (
                  <span className="font-headline text-lg font-semibold text-foreground ml-4">
-                    Patient: {patientName}
+                    Member: {memberName}
                  </span>
              )}
           </div>
@@ -91,17 +91,17 @@ export default function AppHeader({ user, clinic, view, patientId, patientName }
              <div className="flex items-center gap-2">
                 <VivaMoveLogo />
                 <div>
-                    <span className="block text-sm font-semibold text-primary/80">ViVa move</span>
+                    <span className="block text-sm font-semibold text-primary/80">Step-Up Challenge</span>
                     <span className="block text-[0.6rem] leading-tight text-muted-foreground">by Viva health solutions</span>
                 </div>
              </div>
 
-             {view === 'client' && (
+             {view === 'member' && (
                <div className="flex items-center gap-2">
                  <Button asChild variant="outline">
-                    <Link href="/clinic">
-                        <Hospital className="mr-2 h-4 w-4" />
-                        <span>Clinic View</span>
+                    <Link href="/group">
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Group Leader View</span>
                     </Link>
                  </Button>
                  <Button asChild variant="outline">
@@ -112,11 +112,11 @@ export default function AppHeader({ user, clinic, view, patientId, patientName }
                  </Button>
                </div>
             )}
-             {(view === 'clinic' || view === 'admin') && (
+             {(view === 'group' || view === 'admin') && (
                 <Button asChild variant="outline">
                     <Link href="/">
                         <UserCircle className="mr-2 h-4 w-4" />
-                        <span>Client View</span>
+                        <span>Member View</span>
                     </Link>
                 </Button>
             )}

@@ -14,13 +14,13 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { MOCK_USERS, MOCK_CLINICS } from '@/lib/mock-data';
+import { MOCK_USERS, MOCK_GROUPS } from '@/lib/mock-data';
 import AdBanner from '@/components/ad-banner';
 import FooterAdBanner from '@/components/footer-ad-banner';
 
 // This now represents the "logged-in" user's ID for the session.
-const LOGGED_IN_USER_ID = 'patient@example.com';
-const USER_CLINIC_ID = 'clinic-wellness'; // The clinic this user is assigned to.
+const LOGGED_IN_USER_ID = 'member@example.com';
+const USER_GROUP_ID = 'group-awesome'; // The group this user is assigned to.
 
 export default function Home() {
   const [dailyStepGoal, setDailyStepGoal] = useState(8000);
@@ -28,7 +28,7 @@ export default function Home() {
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAccessRevoked, setAccessRevoked] = useState(false);
-  const [clinicData, setClinicData] = useState<typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS] | null>(null);
+  const [groupData, setGroupData] = useState<typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS] | null>(null);
   
   // States for controlling ad visibility
   const [showPopupAd, setShowPopupAd] = useState(false);
@@ -40,15 +40,15 @@ export default function Home() {
    useEffect(() => {
     // SIMULATE AUTH CHECK: Check if the user still exists in our mock database.
     const userRecord = MOCK_USERS[LOGGED_IN_USER_ID as keyof typeof MOCK_USERS];
-    const clinicRecord = MOCK_CLINICS[USER_CLINIC_ID as keyof typeof MOCK_CLINICS];
-    setClinicData(clinicRecord);
+    const groupRecord = MOCK_GROUPS[USER_GROUP_ID as keyof typeof MOCK_GROUPS];
+    setGroupData(groupRecord);
 
 
     if (userRecord) {
         const mockUser: User = {
           uid: 'mock-user-id',
           email: LOGGED_IN_USER_ID,
-          displayName: 'John Doe',
+          displayName: 'Alex Doe',
           photoURL: 'https://placehold.co/100x100.png',
           providerId: 'password',
           emailVerified: true, isAnonymous: false, metadata: {}, providerData: [], tenantId: null,
@@ -61,8 +61,8 @@ export default function Home() {
         setCurrentUser(mockUser);
         setAccessRevoked(false);
 
-        // Check the clinic's ad setting from mock data
-        if (clinicRecord?.adsEnabled) {
+        // Check the group's ad setting from mock data
+        if (groupRecord?.adsEnabled) {
              // Logic to decide which ad to show, could be random or based on other factors
             const adDecision = Math.random();
             if (adDecision < 0.5) {
@@ -84,12 +84,12 @@ export default function Home() {
   }, []);
 
   const adContent = {
-      description: 'Ad for running shoes',
+      description: 'Ad for ergonomic office chairs',
       imageUrl: 'https://placehold.co/400x300.png',
       targetUrl: '#',
   };
   const footerAdContent = {
-      description: 'Horizontal ad banner',
+      description: 'Horizontal ad banner for wellness retreats',
       imageUrl: 'https://placehold.co/728x90.png',
       targetUrl: '#',
   };
@@ -107,7 +107,7 @@ export default function Home() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Your access to ViVa move has been revoked by the clinic administrator. If you believe this is an error, please contact your clinic admin.</p>
+                    <p className="text-muted-foreground">Your access has been revoked by the group administrator. If you believe this is an error, please contact your group admin.</p>
                      <Button asChild className="mt-6 w-full">
                         <Link href="/login">
                             Return to Login
@@ -121,13 +121,11 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader user={currentUser} clinic={clinicData} view="client" />
+      <AppHeader user={currentUser} group={groupData} view="member" />
       <main className="flex-1">
         <DataCards user={currentUser} onDataFetched={setFitData} />
-        <ClientDashboard user={currentUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} view="client" clinic={clinicData}/>
+        <ClientDashboard user={currentUser} fitData={fitData} view="member" group={groupData}/>
         <MessageInbox />
-        <NotificationManager user={currentUser} currentSteps={fitData.steps} dailyStepGoal={dailyStepGoal}/>
-        <AdBanner isPopupVisible={showPopupAd} adContent={adContent} />
       </main>
       <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />
     </div>

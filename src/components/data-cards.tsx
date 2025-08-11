@@ -30,13 +30,11 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // In a real scenario, we'd check if the user is a mock user or a real one.
-    // For now, we assume if a user object exists, we can try to fetch.
     // We will disable fetching for the mock user to avoid console errors.
     if (!user || user.uid.startsWith('mock-')) {
       setLoading(false);
       // We return some mock data to make the UI look populated
-      onDataFetched({ steps: 5432, activeMinutes: 25 });
+      onDataFetched({ steps: 7891, activeMinutes: 0 }); // Active minutes set to 0 as it's not used
       return;
     }
 
@@ -48,8 +46,7 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
 
         const requestBody = {
           "aggregateBy": [
-            { "dataTypeName": "com.google.step_count.delta", "dataSourceId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps" },
-            { "dataTypeName": "com.google.active_minutes", "dataSourceId": "derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes" }
+            { "dataTypeName": "com.google.step_count.delta", "dataSourceId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps" }
           ],
           "bucketByTime": { "durationMillis": 86400000 }, // 24 hours
           "startTimeMillis": getMidnight(),
@@ -74,9 +71,9 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
         const data = await response.json();
 
         const steps = data.bucket[0]?.dataset[0]?.point[0]?.value[0]?.intVal || 0;
-        const activeMinutes = data.bucket[0]?.dataset[1]?.point[0]?.value[0]?.intVal || 0;
-
-        onDataFetched({ steps, activeMinutes });
+        
+        // Active minutes is no longer needed but we keep the structure
+        onDataFetched({ steps, activeMinutes: 0 });
 
       } catch (err: any) {
         setError(err.message);
@@ -110,9 +107,8 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
   if (loading) {
        return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 grid gap-6 md:grid-cols-2">
-              <Skeleton className="h-[180px]" />
-              <Skeleton className="h-[180px]" />
+          <div className="mb-6">
+              <Skeleton className="h-[120px]" />
           </div>
         </div>
       );
@@ -120,5 +116,3 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
 
   return null;
 }
-
-    
