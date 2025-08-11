@@ -52,7 +52,7 @@ export default function AdminPage() {
         {
         id: 1,
         description: 'Find the perfect pair of running shoes to crush your goals. 30% off for new customers!',
-        imageUrl: 'https://placehold.co/150x100.png',
+        imageUrl: 'https://placehold.co/728x90.png',
         targetUrl: 'https://example.com/shoes'
     }
     ]

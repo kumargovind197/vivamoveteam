@@ -44,15 +44,15 @@ const mockUser: User = {
 
 // Mock ad data that would be fetched from the admin settings
 const MOCK_AD_SETTINGS = {
-    showPopupAd: true,
+    showPopupAd: false,
     popupAds: [
       { id: 1, description: 'Get 20% off your first order!', imageUrl: 'https://placehold.co/400x300.png', targetUrl: 'https://example.com/supplements' },
       { id: 2, description: 'Find your calm in just 5 minutes a day.', imageUrl: 'https://placehold.co/400x300.png', targetUrl: 'https://example.com/meditation' },
     ],
-    showFooterAd: true,
+    showFooterAd: false,
     footerAds: [
-      { id: 1, description: '30% off new running shoes.', imageUrl: 'https://placehold.co/150x100.png', targetUrl: 'https://example.com/shoes' },
-      { id: 2, description: 'Healthy eating, delivered to you.', imageUrl: 'https://placehold.co/150x100.png', targetUrl: 'https://example.com/meals' },
+      { id: 1, description: '30% off new running shoes.', imageUrl: 'https://placehold.co/728x90.png', targetUrl: 'https://example.com/shoes' },
+      { id: 2, description: 'Healthy eating, delivered to you.', imageUrl: 'https://placehold.co/728x90.png', targetUrl: 'https://example.com/meals' },
     ]
 };
 

@@ -1,6 +1,5 @@
 
 import Image from 'next/image';
-import { Card, CardContent } from './ui/card';
 import Link from 'next/link';
 
 interface AdContent {
@@ -20,21 +19,17 @@ export default function FooterAdBanner({ isVisible, adContent }: FooterAdBannerP
   }
 
   return (
-    <footer className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <Card className="my-2 max-w-3xl mx-auto overflow-hidden border-accent/50 shadow-lg">
-          <CardContent className="p-0 flex items-center justify-center">
-             <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
-               <Image 
-                src={adContent.imageUrl}
-                alt={adContent.description}
-                width={728}
-                height={90}
-                className="object-cover cursor-pointer"
-              />
-            </Link>
-          </CardContent>
-        </Card>
+    <footer className="sticky bottom-0 z-40 w-full border-t bg-background/95 backdrop-blur-sm py-2">
+      <div className="container mx-auto flex items-center justify-center">
+         <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer" className="overflow-hidden rounded-md shadow-lg">
+           <Image 
+            src={adContent.imageUrl}
+            alt={adContent.description}
+            width={728}
+            height={90}
+            className="object-contain cursor-pointer"
+          />
+        </Link>
       </div>
     </footer>
   );
