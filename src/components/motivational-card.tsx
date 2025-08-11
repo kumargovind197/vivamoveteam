@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -311,7 +312,7 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
             </style>
             <div className="absolute inset-0 shimmer-bg" />
             <div className="relative flex flex-col md:flex-row items-center justify-between p-6">
-                <div className="flex flex-col gap-1 z-10 mb-4 md:mb-0">
+                <div className="flex flex-col gap-1 z-10 mb-4 md:mb-0 md:w-2/3">
                     <CardTitle className="flex items-center gap-2 text-lg">
                         <Footprints className="h-6 w-6" />
                         <span>Today's Steps</span>
@@ -323,14 +324,14 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
                         {steps?.toLocaleString() ?? <span className="text-2xl">...</span>}
                     </div>
                 </div>
-                <div className="relative w-40 h-32 flex items-center justify-center overflow-hidden">
+                <div className="relative w-48 h-40 flex items-center justify-center">
                     {icons.map((item, index) => (
                         <div
                             key={index}
                             className="absolute transition-all duration-1000 ease-in-out"
                             style={{
-                                transform: `rotate(${(index - iconIndex) * 18}deg) translateX(70px) rotate(-${(index - iconIndex) * 18}deg)`,
-                                opacity: index === iconIndex ? 1 : 0,
+                                transform: `rotate(${(index - iconIndex) * 18}deg) translateX(60px) rotate(-${(index - iconIndex) * 18}deg)`,
+                                opacity: index === iconIndex ? 1 : 0.2,
                             }}
                         >
                             {item.icon}
