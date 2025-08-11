@@ -1,36 +1,38 @@
 
 "use client"
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 import { MessageSquareText } from 'lucide-react';
-
-const mockMessages = [
-    {
-        id: 1,
-        subject: "Welcome to the Step-Up Challenge!",
-        content: "Hi Alex, welcome to the challenge! We're excited to have you on board. Remember to sync your device daily. Let's get stepping!",
-        received: "2 hours ago",
-        read: false,
-    },
-    {
-        id: 2,
-        subject: "New Challenge Starting Monday!",
-        content: "A new quarterly challenge is starting this Monday. Get ready to compete and win prizes for your department!",
-        received: "1 day ago",
-        read: true,
-    },
-    {
-        id: 3,
-        subject: "You're on the Leaderboard!",
-        content: "Great work this month, you've made it to the top 5! Keep up the fantastic effort.",
-        received: "3 days ago",
-        read: true,
-    },
-];
+import { MOCK_MESSAGES, markAsRead } from '@/lib/mock-data';
 
 export default function MessageInbox() {
-  const recentMessages = mockMessages.slice(0, 5);
+  // Local state to track which messages have been read *during this session*.
+  const [readMessages, setReadMessages] = useState<Set<number>>(new Set());
+  const [messages, setMessages] = useState(MOCK_MESSAGES);
+
+  // This effect simulates keeping the message list in sync with our "global" mock data store.
+  useEffect(() => {
+    // In a real app with a backend, you might refetch messages here or use a subscription.
+    // For our mock, we can just reset our component's state if the global one changes.
+    const interval = setInterval(() => {
+      setMessages([...MOCK_MESSAGES]);
+    }, 1000); // Check for new messages every second
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAccordionChange = (value: string) => {
+    if (value) {
+      const messageId = parseInt(value.split('-')[1]);
+      if (!readMessages.has(messageId)) {
+        markAsRead(messageId);
+        setReadMessages(prev => new Set(prev).add(messageId));
+      }
+    }
+  };
+
+  const recentMessages = messages.slice(0, 5);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -46,7 +48,7 @@ export default function MessageInbox() {
         </CardHeader>
         <CardContent>
           {recentMessages.length > 0 ? (
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion type="single" collapsible className="w-full" onValueChange={handleAccordionChange}>
               {recentMessages.map((message) => (
                 <AccordionItem value={`item-${message.id}`} key={message.id}>
                   <AccordionTrigger>

@@ -11,18 +11,19 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { MOCK_USERS, removeUser, MOCK_GROUPS } from '@/lib/mock-data';
+import { MOCK_USERS, removeUser, MOCK_GROUPS, addMessage } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import Leaderboard from './leaderboard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { Textarea } from './ui/textarea';
 
 const initialMembersData = [
   { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 285000 },
@@ -157,6 +158,7 @@ export default function MemberManagement() {
   const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
   const [newMember, setNewMember] = useState({ memberId: '', firstName: '', surname: '', email: '', department: '' });
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [bulkMessage, setBulkMessage] = useState('');
   const { toast } = useToast();
   
   const maxMembers = MOCK_GROUPS['group-awesome'].capacity;
@@ -243,6 +245,24 @@ export default function MemberManagement() {
       setDeleteConfirmationInput('');
   }
 
+  const handleSendBulkMessage = () => {
+      if (!bulkMessage.trim()) {
+          toast({ variant: 'destructive', title: "Message is empty", description: "You cannot send an empty message."});
+          return;
+      }
+
+      addMessage({
+          subject: 'A message from your Group Leader',
+          content: bulkMessage
+      });
+      
+      toast({
+          title: "Message Sent",
+          description: "Your message has been sent to all group members."
+      });
+      setBulkMessage('');
+  };
+
 
   return (
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -289,6 +309,24 @@ export default function MemberManagement() {
             </TabsContent>
             <TabsContent value="manage">
                 <div className="space-y-4 pt-4">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Bulk Message</CardTitle>
+                            <CardDescription>Send a message to all members of the group.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Textarea 
+                                placeholder="Type your motivational message here..."
+                                value={bulkMessage}
+                                onChange={(e) => setBulkMessage(e.target.value)}
+                            />
+                             <Button onClick={handleSendBulkMessage}>
+                                <Send className="mr-2" />
+                                Send to All Members
+                            </Button>
+                        </CardContent>
+                    </Card>
+
                     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                         <div className="relative w-full max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -482,5 +520,3 @@ export default function MemberManagement() {
     </div>
   )
 }
-
-    

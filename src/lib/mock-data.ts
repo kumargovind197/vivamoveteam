@@ -1,4 +1,6 @@
 
+import { formatDistanceToNow } from 'date-fns';
+
 // In a real app, you would use Firebase Auth for this.
 // For this prototype, we'll hardcode users and groups.
 
@@ -30,6 +32,42 @@ export let MOCK_GROUPS: Record<string, {
     'group-synergy': { id: 'group-synergy', name: 'Synergy Solutions', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', adsEnabled: true },
 };
 
+// -- MOCK MESSAGE DATABASE --
+export let MOCK_MESSAGES: {
+    id: number;
+    subject: string;
+    content: string;
+    received: string;
+    timestamp: Date;
+    read: boolean;
+}[] = [
+    {
+        id: 3,
+        subject: "You're on the Leaderboard!",
+        content: "Great work this month, you've made it to the top 5! Keep up the fantastic effort.",
+        received: "3 days ago",
+        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        read: true,
+    },
+    {
+        id: 2,
+        subject: "New Challenge Starting Monday!",
+        content: "A new quarterly challenge is starting this Monday. Get ready to compete and win prizes for your department!",
+        received: "1 day ago",
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        read: true,
+    },
+    {
+        id: 1,
+        subject: "Welcome to the Step-Up Challenge!",
+        content: "Hi Alex, welcome to the challenge! We're excited to have you on board. Remember to sync your device daily. Let's get stepping!",
+        received: "2 hours ago",
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        read: false,
+    },
+];
+
+// -- DATABASE HELPER FUNCTIONS --
 
 // Function to "disable" a user by removing them from the mock database
 export function removeUser(email: string) {
@@ -49,4 +87,25 @@ export function addGroupUser(groupId: string, password: string, overwrite: boole
     }
     MOCK_USERS[userKey] = { role: 'group', password: password, redirect: '/group' };
     return true;
+}
+
+// Function to add a new message to the mock database
+export function addMessage(message: { subject: string, content: string }) {
+    const newId = (MOCK_MESSAGES[0]?.id || 0) + 1;
+    const now = new Date();
+    MOCK_MESSAGES.unshift({
+        id: newId,
+        ...message,
+        received: formatDistanceToNow(now, { addSuffix: true }),
+        timestamp: now,
+        read: false
+    });
+}
+
+// Function to update the read status of a message
+export function markAsRead(messageId: number) {
+    const message = MOCK_MESSAGES.find(m => m.id === messageId);
+    if (message) {
+        message.read = true;
+    }
 }

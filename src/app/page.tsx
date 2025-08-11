@@ -122,6 +122,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader user={currentUser} group={groupData} view="member" />
+      <NotificationManager />
       <main className="flex-1">
         <DataCards user={currentUser} onDataFetched={setFitData} />
         <ClientDashboard user={currentUser} fitData={fitData} view="member" group={groupData}/>
