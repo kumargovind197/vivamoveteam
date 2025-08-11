@@ -17,7 +17,6 @@ import Link from 'next/link';
 import { MOCK_USERS, MOCK_GROUPS } from '@/lib/mock-data';
 import AdBanner from '@/components/ad-banner';
 import FooterAdBanner from '@/components/footer-ad-banner';
-import Leaderboard from '@/components/leaderboard';
 
 // This now represents the "logged-in" user's ID for the session.
 const LOGGED_IN_USER_ID = 'member@example.com';
@@ -126,7 +125,6 @@ export default function Home() {
       <main className="flex-1">
         <DataCards user={currentUser} onDataFetched={setFitData} />
         <ClientDashboard user={currentUser} fitData={fitData} view="member" group={groupData}/>
-        <Leaderboard />
         <MessageInbox />
       </main>
       <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />

@@ -10,6 +10,7 @@ import { Progress } from './ui/progress';
 import { Footprints, Flame, Target, Trophy } from 'lucide-react';
 import { MOCK_GROUPS } from '@/lib/mock-data';
 import MotivationalCard from './motivational-card';
+import Leaderboard from './leaderboard';
 
 type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
 
@@ -118,7 +119,8 @@ export default function ClientDashboard({ user, fitData, view, group }: ClientDa
         </div>
 
         <MotivationalCard steps={steps} />
-
+        
+        <Leaderboard />
 
         <Tabs defaultValue="weekly" className="w-full mt-6">
           <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
