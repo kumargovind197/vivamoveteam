@@ -78,7 +78,7 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           
-          {/* Left Side: Clinic Branding ONLY */}
+          {/* Left Side: Clinic Branding */}
           <div>
             {renderClinicBranding()}
           </div>
@@ -116,20 +116,13 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
             )}
 
             <Link href="/" className="hidden items-center gap-2 sm:flex">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5 text-primary/80"
-                >
-                    <path d="M2 12l4.8 4.8L12 12l-4.8-4.8L2 12z" />
-                    <path d="M12 12l4.8 4.8L22 12l-4.8-4.8L12 12z" />
-                </svg>
-              <span className="font-headline text-sm font-semibold text-primary/80">ViVa move</span>
+                <Image 
+                    src="/viva-logo.png" 
+                    alt="ViVa move logo"
+                    width={24}
+                    height={24}
+                />
+                <span className="text-sm font-semibold text-primary/80">ViVa move</span>
             </Link>
 
             {user && (
