@@ -9,6 +9,7 @@ import { User } from 'firebase/auth';
 import { Progress } from './ui/progress';
 import { Footprints, Flame, Target, Trophy } from 'lucide-react';
 import { MOCK_GROUPS } from '@/lib/mock-data';
+import MotivationalStepsCard from './motivational-steps-card';
 
 type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
 
@@ -116,27 +117,10 @@ export default function ClientDashboard({ user, fitData, view, group }: ClientDa
             )}
         </div>
 
-        <Card className="bg-secondary/50 mb-6">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <CardTitle className="flex items-center gap-2">
-                    <Footprints className="h-6 w-6 text-muted-foreground" />
-                    <span>Today's Steps</span>
-                </CardTitle>
-              </div>
-              <div className="text-4xl font-bold text-primary">
-                 {steps?.toLocaleString() ?? <span className="text-2xl text-muted-foreground">...</span>}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                  Your steps are synced from your connected device. Keep up the great work!
-              </CardDescription>
-            </CardContent>
-        </Card>
+        <MotivationalStepsCard steps={steps} />
 
 
-        <Tabs defaultValue="weekly" className="w-full">
+        <Tabs defaultValue="weekly" className="w-full mt-6">
           <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
             <TabsTrigger value="weekly">Weekly</TabsTrigger>
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
