@@ -39,20 +39,30 @@ const mockPastLeaderboards = {
         individuals: [
             { id: '1', firstName: 'Alice', surname: 'Wonder', department: 'HR', monthlySteps: 320000, avatarUrl: 'https://placehold.co/100x100.png' },
             { id: '2', firstName: 'Bob', surname: 'Builder', department: 'Engineering', monthlySteps: 290000, avatarUrl: 'https://placehold.co/100x100.png' },
+            { id: '4', firstName: 'Sarah', surname: 'Miller', department: 'Marketing', monthlySteps: 280000, avatarUrl: 'https://placehold.co/100x100.png' },
+            { id: '6', firstName: 'Jessica', surname: 'Brown', department: 'HR', monthlySteps: 275000, avatarUrl: 'https://placehold.co/100x100.png' },
+            { id: '5', firstName: 'David', surname: 'Wilson', department: 'Sales', monthlySteps: 260000, avatarUrl: 'https://placehold.co/100x100.png' },
         ],
         departments: [
-            { name: 'HR', avgSteps: 280000 },
+            { name: 'HR', avgSteps: 297500 },
             { name: 'Engineering', avgSteps: 260000 },
+            { name: 'Sales', avgSteps: 250000 },
+            { name: 'Marketing', avgSteps: 220000 },
         ]
     },
     '2024-06': {
         individuals: [
             { id: '3', firstName: 'Charlie', surname: 'Chocolate', department: 'Sales', monthlySteps: 350000, avatarUrl: 'https://placehold.co/100x100.png' },
              { id: '1', firstName: 'Alice', surname: 'Wonder', department: 'HR', monthlySteps: 310000, avatarUrl: 'https://placehold.co/100x100.png' },
+             { id: '2', firstName: 'Bob', surname: 'Builder', department: 'Engineering', monthlySteps: 305000, avatarUrl: 'https://placehold.co/100x100.png' },
+             { id: '5', firstName: 'David', surname: 'Wilson', department: 'Sales', monthlySteps: 290000, avatarUrl: 'https://placehold.co/100x100.png' },
+             { id: '6', firstName: 'Jessica', surname: 'Brown', department: 'HR', monthlySteps: 280000, avatarUrl: 'https://placehold.co/100x100.png' },
         ],
         departments: [
-            { name: 'Sales', avgSteps: 300000 },
-            { name: 'HR', avgSteps: 270000 },
+            { name: 'Sales', avgSteps: 320000 },
+            { name: 'HR', avgSteps: 295000 },
+            { name: 'Engineering', avgSteps: 270000 },
+            { name: 'Marketing', avgSteps: 210000 },
         ]
     }
 }
@@ -69,17 +79,20 @@ const getMedalColor = (rank: number) => {
 }
 
 function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof mockPastLeaderboards[keyof typeof mockPastLeaderboards] }) {
+    const top5Individuals = data.individuals.slice(0, 5);
+    const top5Departments = data.departments.slice(0, 5);
+
     return (
         <div className="mt-6 space-y-6">
             <h3 className="text-xl font-bold font-headline text-center">Final Rankings for {new Date(month + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">Top Individuals</CardTitle>
+                        <CardTitle className="flex items-center gap-2">Top 5 Individuals</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ol className="space-y-4">
-                            {data.individuals.map((member, index) => (
+                            {top5Individuals.map((member, index) => (
                                 <li key={member.id} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
                                     <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
                                         {index < 3 ? <Medal className="h-6 w-6" /> : <span className="w-6 text-center">{index + 1}</span>}
@@ -96,6 +109,7 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
                                         <p className="font-bold text-primary text-lg">
                                             {member.monthlySteps.toLocaleString()}
                                         </p>
+                                        <p className="text-xs text-muted-foreground">steps</p>
                                     </div>
                                 </li>
                             ))}
@@ -104,11 +118,11 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">Top Departments</CardTitle>
+                        <CardTitle className="flex items-center gap-2">Top 5 Departments</CardTitle>
                     </CardHeader>
                     <CardContent>
                          <ol className="space-y-4">
-                            {data.departments.map((dept, index) => (
+                            {top5Departments.map((dept, index) => (
                                 <li key={dept.name} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
                                     <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
                                          {index < 3 ? <Medal className="h-6 w-6" /> : <span className="w-6 text-center">{index + 1}</span>}
@@ -120,6 +134,7 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
                                         <p className="font-bold text-primary text-lg">
                                             {dept.avgSteps.toLocaleString()}
                                         </p>
+                                        <p className="text-xs text-muted-foreground">avg steps</p>
                                     </div>
                                 </li>
                             ))}
@@ -467,3 +482,5 @@ export default function MemberManagement() {
     </div>
   )
 }
+
+    
