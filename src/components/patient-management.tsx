@@ -25,6 +25,7 @@ import { Checkbox } from './ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { MOCK_USERS, removeUser } from '@/lib/mock-data';
 
 const initialPatientsData = [
   { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', age: 45, gender: 'Male', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
@@ -33,6 +34,8 @@ const initialPatientsData = [
   { id: '4', uhid: 'UHID-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', age: 28, gender: 'Female', weeklySteps: 28, weeklyMinutes: 14, monthlySteps: 40, monthlyMinutes: 30 },
   { id: '5', uhid: 'UHID-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', age: 67, gender: 'Male', weeklySteps: 71, weeklyMinutes: 85, monthlySteps: 65, monthlyMinutes: 70 },
   { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', age: 39, gender: 'Female', weeklySteps: 57, weeklyMinutes: 42, monthlySteps: 70, monthlyMinutes: 60 },
+  // Add the main mock user to this list so they can be "removed"
+  { id: '7', uhid: 'UHID-007', firstName: 'John', surname: 'Doe', email: 'patient@example.com', age: 40, gender: 'Male', weeklySteps: 60, weeklyMinutes: 70, monthlySteps: 65, monthlyMinutes: 75 },
 ];
 
 type Patient = typeof initialPatientsData[0];
@@ -210,11 +213,16 @@ export default function PatientManagement() {
       setPatientToEdit(null);
   }
 
-  const handleRemovePatient = (patientId: string) => {
-      setPatientsData(prev => prev.filter(p => p.id !== patientId));
+  const handleRemovePatient = (patient: Patient) => {
+      // Remove from the local UI list
+      setPatientsData(prev => prev.filter(p => p.id !== patient.id));
+      
+      // Remove from the central mock user database to "disable" their account
+      removeUser(patient.email);
+
       toast({
-        title: "Patient Removed",
-        description: "The patient has been successfully removed from the clinic list.",
+        title: "Patient Removed & Account Disabled",
+        description: `${patient.firstName} ${patient.surname} has been removed and their access revoked.`,
       });
       setPatientToRemove(null);
       setDeleteConfirmationInput('');
@@ -527,7 +535,7 @@ export default function PatientManagement() {
                                         <AlertDialogFooter className='mt-4'>
                                             <AlertDialogCancel onClick={() => setPatientToRemove(null)}>Cancel</AlertDialogCancel>
                                             <AlertDialogAction 
-                                                onClick={() => handleRemovePatient(patient.id)}
+                                                onClick={() => handleRemovePatient(patient)}
                                                 disabled={deleteConfirmationInput !== 'delete'}
                                                 className={buttonVariants({ variant: "destructive" })}
                                             >

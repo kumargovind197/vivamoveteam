@@ -9,14 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
-
-// In a real app, you would use Firebase Auth for this.
-// For this prototype, we'll hardcode users.
-const MOCK_USERS = {
-    'patient@example.com': { role: 'client', password: 'password', redirect: '/' },
-    'clinic-wellness': { role: 'clinic', password: 'password123', redirect: '/clinic' },
-    'admin@example.com': { role: 'admin', password: 'adminpassword', redirect: '/admin' }
-};
+import { MOCK_USERS } from '@/lib/mock-data';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
