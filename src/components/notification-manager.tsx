@@ -4,7 +4,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from 'firebase/auth';
-import { generateMotivation } from '@/ai/flows/generate-motivation-flow';
+import { getMotivationalMessage } from '@/lib/motivational-messages';
 import { Footprints } from 'lucide-react';
 
 interface NotificationManagerProps {
@@ -24,7 +24,6 @@ const MILESTONES = [
 
 export default function NotificationManager({ user, currentSteps, dailyStepGoal }: NotificationManagerProps) {
   const { toast } = useToast();
-  const [isGenerating, setIsGenerating] = useState(false);
   
   // Using refs to track sent notifications for the current session/day
   // In a real app, this state should be stored per-user, per-day in a database
@@ -39,53 +38,46 @@ export default function NotificationManager({ user, currentSteps, dailyStepGoal 
         localStorage.setItem('lastNotificationReset', now.toISOString());
     }
 
-    if (!user || currentSteps === null || isGenerating || dailyStepGoal === 0) {
+    if (!user || currentSteps === null || dailyStepGoal === 0) {
       return;
     }
 
-    const checkAndSendNotification = async () => {
+    const checkAndSendNotification = () => {
       const progress = (currentSteps / dailyStepGoal) * 100;
       
-      // Iterate backwards to send the highest achieved milestone notification first
-      for (const milestone of [...MILESTONES].reverse()) {
-        if (progress >= milestone.percent && !sentNotifications.current.has(milestone.id)) {
-          
-          setIsGenerating(true);
-          sentNotifications.current.add(milestone.id); // Mark as sent immediately
-
-          try {
-            const result = await generateMotivation({
-              userName: user.displayName?.split(' ')[0] || 'User',
-              currentSteps: currentSteps,
-              stepGoal: dailyStepGoal
-            });
-            
-            toast({
-              title: (
-                <div className="flex items-center gap-2">
-                  <Footprints className="h-5 w-5 text-primary" />
-                  <span className="font-headline">Go, You!</span>
-                </div>
-              ),
-              description: result.message,
-            });
-
-          } catch (error) {
-            console.error("Failed to generate motivational message:", error);
-            // If AI fails, remove from set to allow retry later
-            sentNotifications.current.delete(milestone.id);
-          } finally {
-            setIsGenerating(false);
+      // Find the highest milestone achieved that hasn't been sent
+      let milestoneToSend = null;
+      for (const milestone of MILESTONES) {
+          if (progress >= milestone.percent && !sentNotifications.current.has(milestone.id)) {
+              milestoneToSend = milestone;
           }
-          // Break after sending one notification to avoid multiple toasts at once
-          break;
-        }
+      }
+
+      if (milestoneToSend) {
+        sentNotifications.current.add(milestoneToSend.id); // Mark as sent immediately
+
+        const message = getMotivationalMessage(
+            milestoneToSend.id, 
+            user.displayName?.split(' ')[0] || 'User',
+            currentSteps,
+            dailyStepGoal
+        );
+        
+        toast({
+          title: (
+            <div className="flex items-center gap-2">
+              <Footprints className="h-5 w-5 text-primary" />
+              <span className="font-headline">Go, You!</span>
+            </div>
+          ),
+          description: message,
+        });
       }
     };
 
     checkAndSendNotification();
 
-  }, [currentSteps, dailyStepGoal, user, toast, isGenerating]);
+  }, [currentSteps, dailyStepGoal, user, toast]);
 
   return null; // This is a non-visual component
 }
