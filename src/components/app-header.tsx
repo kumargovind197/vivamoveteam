@@ -96,7 +96,7 @@ export default function AppHeader({ user, isEnrolled = false, onEnrollClick, vie
           </div>
 
           <div className="flex items-center gap-4">
-             {view === 'client' && !isEnrolled && (
+             {view === 'client' && !isEnrolled && onEnrollClick && (
                  <Button onClick={onEnrollClick}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     <span>Enroll in Clinic</span>
