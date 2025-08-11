@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -14,50 +14,28 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Slider } from './ui/slider';
 
 
-const weeklyStepsData = [
-    { day: 'Mon', steps: 3500 }, { day: 'Tue', steps: 4200 },
-    { day: 'Wed', steps: 7800 }, { day: 'Thu', steps: 9500 },
-    { day: 'Fri', steps: 2100 }, { day: 'Sat', steps: 11000 },
-    { day: 'Sun', steps: 6000 },
-];
-
-const DAILY_MINUTE_GOAL = 30;
-
-const generateMonthlyData = (stepGoal: number, minuteGoal: number) => {
-    const data = [];
-    const daysInMonth = 30;
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    for (let i = 1; i <= daysInMonth; i++) {
-        const date = new Date(2024, 6, i); // July 2024
-        data.push({
-            day: dayNames[date.getDay()],
-            date: i,
-            steps: Math.floor(Math.random() * (stepGoal * 1.5)),
-            activeMinutes: Math.floor(Math.random() * 90),
-        });
-    }
-    return data;
-};
-
-const generateAnnualData = (stepGoal: number, minuteGoal: number) => {
+// --- MOCK LOCAL DEVICE STORAGE ---
+// In a real application, this data would be stored persistently on the user's device,
+// for example using SQLite or a library like WatermelonDB.
+// For this prototype, we'll just keep it in component state to simulate this.
+const generateInitialLocalData = () => {
     const data = [];
     const today = new Date();
-    // Decide randomly if patient has 3, 6, 9, or 12 months of data
-    const monthOptions = [3, 6, 9, 12];
-    const totalMonths = monthOptions[Math.floor(Math.random() * monthOptions.length)];
-    const daysOfData = totalMonths * 30;
-
-    for (let i = 0; i < daysOfData; i++) {
+    // Simulate having the last 35 days of data stored on the device
+    for (let i = 0; i < 35; i++) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
         data.push({
-            date: date.toISOString().split('T')[0],
-            steps: Math.floor(Math.random() * (stepGoal * 1.8)),
-            activeMinutes: Math.floor(Math.random() * 120),
+            date: date.toISOString().split('T')[0], // YYYY-MM-DD
+            steps: Math.floor(Math.random() * 18000),
+            activeMinutes: Math.floor(Math.random() * 90),
         });
     }
     return data.reverse(); // Return in chronological order
-}
+};
+// --- END MOCK ---
+
+const DAILY_MINUTE_GOAL = 30;
 
 const chartConfigSteps = {
   steps: { label: "Steps", color: "hsl(var(--accent))" },
@@ -87,6 +65,9 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
   const [isGoalDialogOpen, setGoalDialogOpen] = useState(false);
   const [pendingStepGoal, setPendingStepGoal] = useState(dailyStepGoal);
 
+  // This state now simulates the data stored locally on the user's phone.
+  const [localDeviceData] = useState(generateInitialLocalData);
+
   const { steps, activeMinutes } = fitData;
 
   const stepProgress = steps ? (steps / dailyStepGoal) * 100 : 0;
@@ -109,10 +90,25 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
     setGoalDialogOpen(false);
   }
 
-  const weeklyAverage = Math.round(weeklyStepsData.reduce((acc, curr) => acc + curr.steps, 0) / weeklyStepsData.length);
+  // --- DATA CALCULATIONS based on LOCAL DATA ---
   
-  const monthlyData = generateMonthlyData(dailyStepGoal, DAILY_MINUTE_GOAL);
+  const weeklyData = useMemo(() => {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Get the last 7 days from our local storage
+    const last7DaysData = localDeviceData.slice(-7);
+    return last7DaysData.map(d => ({
+        day: dayNames[new Date(d.date).getUTCDay()],
+        steps: d.steps
+    }));
+  }, [localDeviceData]);
   
+  const weeklyAverage = Math.round(weeklyData.reduce((acc, curr) => acc + curr.steps, 0) / weeklyData.length);
+
+  const monthlyData = useMemo(() => {
+    // Get the last 30 days from local storage
+    return localDeviceData.slice(-30);
+  }, [localDeviceData]);
+
   const monthlyTotalSteps = monthlyData.reduce((acc, curr) => acc + curr.steps, 0);
   const monthlyAverageSteps = Math.round(monthlyTotalSteps / monthlyData.length);
   const daysStepGoalMetMonthly = monthlyData.filter(day => day.steps >= dailyStepGoal).length;
@@ -121,32 +117,45 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
   const monthlyAverageMinutes = Math.round(monthlyTotalMinutes / monthlyData.length);
   const daysMinuteGoalMetMonthly = monthlyData.filter(day => day.activeMinutes >= DAILY_MINUTE_GOAL).length;
 
+  const averageStepsByDay = useMemo(() => {
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayMap: { [key: string]: { total: number, count: number } } = {};
+    
+    // Use last 4 weeks of data for a stable average
+    localDeviceData.slice(-28).forEach(d => {
+        const dayName = dayNames[new Date(d.date).getUTCDay()];
+        if (!dayMap[dayName]) {
+            dayMap[dayName] = { total: 0, count: 0 };
+        }
+        dayMap[dayName].total += d.steps;
+        dayMap[dayName].count += 1;
+    });
+
+    return dayNames.map(dayName => ({
+        day: dayName,
+        steps: dayMap[dayName] ? Math.round(dayMap[dayName].total / dayMap[dayName].count) : 0,
+    }));
+  }, [localDeviceData]);
   
-  const averageStepsByDay = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => {
-      const days = monthlyData.filter(d => d.day === dayName);
-      const total = days.reduce((acc, curr) => acc + curr.steps, 0);
-      const avg = days.length > 0 ? Math.round(total / days.length) : 0;
-      return { day: dayName, steps: avg };
-  });
+  const averageMinutesByDay = useMemo(() => {
+     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+     const dayMap: { [key: string]: { total: number, count: number } } = {};
+    
+    // Use last 4 weeks of data for a stable average
+    localDeviceData.slice(-28).forEach(d => {
+        const dayName = dayNames[new Date(d.date).getUTCDay()];
+        if (!dayMap[dayName]) {
+            dayMap[dayName] = { total: 0, count: 0 };
+        }
+        dayMap[dayName].total += d.activeMinutes;
+        dayMap[dayName].count += 1;
+    });
 
-  const averageMinutesByDay = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(dayName => {
-      const days = monthlyData.filter(d => d.day === dayName);
-      const total = days.reduce((acc, curr) => acc + curr.activeMinutes, 0);
-      const avg = days.length > 0 ? Math.round(total / days.length) : 0;
-      return { day: dayName, activeMinutes: avg };
-  });
-
-  // Annual data calculations
-  // In a real application, this data would be fetched from a database where a monthly cron job
-  // aggregates and stores these stats. For this prototype, we generate it on the fly.
-  const annualData = generateAnnualData(dailyStepGoal, DAILY_MINUTE_GOAL);
-  const annualTotalSteps = annualData.reduce((acc, curr) => acc + curr.steps, 0);
-  const annualAverageSteps = annualData.length > 0 ? Math.round(annualTotalSteps / annualData.length) : 0;
-  const daysStepGoalMetAnnual = annualData.filter(day => day.steps >= dailyStepGoal).length;
-  const annualTotalMinutes = annualData.reduce((acc, curr) => acc + curr.activeMinutes, 0);
-  const annualAverageMinutes = annualData.length > 0 ? Math.round(annualTotalMinutes / annualData.length) : 0;
-  const daysMinuteGoalMetAnnual = annualData.filter(day => day.activeMinutes >= DAILY_MINUTE_GOAL).length;
-  const totalMonthsOfData = Math.round(annualData.length / 30);
+    return dayNames.map(dayName => ({
+        day: dayName,
+        activeMinutes: dayMap[dayName] ? Math.round(dayMap[dayName].total / dayMap[dayName].count) : 0,
+    }));
+  }, [localDeviceData]);
 
 
   return (
@@ -213,10 +222,9 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
 
 
         <Tabs defaultValue="weekly" className="w-full">
-          <TabsList className={`grid w-full ${view === 'clinic' ? 'grid-cols-3' : 'grid-cols-2'} md:w-[450px]`}>
+          <TabsList className="grid w-full grid-cols-2 md:w-[300px]">
             <TabsTrigger value="weekly">Weekly</TabsTrigger>
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            {view === 'clinic' && <TabsTrigger value="annual">Annual Summary</TabsTrigger>}
           </TabsList>
           
           <TabsContent value="weekly">
@@ -226,7 +234,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                     <CardDescription>Your daily step count for the last 7 days. Your daily average was {weeklyAverage.toLocaleString()} steps.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[350px]">
-                    <ActivityChart data={weeklyStepsData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" showGoalBands={true} average={weeklyAverage} goal={dailyStepGoal} />
+                    <ActivityChart data={weeklyData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" showGoalBands={true} average={weeklyAverage} goal={dailyStepGoal} />
                 </CardContent>
             </Card>
           </TabsContent>
@@ -318,58 +326,6 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                 </Card>
             </div>
           </TabsContent>
-           {view === 'clinic' && (
-            <TabsContent value="annual">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Annual Summary</CardTitle>
-                        <CardDescription>A high-level overview of patient activity for the last {totalMonthsOfData} months. This data is a simulation and in a real app would be generated by a monthly backend process for research and backup.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Days Step Goal Met</CardTitle>
-                                <Trophy className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{daysStepGoalMetAnnual}</div>
-                                <p className="text-xs text-muted-foreground">out of {annualData.length} days</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Average Daily Steps</CardTitle>
-                                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{annualAverageSteps.toLocaleString()}</div>
-                                <p className="text-xs text-muted-foreground">over {totalMonthsOfData} months</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Days Active Goal Met</CardTitle>
-                                <Trophy className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{daysMinuteGoalMetAnnual}</div>
-                                <p className="text-xs text-muted-foreground">out of {annualData.length} days</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Average Daily Active Time</CardTitle>
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{annualAverageMinutes.toLocaleString()} min</div>
-                                <p className="text-xs text-muted-foreground">over {totalMonthsOfData} months</p>
-                            </CardContent>
-                        </Card>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-          )}
         </Tabs>
       </div>
 
