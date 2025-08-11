@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { HeartPulse, Building, LayoutDashboard, UserCircle, ArrowLeft, Wrench } from 'lucide-react';
+import { Building, LayoutDashboard, UserCircle, ArrowLeft, Wrench } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -79,7 +79,10 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           
           {/* Left Side: Clinic Branding ONLY */}
-          {renderClinicBranding()}
+          <div>
+            {renderClinicBranding()}
+          </div>
+          
 
           {/* Right Side: All other elements */}
           <div className="flex items-center gap-4">
@@ -113,8 +116,20 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
             )}
 
             <Link href="/" className="hidden items-center gap-2 sm:flex">
-              <HeartPulse className="h-5 w-5 text-primary/80" />
-              <span className="font-headline text-base font-semibold text-primary/80">ViVa move</span>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 text-primary/80"
+                >
+                    <path d="M2 12l4.8 4.8L12 12l-4.8-4.8L2 12z" />
+                    <path d="M12 12l4.8 4.8L22 12l-4.8-4.8L12 12z" />
+                </svg>
+              <span className="font-headline text-sm font-semibold text-primary/80">ViVa move</span>
             </Link>
 
             {user && (
