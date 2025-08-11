@@ -55,7 +55,7 @@ export default function AppInfoDialog() {
         </div>
         <DialogFooter>
           <p className="text-xs text-muted-foreground w-full text-center">
-            &copy; {currentYear} ViVa move. All rights reserved.
+            &copy; {currentYear} Viva health solutions. All rights reserved.
           </p>
         </DialogFooter>
       </DialogContent>

@@ -88,7 +88,7 @@ export default function AppHeader({ user, isEnrolled = false, view, patientId, p
                     <VivaMoveLogo />
                     <div>
                         <span className="block text-sm font-semibold text-primary/80">ViVa move</span>
-                        <span className="block text-[0.6rem] leading-tight text-muted-foreground">by Wellness Clinic</span>
+                        <span className="block text-[0.6rem] leading-tight text-muted-foreground">by Viva health solutions</span>
                     </div>
                 </Link>
              )}
