@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from 'firebase/auth';
 import { getMotivationalMessage } from '@/lib/motivational-messages';
@@ -13,7 +13,8 @@ interface NotificationManagerProps {
   dailyStepGoal: number;
 }
 
-// Milestones to trigger notifications
+// Define the milestones and the maximum number of notifications per day
+const NOTIFICATION_LIMIT = 3; 
 const MILESTONES = [
     { percent: 25, id: 'quarter_way' },
     { percent: 50, id: 'halfway' },
@@ -22,20 +23,25 @@ const MILESTONES = [
     { percent: 125, id: 'goal_crushed' },
 ];
 
+
 export default function NotificationManager({ user, currentSteps, dailyStepGoal }: NotificationManagerProps) {
   const { toast } = useToast();
   
-  // Using refs to track sent notifications for the current session/day
-  // In a real app, this state should be stored per-user, per-day in a database
+  // Use a ref to track sent notifications for the current session/day
   const sentNotifications = useRef(new Set<string>());
+  
+  // Use a ref to track the count of notifications sent today
+  const notificationsSentToday = useRef(0);
 
   useEffect(() => {
     // Reset notification tracking at the start of a new day
     const now = new Date();
-    const lastReset = localStorage.getItem('lastNotificationReset');
+    const lastResetKey = `lastNotificationReset_${user?.uid || 'guest'}`;
+    const lastReset = localStorage.getItem(lastResetKey);
     if (!lastReset || new Date(lastReset).getDate() !== now.getDate()) {
         sentNotifications.current.clear();
-        localStorage.setItem('lastNotificationReset', now.toISOString());
+        notificationsSentToday.current = 0;
+        localStorage.setItem(lastResetKey, now.toISOString());
     }
 
     if (!user || currentSteps === null || dailyStepGoal === 0) {
@@ -43,35 +49,33 @@ export default function NotificationManager({ user, currentSteps, dailyStepGoal 
     }
 
     const checkAndSendNotification = () => {
-      const progress = (currentSteps / dailyStepGoal) * 100;
-      
-      // Find the highest milestone achieved that hasn't been sent
-      let milestoneToSend = null;
-      for (const milestone of MILESTONES) {
-          if (progress >= milestone.percent && !sentNotifications.current.has(milestone.id)) {
-              milestoneToSend = milestone;
-          }
+      // Stop if we've already sent the max number of notifications for the day
+      if (notificationsSentToday.current >= NOTIFICATION_LIMIT) {
+          return;
       }
+      
+      const result = getMotivationalMessage(currentSteps, dailyStepGoal);
 
-      if (milestoneToSend) {
-        sentNotifications.current.add(milestoneToSend.id); // Mark as sent immediately
+      if (result) {
+        const { id, message } = result;
 
-        const message = getMotivationalMessage(
-            milestoneToSend.id, 
-            user.displayName?.split(' ')[0] || 'User',
-            currentSteps,
-            dailyStepGoal
-        );
-        
-        toast({
-          title: (
-            <div className="flex items-center gap-2">
-              <Footprints className="h-5 w-5 text-primary" />
-              <span className="font-headline">Go, You!</span>
-            </div>
-          ),
-          description: message,
-        });
+        // Check if a notification for this specific milestone has already been sent
+        if (!sentNotifications.current.has(id)) {
+            sentNotifications.current.add(id); // Mark milestone as achieved for today
+            notificationsSentToday.current++; // Increment the count of sent notifications
+
+            const finalMessage = message.replace('{userName}', user.displayName?.split(' ')[0] || 'User');
+            
+            toast({
+              title: (
+                <div className="flex items-center gap-2">
+                  <Footprints className="h-5 w-5 text-primary" />
+                  <span className="font-headline">Go, You!</span>
+                </div>
+              ),
+              description: finalMessage,
+            });
+        }
       }
     };
 
