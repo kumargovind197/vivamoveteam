@@ -14,7 +14,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, UserPlus, Edit, Trash2, Trophy } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, Users } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -25,16 +25,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription }
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { MOCK_USERS, removeUser, MOCK_GROUPS } from '@/lib/mock-data';
 import MemberDashboard from './member-dashboard';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const initialMembersData = [
-  { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', monthlySteps: 285000, quarterlySteps: 855000 },
-  { id: '2', memberId: 'EMP-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', department: 'Engineering', monthlySteps: 310500, quarterlySteps: 931500 },
-  { id: '3', memberId: 'EMP-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', department: 'Engineering', monthlySteps: 155000, quarterlySteps: 465000 },
-  { id: '4', memberId: 'EMP-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', department: 'Marketing', monthlySteps: 210000, quarterlySteps: 630000 },
-  { id: '5', memberId: 'EMP-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', department: 'Sales', monthlySteps: 180000, quarterlySteps: 540000 },
-  { id: '6', memberId: 'EMP-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', department: 'HR', monthlySteps: 250000, quarterlySteps: 750000 },
+  { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', monthlySteps: 285000, quarterlySteps: 855000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '2', memberId: 'EMP-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', department: 'Engineering', monthlySteps: 310500, quarterlySteps: 931500, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '3', memberId: 'EMP-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', department: 'Engineering', monthlySteps: 155000, quarterlySteps: 465000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '4', memberId: 'EMP-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', department: 'Marketing', monthlySteps: 210000, quarterlySteps: 630000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '5', memberId: 'EMP-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', department: 'Sales', monthlySteps: 180000, quarterlySteps: 540000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '6', memberId: 'EMP-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', department: 'HR', monthlySteps: 250000, quarterlySteps: 750000, avatarUrl: 'https://placehold.co/100x100.png' },
   // Add the main mock user to this list so they can be "removed"
-  { id: '7', memberId: 'EMP-007', firstName: 'Alex', surname: 'Doe', email: 'member@example.com', department: 'Marketing', monthlySteps: 220000, quarterlySteps: 660000 },
+  { id: '7', memberId: 'EMP-007', firstName: 'Alex', surname: 'Doe', email: 'member@example.com', department: 'Marketing', monthlySteps: 220000, quarterlySteps: 660000, avatarUrl: 'https://placehold.co/100x100.png' },
 ];
 
 type Member = typeof initialMembersData[0];
@@ -92,7 +93,8 @@ export default function MemberManagement() {
           ...newMember,
           id: (membersData.length + 1).toString(),
           monthlySteps: 0,
-          quarterlySteps: 0
+          quarterlySteps: 0,
+          avatarUrl: 'https://placehold.co/100x100.png'
       };
       setMembersData(prev => [...prev, newMemberWithId]);
       
@@ -144,15 +146,18 @@ export default function MemberManagement() {
   return (
     <TooltipProvider>
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <MemberDashboard members={membersData} />
 
-        <Tabs defaultValue="maintenance" className="mt-8">
+        <Tabs defaultValue="leaderboard" className="mb-8">
             <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="maintenance">Member List</TabsTrigger>
-                <TabsTrigger value="enroll">Enroll New Member</TabsTrigger>
+                <TabsTrigger value="leaderboard"><Trophy className="mr-2" />Leaderboard</TabsTrigger>
+                <TabsTrigger value="maintenance"><Users className="mr-2" />Manage Members</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="maintenance">
+            <TabsContent value="leaderboard" className="mt-6">
+                <MemberDashboard members={membersData} />
+            </TabsContent>
+            
+            <TabsContent value="maintenance" className="mt-6">
                  <div className="space-y-4">
                     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                         <div className="relative w-full max-w-sm">
@@ -164,139 +169,148 @@ export default function MemberManagement() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                         </div>
-                        <Card className="p-3">
-                            <div className="text-sm text-center">
-                                <p className="text-muted-foreground">Enrolled / Capacity</p>
-                                <p className="text-lg font-bold">{currentMemberCount} / {maxMembers}</p>
-                            </div>
-                        </Card>
+                         <Button onClick={() => setAddMemberDialogOpen(true)} disabled={isAtCapacity}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Enroll New Member
+                        </Button>
                     </div>
 
-                    <div className="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Member ID</TableHead>
-                            <TableHead>Full Name</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {filteredMembers.map(member => (
-                            <TableRow key={member.id}>
-                            <TableCell className="font-mono">{member.memberId}</TableCell>
-                            <TableCell className="font-medium">{`${member.firstName} ${member.surname}`}</TableCell>
-                            <TableCell>{member.department}</TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
-                                    setMemberToEdit(member);
-                                    setEditMemberDialogOpen(true);
-                                }}>
-                                    <Edit className="mr-2 h-3 w-3" />
-                                    Edit
-                                </Button>
-                                <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setMemberToRemove(member)}>
-                                            <Trash2 className="mr-2 h-3 w-3" />
-                                            Remove
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Member List</CardTitle>
+                             <div className="text-sm text-muted-foreground">
+                                <p>Enrolled / Capacity: <span className="font-bold text-foreground">{currentMemberCount} / {maxMembers}</span></p>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="rounded-lg border">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    <TableHead>Member</TableHead>
+                                    <TableHead>Department</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {filteredMembers.map(member => (
+                                    <TableRow key={member.id}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
+                                                <AvatarFallback>{member.firstName[0]}{member.surname[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p>{`${member.firstName} ${member.surname}`}</p>
+                                                <p className="text-sm text-muted-foreground font-mono">{member.memberId}</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{member.department}</TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                        <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
+                                            setMemberToEdit(member);
+                                            setEditMemberDialogOpen(true);
+                                        }}>
+                                            <Edit className="mr-2 h-3 w-3" />
+                                            Edit
                                         </Button>
-                                    </AlertDialogTrigger>
-                                    {memberToRemove && memberToRemove.id === member.id && (
-                                        <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently remove <span className="font-semibold">{`${member.firstName} ${member.surname}`}</span> from your group and revoke their access.
-                                            <br/><br/>
-                                            To confirm, please type <strong className="text-foreground">delete</strong> below.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <Input 
-                                            id="delete-confirm"
-                                            value={deleteConfirmationInput}
-                                            onChange={(e) => setDeleteConfirmationInput(e.target.value)}
-                                            className="mt-2"
-                                            autoFocus
-                                        />
-                                        <AlertDialogFooter className='mt-4'>
-                                            <AlertDialogCancel onClick={() => setMemberToRemove(null)}>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction 
-                                                onClick={() => handleRemoveMember(member)}
-                                                disabled={deleteConfirmationInput !== 'delete'}
-                                                className={buttonVariants({ variant: "destructive" })}
-                                            >
-                                            Proceed
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    )}
-                                    </AlertDialog>
-                                </div>
-                            </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    </div>
+                                        <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setMemberToRemove(member)}>
+                                                    <Trash2 className="mr-2 h-3 w-3" />
+                                                    Remove
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            {memberToRemove && memberToRemove.id === member.id && (
+                                                <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently remove <span className="font-semibold">{`${member.firstName} ${member.surname}`}</span> from your group and revoke their access.
+                                                    <br/><br/>
+                                                    To confirm, please type <strong className="text-foreground">delete</strong> below.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <Input 
+                                                    id="delete-confirm"
+                                                    value={deleteConfirmationInput}
+                                                    onChange={(e) => setDeleteConfirmationInput(e.target.value)}
+                                                    className="mt-2"
+                                                    autoFocus
+                                                />
+                                                <AlertDialogFooter className='mt-4'>
+                                                    <AlertDialogCancel onClick={() => setMemberToRemove(null)}>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction 
+                                                        onClick={() => handleRemoveMember(member)}
+                                                        disabled={deleteConfirmationInput !== 'delete'}
+                                                        className={buttonVariants({ variant: "destructive" })}
+                                                    >
+                                                    Proceed
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            )}
+                                            </AlertDialog>
+                                        </div>
+                                    </TableCell>
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
-            </TabsContent>
-            <TabsContent value="enroll">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Enroll a New Member</CardTitle>
-                        <CardDescription>
-                            Enter the member's details below to enroll them in the group. An invite will be sent to their email.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="memberId">Member ID</Label>
-                                <Input id="memberId" value={newMember.memberId} onChange={handleInputChange} placeholder="e.g. EMP-008" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="department">Department</Label>
-                                <Input id="department" value={newMember.department} onChange={handleInputChange} placeholder="e.g. Sales"/>
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="firstName">First Name</Label>
-                                <Input id="firstName" value={newMember.firstName} onChange={handleInputChange} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="surname">Surname</Label>
-                                <Input id="surname" value={newMember.surname} onChange={handleInputChange} />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email Address</Label>
-                            <Input id="email" type="email" value={newMember.email} onChange={handleInputChange} />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="inline-block"> 
-                                    <Button onClick={handleAddMember} disabled={isAtCapacity}>
-                                        <UserPlus className="mr-2 h-4 w-4" />
-                                        Add & Send Invite
-                                    </Button>
-                                </div>
-                            </TooltipTrigger>
-                            {isAtCapacity && (
-                                <TooltipContent>
-                                    <p>Cannot add new members, group is at full capacity.</p>
-                                </TooltipContent>
-                            )}
-                        </Tooltip>
-                    </CardFooter>
-                </Card>
             </TabsContent>
         </Tabs>
       </div>
       
+        <Dialog open={isAddMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Enroll a New Member</DialogTitle>
+                    <DialogDescription>
+                        Enter the member's details below to enroll them in the group. An invite will be sent to their email.
+                        Remaining slots: {remainingSlots}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="memberId">Member ID</Label>
+                            <Input id="memberId" value={newMember.memberId} onChange={handleInputChange} placeholder="e.g. EMP-008" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="department">Department</Label>
+                            <Input id="department" value={newMember.department} onChange={handleInputChange} placeholder="e.g. Sales"/>
+                        </div>
+                            <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input id="firstName" value={newMember.firstName} onChange={handleInputChange} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="surname">Surname</Label>
+                            <Input id="surname" value={newMember.surname} onChange={handleInputChange} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input id="email" type="email" value={newMember.email} onChange={handleInputChange} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setAddMemberDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleAddMember} disabled={isAtCapacity}>
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add & Send Invite
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
       {memberToEdit && (
          <Dialog open={isEditMemberDialogOpen} onOpenChange={setEditMemberDialogOpen}>
             <DialogContent className="sm:max-w-[425px]">
@@ -339,5 +353,3 @@ export default function MemberManagement() {
     </TooltipProvider>
   )
 }
-
-    
