@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Building, LayoutDashboard, UserCircle, ArrowLeft, Wrench } from 'lucide-react';
+import { Building, LayoutDashboard, UserCircle, Wrench } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -22,6 +22,15 @@ type AppHeaderProps = {
   patientName?: string;
 };
 
+const VivaLogo = () => (
+    <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="38" cy="62" r="20" fill="#F44336"/>
+        <circle cx="62" cy="62" r="20" fill="#4CAF50"/>
+        <circle cx="50" cy="40" r="20" fill="#2196F3"/>
+    </svg>
+)
+
+
 export default function AppHeader({ user, view, isEnrolled = false, onEnroll, patientId, patientName }: AppHeaderProps) {
   const [isEnrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [invitationCode, setInvitationCode] = useState('');
@@ -34,32 +43,32 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
   };
 
   const renderClinicBranding = () => {
+    // View when looking at a specific patient from the clinic dashboard
     if (patientId) {
-       // View when looking at a specific patient from the clinic dashboard
-       return (
-        <div className='flex items-center gap-4'>
-            <Button asChild variant="outline" size="icon">
-                <Link href="/clinic">
-                    <ArrowLeft />
-                </Link>
-            </Button>
-            <div>
-                <p className="text-sm text-muted-foreground">Viewing Patient</p>
-                <p className="font-semibold">{patientName}</p>
+        return (
+            <div className="flex items-center gap-4">
+                <Button asChild variant="outline" size="icon">
+                    <Link href="/clinic">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                    </Link>
+                </Button>
+                <div>
+                    <p className="text-sm text-muted-foreground">Viewing Patient</p>
+                    <p className="font-semibold">{patientName}</p>
+                </div>
             </div>
-        </div>
-       );
+        );
     }
-
+    
     // Default view for client and clinic main pages
     if (isEnrolled && view === 'client') {
         return (
-            <Image 
+            <Image
                 data-ai-hint="medical logo"
-                src="https://placehold.co/40x40.png" 
-                alt="Clinic Logo" 
-                width={40} 
-                height={40} 
+                src="https://placehold.co/40x40.png"
+                alt="Clinic Logo"
+                width={40}
+                height={40}
                 className="rounded-md"
             />
         );
@@ -115,19 +124,8 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
                 </Button>
             )}
 
-            <Link href="/" className="hidden items-center gap-2 sm:flex">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-6 w-6 text-primary"
-                    >
-                    <path d="M2 12h2.5l3.5-7 4 14 3.5-7H22" />
-                </svg>
+            <Link href="/" className="flex items-center gap-2">
+                <VivaLogo />
                 <span className="text-sm font-semibold text-primary/80">ViVa move</span>
             </Link>
 
