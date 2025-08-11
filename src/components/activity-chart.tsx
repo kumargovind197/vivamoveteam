@@ -46,3 +46,5 @@ export default function ActivityChart({ data, config, dataKey, timeKey, type }: 
     </ChartContainer>
   );
 }
+
+    

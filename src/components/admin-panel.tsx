@@ -7,54 +7,54 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, Users } from 'lucide-react';
+import { Upload, PlusCircle, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { MOCK_USERS, addGroupUser } from '@/lib/mock-data';
+import { MOCK_USERS, addClinicUser } from '@/lib/mock-data';
 
-// Mock data for existing groups
-const existingGroups = [
-    { id: 'group-alpha', name: 'Alpha Division', capacity: 200, enrolled: 120, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-    { id: 'group-bravo', name: 'Bravo Team', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-    { id: 'group-charlie', name: 'Charlie Unit', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123' },
+// Mock data for existing clinics
+const existingClinics = [
+    { id: 'clinic-wellness', name: 'Wellness Clinic', capacity: 200, enrolled: 120, logo: 'https://placehold.co/128x128.png', password: 'password123' },
+    { id: 'clinic-healthfirst', name: 'HealthFirst Medical', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123' },
+    { id: 'clinic-cityheart', name: 'City Heart Specialists', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123' },
 ];
 
-const mockMemberHistoricalData = {
-    'group-alpha': [
-        { memberId: '1', memberName: 'John Smith', department: 'Sales', data: [
-            { month: '2024-05', totalSteps: 150234 },
-            { month: '2024-06', totalSteps: 180456 },
-            { month: '2024-07', totalSteps: 210890 },
+const mockPatientHistoricalData = {
+    'clinic-wellness': [
+        { patientId: '1', patientName: 'John Smith', age: 45, data: [
+            { month: '2024-05', avgSteps: 5008, avgMinutes: 22 },
+            { month: '2024-06', avgSteps: 6015, avgMinutes: 28 },
+            { month: '2024-07', avgSteps: 7030, avgMinutes: 35 },
         ]},
-        { memberId: '2', memberName: 'Emily Jones', department: 'Marketing', data: [
-            { month: '2024-06', totalSteps: 89345 },
-            { month: '2024-07', totalSteps: 110234 },
+        { patientId: '2', patientName: 'Emily Jones', age: 32, data: [
+            { month: '2024-06', avgSteps: 2978, avgMinutes: 15 },
+            { month: '2024-07', avgSteps: 3674, avgMinutes: 20 },
         ]},
-        { memberId: '8', memberName: 'Old Member', department: 'Sales', status: 'unenrolled', data: [
-             { month: '2024-01', totalSteps: 50000 },
+        { patientId: '8', patientName: 'Old Patient', age: 68, status: 'unenrolled', data: [
+             { month: '2024-01', avgSteps: 1200, avgMinutes: 5 },
         ]}
     ],
 };
 
-type Group = typeof existingGroups[0];
+type Clinic = typeof existingClinics[0];
 
 export default function AdminPanel() {
-  const [groups, setGroups] = useState(existingGroups);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [newGroupId, setNewGroupId] = useState('');
-  const [newGroupPassword, setNewGroupPassword] = useState('');
-  const [newMemberCapacity, setNewMemberCapacity] = useState(100);
+  const [clinics, setClinics] = useState(existingClinics);
+  const [newClinicName, setNewClinicName] = useState('');
+  const [newClinicId, setNewClinicId] = useState('');
+  const [newClinicPassword, setNewClinicPassword] = useState('');
+  const [newPatientCapacity, setNewPatientCapacity] = useState(100);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
   
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
-  const [groupToEdit, setGroupToEdit] = useState<Group | null>(null);
+  const [clinicToEdit, setClinicToEdit] = useState<Clinic | null>(null);
   const [editedLogoFile, setEditedLogoFile] = useState<File | null>(null);
   const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,15 +72,15 @@ export default function AdminPanel() {
         } else if (type === 'edit') {
             setEditedLogoFile(file);
             setEditedLogoPreview(result);
-            setGroupToEdit(prev => prev ? { ...prev, logo: result } : null);
+            setClinicToEdit(prev => prev ? { ...prev, logo: result } : null);
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleEnrollGroup = () => {
-    if (!newGroupName || !newMemberCapacity || !newGroupId || !newGroupPassword) {
+  const handleEnrollClinic = () => {
+    if (!newClinicName || !newPatientCapacity || !newClinicId || !newClinicPassword) {
          toast({
             variant: "destructive",
             title: "Validation Error",
@@ -89,96 +89,113 @@ export default function AdminPanel() {
         return;
     }
     
-    const userAdded = addGroupUser(newGroupId, newGroupPassword);
+    const userAdded = addClinicUser(newClinicId, newClinicPassword);
     if (!userAdded) {
         toast({
             variant: "destructive",
             title: "Enrollment Failed",
-            description: `A user with the Group ID '${newGroupId}' already exists. Please choose a different ID.`,
+            description: `A user with the Clinic ID '${newClinicId}' already exists. Please choose a different ID.`,
         });
         return;
     }
     
-    setGroups(prev => [...prev, {
-        id: newGroupId,
-        name: newGroupName,
-        capacity: newMemberCapacity,
+    setClinics(prev => [...prev, {
+        id: newClinicId,
+        name: newClinicName,
+        capacity: newPatientCapacity,
         enrolled: 0,
         logo: newLogoPreview || 'https://placehold.co/128x128.png',
-        password: newGroupPassword,
+        password: newClinicPassword,
     }]);
 
     toast({
-      title: "Group Enrolled",
-      description: `${newGroupName} has been successfully created. You can now log in with the new credentials.`,
+      title: "Clinic Enrolled",
+      description: `${newClinicName} has been successfully created. You can now log in with the new credentials.`,
     });
 
-    setNewGroupName('');
-    setNewGroupId('');
-    setNewGroupPassword('');
-    setNewMemberCapacity(100);
+    setNewClinicName('');
+    setNewClinicId('');
+    setNewClinicPassword('');
+    setNewPatientCapacity(100);
     setNewLogoFile(null);
     setNewLogoPreview(null);
   };
 
-  const openEditDialog = (group: Group) => {
-      setGroupToEdit(group);
-      setEditedLogoPreview(group.logo);
+  const openEditDialog = (clinic: Clinic) => {
+      setClinicToEdit(clinic);
+      setEditedLogoPreview(clinic.logo);
       setEditedLogoFile(null);
       setEditDialogOpen(true);
   }
 
-  const handleUpdateGroup = () => {
-      if (!groupToEdit) return;
-      const updatedGroups = groups.map(g => 
-          g.id === groupToEdit.id ? groupToEdit : g
+  const handleUpdateClinic = () => {
+      if (!clinicToEdit) return;
+      const updatedClinics = clinics.map(c => 
+          c.id === clinicToEdit.id ? clinicToEdit : c
       );
-      setGroups(updatedGroups);
+      setClinics(updatedClinics);
       
-      addGroupUser(groupToEdit.id, groupToEdit.password, true);
+      // Also update the password in the mock user DB
+      addClinicUser(clinicToEdit.id, clinicToEdit.password, true);
 
       toast({
-          title: "Group Updated",
-          description: `Details for ${groupToEdit.name} have been successfully updated.`
+          title: "Clinic Updated",
+          description: `Details for ${clinicToEdit.name} have been successfully updated.`
       });
       setEditDialogOpen(false);
-      setGroupToEdit(null);
+      setClinicToEdit(null);
   }
 
   const handleDownloadCsv = () => {
-    if (!selectedGroupId) return;
+    if (!selectedClinicId) return;
 
-    const groupData = mockMemberHistoricalData[selectedGroupId as keyof typeof mockMemberHistoricalData] || [];
-    const groupName = groups.find(c => c.id === selectedGroupId)?.name || 'group';
+    const clinicData = mockPatientHistoricalData[selectedClinicId as keyof typeof mockPatientHistoricalData] || [];
+    const clinicName = clinics.find(c => c.id === selectedClinicId)?.name || 'clinic';
 
-    if (groupData.length === 0) {
+    if (clinicData.length === 0) {
         toast({
             variant: 'destructive',
             title: "No Data",
-            description: "There is no historical data available for the selected group.",
+            description: "There is no historical data available for the selected clinic.",
         });
         return;
     }
     
-    const allMonths = Array.from(new Set(groupData.flatMap(p => p.data.map(d => d.month)))).sort();
-    const headers = ['MemberID', 'MemberName', 'Department', 'Overall_Daily_Avg_Steps'];
+    // Get all unique months across all patients in the clinic
+    const allMonths = Array.from(new Set(clinicData.flatMap(p => p.data.map(d => d.month)))).sort();
+    
+    // Create headers
+    const headers = ['PatientID', 'PatientName', 'Age', 'Overall_Avg_Steps', 'Overall_Avg_Mins'];
     allMonths.forEach(month => {
-        headers.push(`Steps_${month}`);
+        headers.push(`AvgSteps_${month}`, `AvgMins_${month}`);
     });
     
     const csvRows = [headers.join(',')];
 
-    for (const member of groupData) {
-        const totalSteps = member.data.reduce((sum, d) => sum + d.totalSteps, 0);
-        const totalDays = member.data.length * 30;
-        const overallAvgSteps = totalDays > 0 ? Math.round(totalSteps / totalDays) : 0;
+    // Create a row for each patient
+    for (const patient of clinicData) {
+        // Calculate overall averages
+        const totalSteps = patient.data.reduce((sum, d) => sum + d.avgSteps, 0);
+        const totalMins = patient.data.reduce((sum, d) => sum + d.avgMinutes, 0);
+        const overallAvgSteps = patient.data.length > 0 ? Math.round(totalSteps / patient.data.length) : 0;
+        const overallAvgMins = patient.data.length > 0 ? Math.round(totalMins / patient.data.length) : 0;
 
-        const row: (string | number)[] = [ member.memberId, `"${member.memberName}"`, member.department, overallAvgSteps ];
+        const row: (string | number)[] = [
+            patient.patientId,
+            `"${patient.patientName}"`,
+            patient.age,
+            overallAvgSteps,
+            overallAvgMins
+        ];
 
-        const memberDataByMonth = new Map(member.data.map(d => [d.month, d]));
+        // Create a map for easy lookup of monthly data
+        const patientDataByMonth = new Map(patient.data.map(d => [d.month, d]));
+
+        // Add monthly data or 'NA' if not present
         allMonths.forEach(month => {
-            const monthData = memberDataByMonth.get(month);
-            row.push(monthData ? monthData.totalSteps : 'NA');
+            const monthData = patientDataByMonth.get(month);
+            row.push(monthData ? monthData.avgSteps : 'NA');
+            row.push(monthData ? monthData.avgMinutes : 'NA');
         });
         
         csvRows.push(row.join(','));
@@ -189,7 +206,7 @@ export default function AdminPanel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${groupName.replace(/\s+/g, '_')}_monthly_report.csv`;
+    a.download = `${clinicName.replace(/\s+/g, '_')}_monthly_report.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -208,8 +225,13 @@ export default function AdminPanel() {
       }
       setIsSubmitting(true);
       try {
+          // This is a simulation. In a real app, this would be an API call
+          // to a secure backend function (e.g., a Firebase Cloud Function).
           console.log(`Simulating call to setAdminRole for email: ${adminEmail}`);
+          // The backend function would use the Firebase Admin SDK to set a custom claim:
+          // await admin.auth().setCustomUserClaims(user.uid, { admin: true });
           await new Promise(resolve => setTimeout(resolve, 1500));
+          
           toast({ title: 'Success', description: `Admin role successfully set for ${adminEmail}. They will have admin access on their next login.` });
           setAdminEmail('');
 
@@ -227,52 +249,52 @@ export default function AdminPanel() {
        <div className="space-y-1 mb-8">
             <h1 className="font-headline text-2xl font-bold">Developer Admin Panel</h1>
             <p className="text-sm text-muted-foreground">
-                Manage group enrollment, application settings, and view analytics.
+                Manage clinic enrollment, application settings, and view analytics.
             </p>
         </div>
-      <Tabs defaultValue="groups" orientation="vertical" className="flex flex-col md:flex-row gap-8">
+      <Tabs defaultValue="clinics" orientation="vertical" className="flex flex-col md:flex-row gap-8">
          <TabsList className="grid md:grid-cols-1 w-full md:w-48 shrink-0">
-            <TabsTrigger value="groups"><Users className="mr-2" />Groups</TabsTrigger>
+            <TabsTrigger value="clinics"><Building className="mr-2" />Clinics</TabsTrigger>
             <TabsTrigger value="analysis"><PieChart className="mr-2" />Analysis</TabsTrigger>
             <TabsTrigger value="security"><ShieldCheck className="mr-2" />Security</TabsTrigger>
          </TabsList>
         
         <div className="flex-grow">
-            <TabsContent value="groups">
+            <TabsContent value="clinics">
                 <Tabs defaultValue="manage">
                     <div className="flex items-center justify-end mb-4">
                         <TabsList>
-                            <TabsTrigger value="manage">Manage Groups</TabsTrigger>
-                            <TabsTrigger value="enroll">Enroll New Group</TabsTrigger>
+                            <TabsTrigger value="manage">Manage Clinics</TabsTrigger>
+                            <TabsTrigger value="enroll">Enroll New Clinic</TabsTrigger>
                         </TabsList>
                     </div>
                     <TabsContent value="manage">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Existing Groups</CardTitle>
-                                <CardDescription>View and manage currently enrolled groups.</CardDescription>
+                                <CardTitle>Existing Clinics</CardTitle>
+                                <CardDescription>View and manage currently enrolled clinics.</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Group Name</TableHead>
-                                            <TableHead>Member Count</TableHead>
+                                            <TableHead>Clinic Name</TableHead>
+                                            <TableHead>Patient Count</TableHead>
                                             <TableHead>Capacity</TableHead>
                                             <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {groups.map((group) => (
-                                            <TableRow key={group.id}>
+                                        {clinics.map((clinic) => (
+                                            <TableRow key={clinic.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
-                                                    <img src={group.logo} alt={`${group.name} logo`} className="h-10 w-10 rounded-md object-cover bg-muted" />
-                                                    {group.name}
+                                                    <img src={clinic.logo} alt={`${clinic.name} logo`} className="h-10 w-10 rounded-md object-cover bg-muted" />
+                                                    {clinic.name}
                                                 </TableCell>
-                                                <TableCell>{group.enrolled}</TableCell>
-                                                <TableCell>{group.capacity}</TableCell>
+                                                <TableCell>{clinic.enrolled}</TableCell>
+                                                <TableCell>{clinic.capacity}</TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="outline" size="sm" onClick={() => openEditDialog(group)}>
+                                                    <Button variant="outline" size="sm" onClick={() => openEditDialog(clinic)}>
                                                         <Edit className="mr-2 h-4 w-4" />
                                                         Edit
                                                     </Button>
@@ -287,58 +309,58 @@ export default function AdminPanel() {
                     <TabsContent value="enroll">
                     <Card>
                         <CardHeader>
-                        <CardTitle>Enroll a New Group</CardTitle>
+                        <CardTitle>Enroll a New Clinic</CardTitle>
                         <CardDescription>
-                            Fill out the details below to add a new group to the StepTrack platform.
+                            Fill out the details below to add a new clinic to the ViVa move platform.
                         </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="group-name">Group Name</Label>
+                            <Label htmlFor="clinic-name">Clinic Name</Label>
                             <Input
-                            id="group-name"
-                            value={newGroupName}
-                            onChange={(e) => setNewGroupName(e.target.value)}
-                            placeholder="Enter the new group's name"
+                            id="clinic-name"
+                            value={newClinicName}
+                            onChange={(e) => setNewClinicName(e.target.value)}
+                            placeholder="Enter the new clinic's name"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="group-id">Group ID (for login)</Label>
+                            <Label htmlFor="clinic-id">Clinic ID (for login)</Label>
                             <Input
-                            id="group-id"
-                            value={newGroupId}
-                            onChange={(e) => setNewGroupId(e.target.value)}
-                            placeholder="e.g. group-alpha"
+                            id="clinic-id"
+                            value={newClinicId}
+                            onChange={(e) => setNewClinicId(e.target.value)}
+                            placeholder="e.g. clinic-wellness"
                             />
                         </div>
                          <div className="space-y-2">
-                            <Label htmlFor="group-password">Password</Label>
+                            <Label htmlFor="clinic-password">Password</Label>
                             <Input
-                            id="group-password"
+                            id="clinic-password"
                             type="password"
-                            value={newGroupPassword}
-                            onChange={(e) => setNewGroupPassword(e.target.value)}
+                            value={newClinicPassword}
+                            onChange={(e) => setNewClinicPassword(e.target.value)}
                             placeholder="Set initial password"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="member-capacity">Member Capacity</Label>
+                            <Label htmlFor="patient-capacity">Patient Capacity</Label>
                             <Input
-                            id="member-capacity"
+                            id="patient-capacity"
                             type="number"
-                            value={newMemberCapacity}
-                            onChange={(e) => setNewMemberCapacity(Number(e.target.value))}
-                            placeholder="Set the maximum number of members"
+                            value={newPatientCapacity}
+                            onChange={(e) => setNewPatientCapacity(Number(e.target.value))}
+                            placeholder="Set the maximum number of patients"
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label>Group Logo</Label>
+                            <Label>Clinic Logo</Label>
                             <div className="flex items-center gap-4">
                             {newLogoPreview ? (
-                                <img src={newLogoPreview} alt="New Group Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
+                                <img src={newLogoPreview} alt="New Clinic Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
                             ) : (
                                 <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center">
-                                    <PlusCircle className="h-8 w-8 text-muted-foreground" />
+                                <Building className="h-8 w-8 text-muted-foreground" />
                                 </div>
                             )}
                             <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -358,7 +380,7 @@ export default function AdminPanel() {
                         </div>
                         </CardContent>
                         <CardFooter>
-                        <Button onClick={handleEnrollGroup}>Enroll Group</Button>
+                        <Button onClick={handleEnrollClinic}>Enroll Clinic</Button>
                         </CardFooter>
                     </Card>
                     </TabsContent>
@@ -369,26 +391,26 @@ export default function AdminPanel() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Data Export</CardTitle>
-                            <CardDescription>Select a group to download a CSV file of its members' monthly historical data.</CardDescription>
+                            <CardDescription>Select a clinic to download a CSV file of its patients' monthly historical data.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="max-w-xs space-y-2">
-                                <Label htmlFor="group-select">Select a Group</Label>
-                                <Select onValueChange={setSelectedGroupId} value={selectedGroupId || ''}>
-                                    <SelectTrigger id="group-select">
-                                        <SelectValue placeholder="Choose a group..." />
+                                <Label htmlFor="clinic-select">Select a Clinic</Label>
+                                <Select onValueChange={setSelectedClinicId} value={selectedClinicId || ''}>
+                                    <SelectTrigger id="clinic-select">
+                                        <SelectValue placeholder="Choose a clinic..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {groups.map(group => (
-                                            <SelectItem key={group.id} value={group.id}>
-                                                {group.name}
+                                        {clinics.map(clinic => (
+                                            <SelectItem key={clinic.id} value={clinic.id}>
+                                                {clinic.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             
-                            {selectedGroupId && (
+                            {selectedClinicId && (
                                <div className="pt-4 border-t">
                                     <Button onClick={handleDownloadCsv}>
                                         <Download className="mr-2" />
@@ -396,6 +418,20 @@ export default function AdminPanel() {
                                     </Button>
                                </div>
                             )}
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-amber-500/30 bg-amber-900/20">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <AlertTriangle className="text-amber-400" />
+                                GDPR & Data Privacy
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-sm text-amber-200">
+                                All exported data is anonymized and aggregated. Ensure you have the necessary permissions and a legal basis for processing this data. All data handling must comply with GDPR and local data protection regulations.
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
@@ -433,29 +469,29 @@ export default function AdminPanel() {
       </Tabs>
     </div>
 
-    {/* Edit Group Dialog */}
+    {/* Edit Clinic Dialog */}
     <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Edit Group: {groupToEdit?.name}</DialogTitle>
-                <DialogDescription>Update the details and settings for this group.</DialogDescription>
+                <DialogTitle>Edit Clinic: {clinicToEdit?.name}</DialogTitle>
+                <DialogDescription>Update the details and settings for this clinic.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
                 <div className="space-y-2">
-                    <Label htmlFor="edit-group-name">Group Name</Label>
+                    <Label htmlFor="edit-clinic-name">Clinic Name</Label>
                     <Input
-                        id="edit-group-name"
-                        value={groupToEdit?.name || ''}
-                        onChange={(e) => setGroupToEdit(prev => prev ? { ...prev, name: e.target.value } : null)}
+                        id="edit-clinic-name"
+                        value={clinicToEdit?.name || ''}
+                        onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, name: e.target.value } : null)}
                     />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="edit-member-capacity">Member Capacity</Label>
+                    <Label htmlFor="edit-patient-capacity">Patient Capacity</Label>
                     <Input
-                        id="edit-member-capacity"
+                        id="edit-patient-capacity"
                         type="number"
-                        value={groupToEdit?.capacity || 0}
-                        onChange={(e) => setGroupToEdit(prev => prev ? { ...prev, capacity: Number(e.target.value) } : null)}
+                        value={clinicToEdit?.capacity || 0}
+                        onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, capacity: Number(e.target.value) } : null)}
                     />
                 </div>
                  <div className="space-y-2">
@@ -464,17 +500,17 @@ export default function AdminPanel() {
                         id="edit-password"
                         type="text"
                         placeholder="Enter new password"
-                        onChange={(e) => setGroupToEdit(prev => prev ? { ...prev, password: e.target.value } : null)}
+                        onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, password: e.target.value } : null)}
                     />
                 </div>
                 <div className="space-y-2">
-                    <Label>Group Logo</Label>
+                    <Label>Clinic Logo</Label>
                     <div className="flex items-center gap-4">
                         {editedLogoPreview ? (
-                            <img src={editedLogoPreview} alt="Group Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
+                            <img src={editedLogoPreview} alt="Clinic Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
                         ) : (
                              <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center">
-                                <PlusCircle className="h-8 w-8 text-muted-foreground" />
+                                <Building className="h-8 w-8 text-muted-foreground" />
                             </div>
                         )}
                         <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -492,10 +528,12 @@ export default function AdminPanel() {
             </div>
             <DialogFooter>
                 <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleUpdateGroup}>Save Changes</Button>
+                <Button onClick={handleUpdateClinic}>Save Changes</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
     </>
   );
 }
+
+    

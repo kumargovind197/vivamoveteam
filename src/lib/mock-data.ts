@@ -1,16 +1,16 @@
 
 // In a real app, you would use Firebase Auth for this.
 // For this prototype, we'll hardcode users.
-export let MOCK_USERS: Record<string, { role: 'member' | 'group' | 'admin', password: string, redirect: string }> = {
-    'member@example.com': { role: 'member', password: 'password', redirect: '/' },
-    'group-alpha': { role: 'group', password: 'password123', redirect: '/group' },
+export let MOCK_USERS: Record<string, { role: 'client' | 'clinic' | 'admin', password: string, redirect: string }> = {
+    'patient@example.com': { role: 'client', password: 'password', redirect: '/' },
+    'clinic-wellness': { role: 'clinic', password: 'password123', redirect: '/clinic' },
     'admin@example.com': { role: 'admin', password: 'adminpassword', redirect: '/admin' },
-    'john.smith@example.com': { role: 'member', password: 'password', redirect: '/' },
-    'emily.jones@example.com': { role: 'member', password: 'password', redirect: '/' },
-    'michael.johnson@example.com': { role: 'member', password: 'password', redirect: '/' },
-    'sarah.miller@example.com': { role: 'member', password: 'password', redirect: '/' },
-    'david.wilson@example.com': { role: 'member', password: 'password', redirect: '/' },
-    'jessica.brown@example.com': { role: 'member', password: 'password', redirect: '/' },
+    'john.smith@example.com': { role: 'client', password: 'password', redirect: '/' },
+    'emily.jones@example.com': { role: 'client', password: 'password', redirect: '/' },
+    'michael.johnson@example.com': { role: 'client', password: 'password', redirect: '/' },
+    'sarah.miller@example.com': { role: 'client', password: 'password', redirect: '/' },
+    'david.wilson@example.com': { role: 'client', password: 'password', redirect: '/' },
+    'jessica.brown@example.com': { role: 'client', password: 'password', redirect: '/' },
 };
 
 // Function to "disable" a user by removing them from the mock database
@@ -18,16 +18,19 @@ export function removeUser(email: string) {
     const userKey = email.toLowerCase() as keyof typeof MOCK_USERS;
     if (MOCK_USERS[userKey]) {
         delete MOCK_USERS[userKey];
+        console.log(`User ${email} removed from mock database.`);
     }
 }
 
-// Function to add a new group user to the mock database
-export function addGroupUser(groupId: string, password: string, overwrite: boolean = false): boolean {
-    const userKey = groupId.toLowerCase();
+// Function to add a new clinic user to the mock database
+export function addClinicUser(clinicId: string, password: string, overwrite: boolean = false): boolean {
+    const userKey = clinicId.toLowerCase();
     if (MOCK_USERS[userKey] && !overwrite) {
         // User already exists, and we are not overwriting
         return false;
     }
-    MOCK_USERS[userKey] = { role: 'group', password: password, redirect: '/group' };
+    MOCK_USERS[userKey] = { role: 'clinic', password: password, redirect: '/clinic' };
     return true;
 }
+
+    

@@ -58,3 +58,5 @@ export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
     </div>
   );
 }
+
+    

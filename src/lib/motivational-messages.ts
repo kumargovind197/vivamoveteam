@@ -157,19 +157,20 @@ export const getMotivationalMessage = (currentSteps: number, dailyStepGoal: numb
     const timeOfDay = getTimeOfDay();
     let milestoneId: MilestoneId | null = null;
     
+    // Determine which milestone has been hit
     if (progress === 0) milestoneId = 'not_started';
     else if (progress >= 125) milestoneId = 'goal_crushed';
     else if (progress >= 100) milestoneId = 'goal_reached';
     else if (progress >= 75) milestoneId = 'almost_there';
     else if (progress >= 50) milestoneId = 'halfway';
-    else if (progress > 0) milestoneId = 'quarter_way';
+    else if (progress > 0) milestoneId = 'quarter_way'; // Any progress counts as starting
 
     if (!milestoneId) return null;
 
     const possibleMessages = messages[timeOfDay][milestoneId];
     
     if (!possibleMessages || possibleMessages.length === 0) {
-        // Fallback to afternoon messages if a category is empty
+        // Fallback to afternoon messages if a category is empty for some reason
         const fallbackMessages = messages['afternoon'][milestoneId];
         if (!fallbackMessages || fallbackMessages.length === 0) return null;
         const randomIndex = Math.floor(Math.random() * fallbackMessages.length);
@@ -181,3 +182,5 @@ export const getMotivationalMessage = (currentSteps: number, dailyStepGoal: numb
 
     return { id: milestoneId, message };
 };
+
+    

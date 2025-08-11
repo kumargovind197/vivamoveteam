@@ -81,11 +81,11 @@ export default function LoginForm() {
       <form onSubmit={handleLogin}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email or Group ID</Label>
+            <Label htmlFor="email">Email or Clinic ID</Label>
             <Input
               id="email"
               type="text"
-              placeholder="e.g., member@example.com or group-alpha"
+              placeholder="e.g., patient@example.com or clinic-wellness"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -135,3 +135,5 @@ export default function LoginForm() {
     </Card>
   );
 }
+
+    

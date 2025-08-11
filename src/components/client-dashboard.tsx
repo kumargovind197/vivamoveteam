@@ -234,7 +234,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                     <CardDescription>Your daily step count for the last 7 days. Your daily average was {weeklyAverage.toLocaleString()} steps.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[350px]">
-                    <ActivityChart data={weeklyData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" showGoalBands={true} average={weeklyAverage} goal={dailyStepGoal} />
+                    <ActivityChart data={weeklyData} config={chartConfigSteps} dataKey={"steps"} timeKey="day" type="line" />
                 </CardContent>
             </Card>
           </TabsContent>
@@ -321,7 +321,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                         <CardDescription>Your average active minutes for each day of the week over the last month.</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[350px]">
-                        <ActivityChart data={averageMinutesByDay} config={chartConfigMinutes} dataKey="activeMinutes" timeKey="day" type="bar" yAxisMax={120} />
+                        <ActivityChart data={averageMinutesByDay} config={chartConfigMinutes} dataKey="activeMinutes" timeKey="day" type="bar" />
                     </CardContent>
                 </Card>
             </div>
@@ -361,3 +361,5 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
     </>
   );
 }
+
+    

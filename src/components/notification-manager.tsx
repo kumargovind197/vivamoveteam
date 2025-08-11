@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User } from 'firebase/auth';
 import { getMotivationalMessage } from '@/lib/motivational-messages';
-import { Footprints } from 'lucide-react';
+import { Award, Footprints } from 'lucide-react';
 
 interface NotificationManagerProps {
   user: User | null;
@@ -15,14 +15,6 @@ interface NotificationManagerProps {
 
 // Define the milestones and the maximum number of notifications per day
 const NOTIFICATION_LIMIT = 3; 
-const MILESTONES = [
-    { percent: 25, id: 'quarter_way' },
-    { percent: 50, id: 'halfway' },
-    { percent: 75, id: 'almost_there' },
-    { percent: 100, id: 'goal_reached' },
-    { percent: 125, id: 'goal_crushed' },
-];
-
 
 export default function NotificationManager({ user, currentSteps, dailyStepGoal }: NotificationManagerProps) {
   const { toast } = useToast();
@@ -69,8 +61,8 @@ export default function NotificationManager({ user, currentSteps, dailyStepGoal 
             toast({
               title: (
                 <div className="flex items-center gap-2">
-                  <Footprints className="h-5 w-5 text-primary" />
-                  <span className="font-headline">Go, You!</span>
+                  <Award className="h-5 w-5 text-primary" />
+                  <span className="font-headline">Way to Go!</span>
                 </div>
               ),
               description: finalMessage,
@@ -85,3 +77,5 @@ export default function NotificationManager({ user, currentSteps, dailyStepGoal 
 
   return null; // This is a non-visual component
 }
+
+    

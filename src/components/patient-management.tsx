@@ -184,7 +184,7 @@ export default function PatientManagement() {
       
       toast({
         title: "Patient Registered & Invite Sent",
-        description: `An email invite for ${newPatient.firstName} ${newPatient.surname} has been sent to ${newPatient.email} with instructions to set their password and install the app.`,
+        description: `An email invite for ${newPatient.firstName} ${newPatient.surname} has been sent to ${newPatient.email}. It contains a secure, one-time link to set their password and instructions for downloading the app.`,
         duration: 8000,
       });
 
@@ -208,7 +208,7 @@ export default function PatientManagement() {
       setPatientsData(prev => prev.map(p => p.id === patientToEdit.id ? updatedPatient : p));
       toast({
           title: "Patient Details Updated",
-          description: `Details for patientToEdit.firstName} ${patientToEdit.surname} have been saved.`,
+          description: `Details for ${patientToEdit.firstName} ${patientToEdit.surname} have been saved.`,
       });
       setEditPatientDialogOpen(false);
       setPatientToEdit(null);
@@ -687,3 +687,5 @@ export default function PatientManagement() {
     </TooltipProvider>
   )
 }
+
+    
