@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from 'firebase/auth';
+import { VivaHealthLogo } from './viva-health-logo';
 
 type AppHeaderProps = {
   user: User | null;
@@ -128,6 +129,10 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
                 <VivaLogo />
                 <span className="text-sm font-semibold text-primary/80">ViVa move</span>
             </Link>
+
+            <div className="border-l-2 border-muted-foreground h-8"></div>
+            
+            <VivaHealthLogo />
 
             {user && (
                  <Avatar className="h-10 w-10">
