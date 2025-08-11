@@ -25,9 +25,11 @@ export default function LoginForm() {
 
     // Simulate network delay
     setTimeout(() => {
-      const userKey = email.toLowerCase() as keyof typeof MOCK_USERS;
-      const user = MOCK_USERS[userKey];
-
+      const lowerCaseEmail = email.toLowerCase();
+      // Find the user key case-insensitively
+      const userKey = Object.keys(MOCK_USERS).find(key => key.toLowerCase() === lowerCaseEmail);
+      const user = userKey ? MOCK_USERS[userKey as keyof typeof MOCK_USERS] : undefined;
+      
       if (user && user.password === password) {
         toast({
           title: "Login Successful",
