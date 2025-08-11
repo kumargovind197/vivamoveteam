@@ -9,7 +9,7 @@ import { User } from 'firebase/auth';
 import { Progress } from './ui/progress';
 import { Footprints, Flame, Target, Trophy } from 'lucide-react';
 import { MOCK_GROUPS } from '@/lib/mock-data';
-import MotivationalStepsCard from './motivational-steps-card';
+import MotivationalCard from './motivational-card';
 
 type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
 
@@ -117,7 +117,7 @@ export default function ClientDashboard({ user, fitData, view, group }: ClientDa
             )}
         </div>
 
-        <MotivationalStepsCard steps={steps} />
+        <MotivationalCard steps={steps} />
 
 
         <Tabs defaultValue="weekly" className="w-full mt-6">
