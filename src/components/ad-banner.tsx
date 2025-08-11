@@ -46,6 +46,7 @@ export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
           </button>
           <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
              <Image 
+                data-ai-hint="running shoes"
                 src={adContent.imageUrl} 
                 alt={adContent.description} 
                 width={400} 
@@ -58,5 +59,3 @@ export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
     </div>
   );
 }
-
-    

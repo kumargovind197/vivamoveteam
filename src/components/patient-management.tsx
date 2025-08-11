@@ -25,7 +25,7 @@ import { Checkbox } from './ui/checkbox';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { MOCK_USERS, removeUser } from '@/lib/mock-data';
+import { MOCK_USERS, removeUser, MOCK_CLINICS } from '@/lib/mock-data';
 
 const initialPatientsData = [
   { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', age: 45, gender: 'Male', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
@@ -76,7 +76,7 @@ export default function PatientManagement() {
   const { toast } = useToast();
   
   // This would be fetched from a config or passed as a prop in a real app
-  const maxPatients = 200;
+  const maxPatients = MOCK_CLINICS['clinic-wellness'].capacity;
 
   const filteredPatients = useMemo(() => {
     let patients = patientsData;
@@ -687,5 +687,3 @@ export default function PatientManagement() {
     </TooltipProvider>
   )
 }
-
-    

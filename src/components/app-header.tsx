@@ -21,13 +21,12 @@ const VivaMoveLogo = () => (
 type AppHeaderProps = {
   user: User | null;
   isEnrolled?: boolean;
-  onEnrollClick?: () => void;
   view: 'client' | 'clinic' | 'admin';
   patientId?: string;
   patientName?: string;
 };
 
-export default function AppHeader({ user, isEnrolled = false, onEnrollClick, view, patientId, patientName }: AppHeaderProps) {
+export default function AppHeader({ user, isEnrolled = false, view, patientId, patientName }: AppHeaderProps) {
 
   const renderClinicBranding = () => {
     // Show clinic branding if enrolled

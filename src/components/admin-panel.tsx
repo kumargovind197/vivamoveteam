@@ -7,19 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { MOCK_USERS, addClinicUser } from '@/lib/mock-data';
-
-// Mock data for existing clinics
-const existingClinics = [
-    { id: 'clinic-wellness', name: 'Wellness Clinic', capacity: 200, enrolled: 120, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-    { id: 'clinic-healthfirst', name: 'HealthFirst Medical', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-    { id: 'clinic-cityheart', name: 'City Heart Specialists', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-];
+import { MOCK_USERS, addClinicUser, MOCK_CLINICS } from '@/lib/mock-data';
+import { Switch } from './ui/switch';
 
 const mockPatientHistoricalData = {
     'clinic-wellness': [
@@ -38,14 +32,15 @@ const mockPatientHistoricalData = {
     ],
 };
 
-type Clinic = typeof existingClinics[0];
+type Clinic = typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS];
 
 export default function AdminPanel() {
-  const [clinics, setClinics] = useState(existingClinics);
+  const [clinics, setClinics] = useState(Object.values(MOCK_CLINICS));
   const [newClinicName, setNewClinicName] = useState('');
   const [newClinicId, setNewClinicId] = useState('');
   const [newClinicPassword, setNewClinicPassword] = useState('');
   const [newPatientCapacity, setNewPatientCapacity] = useState(100);
+  const [newAdsEnabled, setNewAdsEnabled] = useState(true);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
   
@@ -53,6 +48,7 @@ export default function AdminPanel() {
   const [clinicToEdit, setClinicToEdit] = useState<Clinic | null>(null);
   const [editedLogoFile, setEditedLogoFile] = useState<File | null>(null);
   const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
+  const [editedAdsEnabled, setEditedAdsEnabled] = useState(false);
 
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState('');
@@ -99,14 +95,18 @@ export default function AdminPanel() {
         return;
     }
     
-    setClinics(prev => [...prev, {
+    const newClinic: Clinic = {
         id: newClinicId,
         name: newClinicName,
         capacity: newPatientCapacity,
         enrolled: 0,
         logo: newLogoPreview || 'https://placehold.co/128x128.png',
         password: newClinicPassword,
-    }]);
+        adsEnabled: newAdsEnabled
+    };
+
+    MOCK_CLINICS[newClinicId] = newClinic;
+    setClinics(Object.values(MOCK_CLINICS));
 
     toast({
       title: "Clinic Enrolled",
@@ -117,6 +117,7 @@ export default function AdminPanel() {
     setNewClinicId('');
     setNewClinicPassword('');
     setNewPatientCapacity(100);
+    setNewAdsEnabled(true);
     setNewLogoFile(null);
     setNewLogoPreview(null);
   };
@@ -124,19 +125,26 @@ export default function AdminPanel() {
   const openEditDialog = (clinic: Clinic) => {
       setClinicToEdit(clinic);
       setEditedLogoPreview(clinic.logo);
+      setEditedAdsEnabled(clinic.adsEnabled);
       setEditedLogoFile(null);
       setEditDialogOpen(true);
   }
 
   const handleUpdateClinic = () => {
       if (!clinicToEdit) return;
-      const updatedClinics = clinics.map(c => 
-          c.id === clinicToEdit.id ? clinicToEdit : c
-      );
-      setClinics(updatedClinics);
       
-      // Also update the password in the mock user DB
-      addClinicUser(clinicToEdit.id, clinicToEdit.password, true);
+      const updatedClinicData = {
+          ...clinicToEdit,
+          adsEnabled: editedAdsEnabled
+      };
+
+      MOCK_CLINICS[clinicToEdit.id] = updatedClinicData;
+      setClinics(Object.values(MOCK_CLINICS));
+      
+      // Also update the password in the mock user DB if it was changed
+      if (clinicToEdit.password) {
+        addClinicUser(clinicToEdit.id, clinicToEdit.password, true);
+      }
 
       toast({
           title: "Clinic Updated",
@@ -161,10 +169,8 @@ export default function AdminPanel() {
         return;
     }
     
-    // Get all unique months across all patients in the clinic
     const allMonths = Array.from(new Set(clinicData.flatMap(p => p.data.map(d => d.month)))).sort();
     
-    // Create headers
     const headers = ['PatientID', 'PatientName', 'Age', 'Overall_Avg_Steps', 'Overall_Avg_Mins'];
     allMonths.forEach(month => {
         headers.push(`AvgSteps_${month}`, `AvgMins_${month}`);
@@ -172,9 +178,7 @@ export default function AdminPanel() {
     
     const csvRows = [headers.join(',')];
 
-    // Create a row for each patient
     for (const patient of clinicData) {
-        // Calculate overall averages
         const totalSteps = patient.data.reduce((sum, d) => sum + d.avgSteps, 0);
         const totalMins = patient.data.reduce((sum, d) => sum + d.avgMinutes, 0);
         const overallAvgSteps = patient.data.length > 0 ? Math.round(totalSteps / patient.data.length) : 0;
@@ -188,10 +192,8 @@ export default function AdminPanel() {
             overallAvgMins
         ];
 
-        // Create a map for easy lookup of monthly data
         const patientDataByMonth = new Map(patient.data.map(d => [d.month, d]));
 
-        // Add monthly data or 'NA' if not present
         allMonths.forEach(month => {
             const monthData = patientDataByMonth.get(month);
             row.push(monthData ? monthData.avgSteps : 'NA');
@@ -225,11 +227,7 @@ export default function AdminPanel() {
       }
       setIsSubmitting(true);
       try {
-          // This is a simulation. In a real app, this would be an API call
-          // to a secure backend function (e.g., a Firebase Cloud Function).
           console.log(`Simulating call to setAdminRole for email: ${adminEmail}`);
-          // The backend function would use the Firebase Admin SDK to set a custom claim:
-          // await admin.auth().setCustomUserClaims(user.uid, { admin: true });
           await new Promise(resolve => setTimeout(resolve, 1500));
           
           toast({ title: 'Success', description: `Admin role successfully set for ${adminEmail}. They will have admin access on their next login.` });
@@ -281,6 +279,7 @@ export default function AdminPanel() {
                                             <TableHead>Clinic Name</TableHead>
                                             <TableHead>Patient Count</TableHead>
                                             <TableHead>Capacity</TableHead>
+                                            <TableHead>Ad Status</TableHead>
                                             <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -293,6 +292,12 @@ export default function AdminPanel() {
                                                 </TableCell>
                                                 <TableCell>{clinic.enrolled}</TableCell>
                                                 <TableCell>{clinic.capacity}</TableCell>
+                                                <TableCell>
+                                                    <span className={`flex items-center gap-1.5 text-xs font-semibold ${clinic.adsEnabled ? 'text-green-400' : 'text-amber-400'}`}>
+                                                        {clinic.adsEnabled ? <BadgeCheck className="h-4 w-4" /> : <BadgeAlert className="h-4 w-4" />}
+                                                        {clinic.adsEnabled ? 'Enabled' : 'Disabled'}
+                                                    </span>
+                                                </TableCell>
                                                 <TableCell className="text-right">
                                                     <Button variant="outline" size="sm" onClick={() => openEditDialog(clinic)}>
                                                         <Edit className="mr-2 h-4 w-4" />
@@ -352,6 +357,10 @@ export default function AdminPanel() {
                             onChange={(e) => setNewPatientCapacity(Number(e.target.value))}
                             placeholder="Set the maximum number of patients"
                             />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Switch id="ads-enabled-new" checked={newAdsEnabled} onCheckedChange={setNewAdsEnabled} />
+                            <Label htmlFor="ads-enabled-new">Enable Advertising Banners</Label>
                         </div>
                         <div className="space-y-2">
                             <Label>Clinic Logo</Label>
@@ -503,6 +512,10 @@ export default function AdminPanel() {
                         onChange={(e) => setClinicToEdit(prev => prev ? { ...prev, password: e.target.value } : null)}
                     />
                 </div>
+                <div className="flex items-center space-x-2">
+                    <Switch id="ads-enabled-edit" checked={editedAdsEnabled} onCheckedChange={setEditedAdsEnabled} />
+                    <Label htmlFor="ads-enabled-edit">Enable Advertising Banners</Label>
+                </div>
                 <div className="space-y-2">
                     <Label>Clinic Logo</Label>
                     <div className="flex items-center gap-4">
@@ -535,5 +548,3 @@ export default function AdminPanel() {
     </>
   );
 }
-
-    

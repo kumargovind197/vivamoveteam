@@ -14,20 +14,25 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { MOCK_USERS } from '@/lib/mock-data';
+import { MOCK_USERS, MOCK_CLINICS } from '@/lib/mock-data';
+import AdBanner from '@/components/ad-banner';
+import FooterAdBanner from '@/components/footer-ad-banner';
 
 // This now represents the "logged-in" user's ID for the session.
 const LOGGED_IN_USER_ID = 'patient@example.com';
+const USER_CLINIC_ID = 'clinic-wellness'; // The clinic this user is assigned to.
 
 export default function Home() {
-  // In this state, we assume the user is enrolled to show the core features.
-  const [isEnrolled, setIsEnrolled] = useState(true);
   const [dailyStepGoal, setDailyStepGoal] = useState(8000);
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: null, activeMinutes: null });
   
-  // The user's state is now derived from the centralized mock data
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAccessRevoked, setAccessRevoked] = useState(false);
+  
+  // States for controlling ad visibility
+  const [isEnrolled, setIsEnrolled] = useState(true); // Assume enrolled for this view
+  const [showPopupAd, setShowPopupAd] = useState(false);
+  const [showFooterAd, setShowFooterAd] = useState(false);
 
   const { toast } = useToast();
   const router = useRouter();
@@ -35,6 +40,8 @@ export default function Home() {
    useEffect(() => {
     // SIMULATE AUTH CHECK: Check if the user still exists in our mock database.
     const userRecord = MOCK_USERS[LOGGED_IN_USER_ID as keyof typeof MOCK_USERS];
+    const clinicRecord = MOCK_CLINICS[USER_CLINIC_ID as keyof typeof MOCK_CLINICS];
+
     if (userRecord) {
         const mockUser: User = {
           uid: 'mock-user-id',
@@ -51,11 +58,42 @@ export default function Home() {
         };
         setCurrentUser(mockUser);
         setAccessRevoked(false);
+        setIsEnrolled(true);
+
+        // Check the clinic's ad setting from mock data
+        if (clinicRecord?.adsEnabled) {
+             // Logic to decide which ad to show, could be random or based on other factors
+            const adDecision = Math.random();
+            if (adDecision < 0.5) {
+                setShowPopupAd(true);
+                setShowFooterAd(false);
+            } else {
+                setShowPopupAd(false);
+                setShowFooterAd(true);
+            }
+        } else {
+            setShowPopupAd(false);
+            setShowFooterAd(false);
+        }
+
     } else {
         setCurrentUser(null);
         setAccessRevoked(true);
+        setIsEnrolled(false);
     }
   }, []);
+
+  const adContent = {
+      description: 'Ad for running shoes',
+      imageUrl: 'https://placehold.co/400x300.png',
+      targetUrl: '#',
+  };
+  const footerAdContent = {
+      description: 'Horizontal ad banner',
+      imageUrl: 'https://placehold.co/728x90.png',
+      targetUrl: '#',
+  };
+
 
   // Render a "logged out" or "access revoked" state if the user has been deleted.
   if (isAccessRevoked || !currentUser) {
@@ -89,7 +127,9 @@ export default function Home() {
         <ClientDashboard isEnrolled={isEnrolled} user={currentUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} view="client" />
         <MessageInbox />
         <NotificationManager user={currentUser} currentSteps={fitData.steps} dailyStepGoal={dailyStepGoal}/>
+        <AdBanner isPopupVisible={showPopupAd} adContent={adContent} />
       </main>
+      <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />
     </div>
   );
 }

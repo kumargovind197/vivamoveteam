@@ -1,6 +1,8 @@
 
 // In a real app, you would use Firebase Auth for this.
-// For this prototype, we'll hardcode users.
+// For this prototype, we'll hardcode users and clinics.
+
+// -- MOCK USER DATABASE --
 export let MOCK_USERS: Record<string, { role: 'client' | 'clinic' | 'admin', password: string, redirect: string }> = {
     'patient@example.com': { role: 'client', password: 'password', redirect: '/' },
     'clinic-wellness': { role: 'clinic', password: 'password123', redirect: '/clinic' },
@@ -12,6 +14,22 @@ export let MOCK_USERS: Record<string, { role: 'client' | 'clinic' | 'admin', pas
     'david.wilson@example.com': { role: 'client', password: 'password', redirect: '/' },
     'jessica.brown@example.com': { role: 'client', password: 'password', redirect: '/' },
 };
+
+// -- MOCK CLINIC DATABASE --
+export let MOCK_CLINICS: Record<string, {
+    id: string;
+    name: string;
+    capacity: number;
+    enrolled: number;
+    logo: string;
+    password?: string;
+    adsEnabled: boolean;
+}> = {
+    'clinic-wellness': { id: 'clinic-wellness', name: 'Wellness Clinic', capacity: 200, enrolled: 120, logo: 'https://placehold.co/128x128.png', adsEnabled: true },
+    'clinic-healthfirst': { id: 'clinic-healthfirst', name: 'HealthFirst Medical', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', adsEnabled: false },
+    'clinic-cityheart': { id: 'clinic-cityheart', name: 'City Heart Specialists', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', adsEnabled: true },
+};
+
 
 // Function to "disable" a user by removing them from the mock database
 export function removeUser(email: string) {
@@ -32,5 +50,3 @@ export function addClinicUser(clinicId: string, password: string, overwrite: boo
     MOCK_USERS[userKey] = { role: 'clinic', password: password, redirect: '/clinic' };
     return true;
 }
-
-    

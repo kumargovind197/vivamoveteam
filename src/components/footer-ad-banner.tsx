@@ -23,6 +23,7 @@ export default function FooterAdBanner({ isVisible, adContent }: FooterAdBannerP
       <div className="container mx-auto flex items-center justify-center">
          <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer" className="overflow-hidden rounded-md shadow-lg">
            <Image 
+            data-ai-hint="ad banner"
             src={adContent.imageUrl}
             alt={adContent.description}
             width={728}
@@ -34,5 +35,3 @@ export default function FooterAdBanner({ isVisible, adContent }: FooterAdBannerP
     </footer>
   );
 }
-
-    
