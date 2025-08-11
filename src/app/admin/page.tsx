@@ -11,7 +11,7 @@ const mockUser: User = {
   uid: 'mock-admin-id',
   email: 'admin@example.com',
   displayName: 'Admin User',
-  photoURL: 'https://placehold.co/100x100',
+  photoURL: 'https://placehold.co/100x100.png',
   providerId: 'password',
   emailVerified: true,
   isAnonymous: false,
