@@ -33,47 +33,55 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
     setEnrollDialogOpen(false);
   };
 
+  const renderClinicBranding = () => {
+    if (patientId) {
+       // View when looking at a specific patient from the clinic dashboard
+       return (
+        <div className='flex items-center gap-4'>
+            <Button asChild variant="outline" size="icon">
+                <Link href="/clinic">
+                    <ArrowLeft />
+                </Link>
+            </Button>
+            <div>
+                <p className="text-sm text-muted-foreground">Viewing Patient</p>
+                <p className="font-semibold">{patientName}</p>
+            </div>
+        </div>
+       );
+    }
+
+    // Default view for client and clinic main pages
+    if (isEnrolled && view === 'client') {
+        return (
+            <Image 
+                data-ai-hint="medical logo"
+                src="https://placehold.co/40x40.png" 
+                alt="Clinic Logo" 
+                width={40} 
+                height={40} 
+                className="rounded-md"
+            />
+        );
+    }
+
+    // Placeholder for non-enrolled or clinic view
+    return (
+        <div className="h-10 w-10 flex items-center justify-center rounded-md bg-muted">
+            <Building className="h-6 w-6 text-muted-foreground"/>
+        </div>
+    );
+  }
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           
-          {/* Left-aligned elements */}
-          {patientId ? (
-            // View when looking at a specific patient from the clinic dashboard
-            <div className='flex items-center gap-4'>
-                <Button asChild variant="outline" size="icon">
-                    <Link href="/clinic">
-                        <ArrowLeft />
-                    </Link>
-                </Button>
-                <div>
-                    <p className="text-sm text-muted-foreground">Viewing Patient</p>
-                    <p className="font-semibold">{patientName}</p>
-                </div>
-            </div>
-          ) : (
-             // Default view for client and clinic main pages
-             <div className="flex items-center gap-3">
-                 {isEnrolled && view === 'client' ? (
-                     <Image 
-                        data-ai-hint="medical logo"
-                        src="https://placehold.co/40x40.png" 
-                        alt="Clinic Logo" 
-                        width={40} 
-                        height={40} 
-                        className="rounded-md"
-                     />
-                 ) : (
-                    // Placeholder for non-enrolled or clinic view
-                    <div className="h-10 w-10 flex items-center justify-center rounded-md bg-muted">
-                        <Building className="h-6 w-6 text-muted-foreground"/>
-                    </div>
-                 )}
-            </div>
-          )}
+          {/* Left Side: Clinic Branding ONLY */}
+          {renderClinicBranding()}
 
-          {/* Right-aligned elements */}
+          {/* Right Side: All other elements */}
           <div className="flex items-center gap-4">
              {view === 'client' && (
                <div className="hidden items-center gap-2 md:flex">
