@@ -270,27 +270,51 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
         });
         return;
     }
+    
+    // Get all unique months from the data to create headers
+    const allMonths = Array.from(new Set(clinicData.flatMap(p => p.data.map(d => d.month)))).sort();
 
-    const csvRows = [];
-    // Headers
-    const headers = ['PatientID', 'PatientName', 'Status', 'Month', 'TotalSteps', 'TotalActiveMinutes', 'DailyAverageSteps', 'DailyAverageMinutes'];
-    csvRows.push(headers.join(','));
+    const headers = [
+        'PatientID', 
+        'PatientName', 
+        'Status', 
+        'Overall_Daily_Avg_Steps', 
+        'Overall_Daily_Avg_Minutes'
+    ];
+    allMonths.forEach(month => {
+        headers.push(`Steps_${month}`);
+        headers.push(`Minutes_${month}`);
+    });
+    
+    const csvRows = [headers.join(',')];
 
     // Data rows
     for (const patient of clinicData) {
-        for (const monthlyRecord of patient.data) {
-            const row = [
-                patient.patientId,
-                `"${patient.patientName}"`,
-                patient.status,
-                monthlyRecord.month,
-                monthlyRecord.totalSteps,
-                monthlyRecord.totalMinutes,
-                monthlyRecord.dailyAvgSteps,
-                monthlyRecord.dailyAvgMinutes,
-            ];
-            csvRows.push(row.join(','));
-        }
+        const totalSteps = patient.data.reduce((sum, d) => sum + d.totalSteps, 0);
+        const totalMinutes = patient.data.reduce((sum, d) => sum + d.totalMinutes, 0);
+        // Assuming 30 days per month for overall average calculation
+        const totalDays = patient.data.length * 30;
+        
+        const overallAvgSteps = totalDays > 0 ? Math.round(totalSteps / totalDays) : 0;
+        const overallAvgMinutes = totalDays > 0 ? Math.round(totalMinutes / totalDays) : 0;
+
+        const row: (string | number)[] = [
+            patient.patientId,
+            `"${patient.patientName}"`,
+            patient.status,
+            overallAvgSteps,
+            overallAvgMinutes,
+        ];
+
+        const patientDataByMonth = new Map(patient.data.map(d => [d.month, d]));
+
+        allMonths.forEach(month => {
+            const monthData = patientDataByMonth.get(month);
+            row.push(monthData ? monthData.totalSteps : 0);
+            row.push(monthData ? monthData.totalMinutes : 0);
+        });
+        
+        csvRows.push(row.join(','));
     }
 
     const csvString = csvRows.join('\n');
