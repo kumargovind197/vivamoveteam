@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Crown, Medal, Trophy } from 'lucide-react';
+import { Crown, Medal, Trophy, CalendarClock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 // In a real app, this data would be fetched from your backend.
@@ -27,7 +27,20 @@ const getMedalColor = (rank: number) => {
     }
 }
 
+const getDaysRemainingInMonth = () => {
+    const today = new Date();
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    const remainingDays = lastDayOfMonth.getDate() - today.getDate();
+    return remainingDays;
+}
+
 export default function Leaderboard() {
+    const [daysRemaining, setDaysRemaining] = useState(0);
+
+    useEffect(() => {
+        setDaysRemaining(getDaysRemainingInMonth());
+    }, []);
+
     const individualLeaderboard = useMemo(() => {
         return [...mockMembers]
             .sort((a, b) => b.monthlySteps - a.monthlySteps)
@@ -60,6 +73,12 @@ export default function Leaderboard() {
             <div className="text-center mb-8">
                 <h2 className="font-headline text-3xl font-bold tracking-tight">This Month's Leaderboard</h2>
                 <p className="text-muted-foreground">Rankings reset on the 1st of each month. Updated daily.</p>
+                <div className="mt-4 flex items-center justify-center gap-2 text-sm font-medium text-accent">
+                    <CalendarClock className="h-5 w-5" />
+                    <span>
+                        {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left in this month's challenge!
+                    </span>
+                </div>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

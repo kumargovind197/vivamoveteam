@@ -1,9 +1,7 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useState, useMemo } from 'react';
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -13,27 +11,126 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { Search, UserPlus, Edit, Trash2 } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, History } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { MOCK_USERS, removeUser, MOCK_GROUPS } from '@/lib/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import Leaderboard from './leaderboard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 const initialMembersData = [
-  { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: '2', memberId: 'EMP-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: '3', memberId: 'EMP-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: '4', memberId: 'EMP-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', department: 'Marketing', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: '5', memberId: 'EMP-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: '6', memberId: 'EMP-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', department: 'HR', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: '7', memberId: 'EMP-007', firstName: 'Alex', surname: 'Doe', email: 'member@example.com', department: 'Marketing', avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 285000 },
+  { id: '2', memberId: 'EMP-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 310500 },
+  { id: '3', memberId: 'EMP-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 155000 },
+  { id: '4', memberId: 'EMP-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', department: 'Marketing', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 210000 },
+  { id: '5', memberId: 'EMP-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 180000 },
+  { id: '6', memberId: 'EMP-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', department: 'HR', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 250000 },
+  { id: '7', memberId: 'EMP-007', firstName: 'Alex', surname: 'Doe', email: 'member@example.com', department: 'Marketing', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 220000 },
 ];
 
+const mockPastLeaderboards = {
+    '2024-07': {
+        individuals: [
+            { id: '1', firstName: 'Alice', surname: 'Wonder', department: 'HR', monthlySteps: 320000, avatarUrl: 'https://placehold.co/100x100.png' },
+            { id: '2', firstName: 'Bob', surname: 'Builder', department: 'Engineering', monthlySteps: 290000, avatarUrl: 'https://placehold.co/100x100.png' },
+        ],
+        departments: [
+            { name: 'HR', avgSteps: 280000 },
+            { name: 'Engineering', avgSteps: 260000 },
+        ]
+    },
+    '2024-06': {
+        individuals: [
+            { id: '3', firstName: 'Charlie', surname: 'Chocolate', department: 'Sales', monthlySteps: 350000, avatarUrl: 'https://placehold.co/100x100.png' },
+             { id: '1', firstName: 'Alice', surname: 'Wonder', department: 'HR', monthlySteps: 310000, avatarUrl: 'https://placehold.co/100x100.png' },
+        ],
+        departments: [
+            { name: 'Sales', avgSteps: 300000 },
+            { name: 'HR', avgSteps: 270000 },
+        ]
+    }
+}
+
 type Member = typeof initialMembersData[0];
+
+const getMedalColor = (rank: number) => {
+    switch (rank) {
+        case 1: return "text-yellow-400";
+        case 2: return "text-gray-400";
+        case 3: return "text-amber-600";
+        default: return "text-muted-foreground";
+    }
+}
+
+function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof mockPastLeaderboards[keyof typeof mockPastLeaderboards] }) {
+    return (
+        <div className="mt-6 space-y-6">
+            <h3 className="text-xl font-bold font-headline text-center">Final Rankings for {new Date(month + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}</h3>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">Top Individuals</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <ol className="space-y-4">
+                            {data.individuals.map((member, index) => (
+                                <li key={member.id} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
+                                    <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
+                                        {index < 3 ? <Medal className="h-6 w-6" /> : <span className="w-6 text-center">{index + 1}</span>}
+                                    </div>
+                                    <Avatar>
+                                        <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
+                                        <AvatarFallback>{member.firstName[0]}{member.surname[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <p className="font-semibold">{member.firstName} {member.surname}</p>
+                                        <p className="text-sm text-muted-foreground">{member.department}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-primary text-lg">
+                                            {member.monthlySteps.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">Top Departments</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                         <ol className="space-y-4">
+                            {data.departments.map((dept, index) => (
+                                <li key={dept.name} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
+                                    <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
+                                         {index < 3 ? <Medal className="h-6 w-6" /> : <span className="w-6 text-center">{index + 1}</span>}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-semibold">{dept.name}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-primary text-lg">
+                                            {dept.avgSteps.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    )
+}
+
 
 export default function MemberManagement() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,6 +141,7 @@ export default function MemberManagement() {
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
   const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
   const [newMember, setNewMember] = useState({ memberId: '', firstName: '', surname: '', email: '', department: '' });
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const { toast } = useToast();
   
   const maxMembers = MOCK_GROUPS['group-awesome'].capacity;
@@ -85,7 +183,8 @@ export default function MemberManagement() {
       const newMemberWithId = { 
           ...newMember,
           id: (membersData.length + 1).toString(),
-          avatarUrl: 'https://placehold.co/100x100.png'
+          avatarUrl: 'https://placehold.co/100x100.png',
+          monthlySteps: 0,
       };
       setMembersData(prev => [...prev, newMemberWithId]);
       
@@ -132,112 +231,157 @@ export default function MemberManagement() {
 
   return (
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-         <div className="space-y-4">
-            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search by ID, name, or email..." 
-                    className="pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                </div>
-                 <Button onClick={() => setAddMemberDialogOpen(true)} disabled={isAtCapacity}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Enroll New Member
-                </Button>
-            </div>
+        <Tabs defaultValue="leaderboard">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="leaderboard"><Trophy className="mr-2" /> Leaderboard</TabsTrigger>
+                <TabsTrigger value="manage">Manage Members</TabsTrigger>
+            </TabsList>
+            <TabsContent value="leaderboard">
+                <Leaderboard />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Member List</CardTitle>
-                     <div className="text-sm text-muted-foreground">
-                        <p>Enrolled / Capacity: <span className="font-bold text-foreground">{currentMemberCount} / {maxMembers}</span></p>
+                <Card className="mt-8">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <History className="text-primary"/>
+                            Past Leaderboards
+                        </CardTitle>
+                        <CardDescription>
+                            Review final rankings from previous months.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="max-w-xs">
+                            <Select onValueChange={setSelectedMonth}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a month..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.keys(mockPastLeaderboards).map(month => (
+                                        <SelectItem key={month} value={month}>
+                                            {new Date(month + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {selectedMonth && (
+                            <PastLeaderboardDisplay month={selectedMonth} data={mockPastLeaderboards[selectedMonth as keyof typeof mockPastLeaderboards]} />
+                        )}
+                    </CardContent>
+                </Card>
+
+            </TabsContent>
+            <TabsContent value="manage">
+                <div className="space-y-4 pt-4">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                        <div className="relative w-full max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search by ID, name, or email..." 
+                            className="pl-9"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        </div>
+                        <Button onClick={() => setAddMemberDialogOpen(true)} disabled={isAtCapacity}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Enroll New Member
+                        </Button>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Member</TableHead>
-                            <TableHead>Department</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {filteredMembers.map(member => (
-                            <TableRow key={member.id}>
-                            <TableCell className="font-medium">
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
-                                        <AvatarFallback>{member.firstName[0]}{member.surname[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p>{`${member.firstName} ${member.surname}`}</p>
-                                        <p className="text-sm text-muted-foreground font-mono">{member.memberId}</p>
-                                    </div>
-                                </div>
-                            </TableCell>
-                            <TableCell>{member.department}</TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
-                                    setMemberToEdit(member);
-                                    setEditMemberDialogOpen(true);
-                                }}>
-                                    <Edit className="mr-2 h-3 w-3" />
-                                    Edit
-                                </Button>
-                                <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setMemberToRemove(member)}>
-                                            <Trash2 className="mr-2 h-3 w-3" />
-                                            Remove
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Member List</CardTitle>
+                            <div className="text-sm text-muted-foreground">
+                                <p>Enrolled / Capacity: <span className="font-bold text-foreground">{currentMemberCount} / {maxMembers}</span></p>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="rounded-lg border">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    <TableHead>Member</TableHead>
+                                    <TableHead>Department</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {filteredMembers.map(member => (
+                                    <TableRow key={member.id}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
+                                                <AvatarFallback>{member.firstName[0]}{member.surname[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p>{`${member.firstName} ${member.surname}`}</p>
+                                                <p className="text-sm text-muted-foreground font-mono">{member.memberId}</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{member.department}</TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                        <Button variant="outline" size="sm" data-action-button="true" onClick={() => {
+                                            setMemberToEdit(member);
+                                            setEditMemberDialogOpen(true);
+                                        }}>
+                                            <Edit className="mr-2 h-3 w-3" />
+                                            Edit
                                         </Button>
-                                    </AlertDialogTrigger>
-                                    {memberToRemove && memberToRemove.id === member.id && (
-                                        <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                            This action cannot be undone. This will permanently remove <span className="font-semibold">{`${member.firstName} ${member.surname}`}</span> from your group and revoke their access.
-                                            <br/><br/>
-                                            To confirm, please type <strong className="text-foreground">delete</strong> below.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <Input 
-                                            id="delete-confirm"
-                                            value={deleteConfirmationInput}
-                                            onChange={(e) => setDeleteConfirmationInput(e.target.value)}
-                                            className="mt-2"
-                                            autoFocus
-                                        />
-                                        <AlertDialogFooter className='mt-4'>
-                                            <AlertDialogCancel onClick={() => setMemberToRemove(null)}>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction 
-                                                onClick={() => handleRemoveMember(member)}
-                                                disabled={deleteConfirmationInput !== 'delete'}
-                                                className={buttonVariants({ variant: "destructive" })}
-                                            >
-                                            Proceed
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    )}
-                                    </AlertDialog>
-                                </div>
-                            </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
+                                        <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmationInput('')}>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="sm" data-action-button="true" onClick={() => setMemberToRemove(member)}>
+                                                    <Trash2 className="mr-2 h-3 w-3" />
+                                                    Remove
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            {memberToRemove && memberToRemove.id === member.id && (
+                                                <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently remove <span className="font-semibold">{`${member.firstName} ${member.surname}`}</span> from your group and revoke their access.
+                                                    <br/><br/>
+                                                    To confirm, please type <strong className="text-foreground">delete</strong> below.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <Input 
+                                                    id="delete-confirm"
+                                                    value={deleteConfirmationInput}
+                                                    onChange={(e) => setDeleteConfirmationInput(e.target.value)}
+                                                    className="mt-2"
+                                                    autoFocus
+                                                />
+                                                <AlertDialogFooter className='mt-4'>
+                                                    <AlertDialogCancel onClick={() => setMemberToRemove(null)}>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction 
+                                                        onClick={() => handleRemoveMember(member)}
+                                                        disabled={deleteConfirmationInput !== 'delete'}
+                                                        className={buttonVariants({ variant: "destructive" })}
+                                                    >
+                                                    Proceed
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            )}
+                                            </AlertDialog>
+                                        </div>
+                                    </TableCell>
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </TabsContent>
+        </Tabs>
+
       
         <Dialog open={isAddMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
             <DialogContent className="sm:max-w-lg">
