@@ -9,7 +9,7 @@ import { Skeleton } from './ui/skeleton';
 
 interface DataCardsProps {
   user: User | null;
-  onDataFetched: (data: { steps: number | null, activeMinutes: number | null }) => void;
+  onDataFetched: (data: { steps: number | null }) => void;
 }
 
 const STATS_API_URL = "https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate";
@@ -36,7 +36,7 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
     if (!user || user.uid.startsWith('mock-')) {
       setLoading(false);
       // We return some mock data to make the UI look populated
-      onDataFetched({ steps: 5432, activeMinutes: 25 });
+      onDataFetched({ steps: 5432 });
       return;
     }
 
@@ -50,9 +50,6 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
           "aggregateBy": [{
             "dataTypeName": "com.google.step_count.delta",
             "dataSourceId": "derived:com.google.step_count.delta:com.google.android.gms:estimated_steps"
-          }, {
-            "dataTypeName": "com.google.active_minutes",
-            "dataSourceId": "derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes"
           }],
           "bucketByTime": { "durationMillis": 86400000 }, // 24 hours
           "startTimeMillis": getMidnight(),
@@ -77,13 +74,12 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
         const data = await response.json();
 
         const steps = data.bucket[0]?.dataset[0]?.point[0]?.value[0]?.intVal || 0;
-        const activeMinutes = data.bucket[0]?.dataset[1]?.point[0]?.value[0]?.intVal || 0;
 
-        onDataFetched({ steps, activeMinutes });
+        onDataFetched({ steps });
 
       } catch (err: any) {
         setError(err.message);
-        onDataFetched({ steps: null, activeMinutes: null });
+        onDataFetched({ steps: null });
         console.error(err);
       } finally {
         setLoading(false);
@@ -121,7 +117,6 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
         </div>
       );
   }
-
 
   return null;
 }

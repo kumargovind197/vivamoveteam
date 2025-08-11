@@ -3,14 +3,14 @@
 
 import React from 'react';
 import AppHeader from '@/components/app-header';
-import AdminPanel from '@/components/admin-panel';
+import MemberManagement from '@/components/member-management';
 import type { User } from 'firebase/auth';
 
 // Mock user for development purposes
 const mockUser: User = {
-  uid: 'mock-admin-id',
-  email: 'admin@example.com',
-  displayName: 'Admin User',
+  uid: 'mock-group-id',
+  email: 'group@example.com',
+  displayName: 'Group Admin',
   photoURL: 'https://placehold.co/100x100',
   providerId: 'password',
   emailVerified: true,
@@ -34,12 +34,12 @@ const mockUser: User = {
 };
 
 
-export default function AdminPage() {
+export default function GroupPage() {
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader user={mockUser} view="member" />
+      <AppHeader user={mockUser} view="group" />
       <main className="flex-1">
-        <AdminPanel />
+        <MemberManagement />
       </main>
     </div>
   );

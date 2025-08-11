@@ -4,8 +4,8 @@ import './globals.css';
 import AppFooter from '@/components/app-footer';
 
 export const metadata: Metadata = {
-  title: 'ViVa move',
-  description: 'Your personal health and activity tracker.',
+  title: 'StepTrack Wellness',
+  description: 'Group wellness and activity tracker.',
 };
 
 export default function RootLayout({

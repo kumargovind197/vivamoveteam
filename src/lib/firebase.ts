@@ -3,23 +3,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
     getAuth, 
     GoogleAuthProvider, 
-    // These are no longer needed for the simplified dev flow
-    // signInWithPopup, 
-    // signOut, 
-    // onAuthStateChanged, 
-    // signInWithEmailAndPassword,
-    // createUserWithEmailAndPassword,
-    // sendPasswordResetEmail
 } from "firebase/auth";
 import type { User } from 'firebase/auth';
 
 const firebaseConfig = {
-  projectId: "viva-move",
-  appId: "1:997059442824:web:d60cc73cfc7a0a54fc873d",
-  storageBucket: "viva-move.firebasestorage.app",
-  apiKey: "AIzaSyCnh0gRKh4eoINH2Aw9B5YeMMqq5wWpEu4",
-  authDomain: "viva-move.firebaseapp.com",
-  messagingSenderId: "997059442824",
+  // Your Firebase config object goes here.
+  // This will be populated automatically when you connect to a Firebase project.
 };
 
 // Initialize Firebase
@@ -29,7 +18,6 @@ const provider = new GoogleAuthProvider();
 
 provider.addScope('https://www.googleapis.com/auth/fitness.activity.read');
 
-// We are simplifying exports for the auth-free dev experience
 export { 
     auth, 
     provider
