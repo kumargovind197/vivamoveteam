@@ -386,7 +386,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                 <Card>
                     <CardHeader>
                         <CardTitle>Clinic & Patient Analysis</CardTitle>
-                        <CardDescription>Select a clinic to view monthly patient activity reports.</CardDescription>
+                        <CardDescription>Select a clinic to view patient activity reports.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="max-w-xs">
@@ -407,31 +407,6 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
 
                         {selectedClinicId && (
                             <div className="space-y-8">
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">Monthly Patient Totals</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        This report shows the total steps and active time for each patient over the last month.
-                                    </p>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Patient Name</TableHead>
-                                                <TableHead>Total Steps</TableHead>
-                                                <TableHead>Total Active Time (mins)</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {analysisData.map(patient => (
-                                                <TableRow key={patient.patientId}>
-                                                    <TableCell>{patient.patientName}</TableCell>
-                                                    <TableCell>{patient.totalSteps.toLocaleString()}</TableCell>
-                                                    <TableCell>{patient.totalMinutes.toLocaleString()}</TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                    {analysisData.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No activity data available for this clinic.</p>}
-                                </div>
                                 <div>
                                     <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
                                         <AlertTriangle className="text-destructive" />
