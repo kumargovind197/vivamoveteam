@@ -253,3 +253,5 @@ export default function MemberDashboard({ isEnrolled, user, fitData, view }: Mem
     </>
   );
 }
+
+    
