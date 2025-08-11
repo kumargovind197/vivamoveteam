@@ -315,8 +315,8 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
 
         allMonths.forEach(month => {
             const monthData = patientDataByMonth.get(month);
-            row.push(monthData ? monthData.totalSteps : 0);
-            row.push(monthData ? monthData.totalMinutes : 0);
+            row.push(monthData ? monthData.totalSteps : 'NA');
+            row.push(monthData ? monthData.totalMinutes : 'NA');
         });
         
         csvRows.push(row.join(','));
@@ -737,5 +737,3 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </>
   );
 }
-
-    
