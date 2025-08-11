@@ -11,7 +11,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { Search, UserPlus, Edit, Trash2, Trophy, History } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
