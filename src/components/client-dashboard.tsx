@@ -241,6 +241,26 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
 
           <TabsContent value="monthly">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                 <Card className="bg-orange-900/40 border-orange-500/30">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Daily Step Average</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{monthlyAverageSteps.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">steps per day</p>
+                    </CardContent>
+                </Card>
+                 <Card className="bg-orange-900/40 border-orange-500/30">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Step Goals Met</CardTitle>
+                        <Trophy className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{daysStepGoalMetMonthly} / {monthlyData.length}</div>
+                        <p className="text-xs text-muted-foreground">days you reached your goal</p>
+                    </CardContent>
+                </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Steps</CardTitle>
@@ -251,27 +271,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                         <p className="text-xs text-muted-foreground">in the last 30 days</p>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Daily Step Average</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{monthlyAverageSteps.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">steps per day</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Step Goals Met</CardTitle>
-                        <Trophy className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{daysStepGoalMetMonthly} / {monthlyData.length}</div>
-                        <p className="text-xs text-muted-foreground">days you reached your goal</p>
-                    </CardContent>
-                </Card>
-                 <Card>
+                 <Card className="bg-green-900/40 border-green-500/30">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Current Step Goal</CardTitle>
                         <Target className="h-4 w-4 text-muted-foreground" />
