@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { UserPlus, UserCircle, Wrench, ShieldQuestion, Hospital, ChevronLeft } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from 'firebase/auth';
 
 const VivaMoveLogo = () => (
@@ -76,27 +75,24 @@ export default function AppHeader({ user, isEnrolled = false, view, patientId, p
                     <Wrench className="h-6 w-6 text-muted-foreground"/>
                 </div>
             )}
-          </div>
-          
-          <div className="absolute left-1/2 -translate-x-1/2">
-             {patientName ? (
-                 <span className="font-headline text-lg font-semibold text-foreground">
+             {patientName && (
+                 <span className="font-headline text-lg font-semibold text-foreground ml-4">
                     Patient: {patientName}
                  </span>
-             ) : (
-                <Link href="/" className="flex items-center gap-2">
-                    <VivaMoveLogo />
-                    <div>
-                        <span className="block text-sm font-semibold text-primary/80">ViVa move</span>
-                        <span className="block text-[0.6rem] leading-tight text-muted-foreground">by Viva health solutions</span>
-                    </div>
-                </Link>
              )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+             <div className="flex items-center gap-2">
+                <VivaMoveLogo />
+                <div>
+                    <span className="block text-sm font-semibold text-primary/80">ViVa move</span>
+                    <span className="block text-[0.6rem] leading-tight text-muted-foreground">by Viva health solutions</span>
+                </div>
+             </div>
+
              {view === 'client' && (
-               <div className="hidden items-center gap-2 md:flex">
+               <div className="flex items-center gap-2">
                  <Button asChild variant="outline">
                     <Link href="/clinic">
                         <Hospital className="mr-2 h-4 w-4" />
@@ -118,14 +114,6 @@ export default function AppHeader({ user, isEnrolled = false, view, patientId, p
                         <span>Client View</span>
                     </Link>
                 </Button>
-            )}
-            {user && (
-                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.photoURL ?? "https://placehold.co/100x100.png"} alt="User avatar" />
-                    <AvatarFallback>
-                      <UserCircle />
-                    </AvatarFallback>
-                  </Avatar>
             )}
           </div>
         </div>
