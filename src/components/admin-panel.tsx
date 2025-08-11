@@ -16,9 +16,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 
 // Mock data for existing clinics
 const existingClinics = [
-    { id: 'clinic-1', name: 'Wellness Clinic', capacity: 200, enrolled: 6, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-    { id: 'clinic-2', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123' },
-    { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123' },
+    { id: 'clinic-1', name: 'Wellness Clinic', capacity: 200, enrolled: 6, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: false },
+    { id: 'clinic-2', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: false, footerAdsEnabled: false },
+    { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: true },
 ];
 
 type Clinic = typeof existingClinics[0];
@@ -30,9 +30,7 @@ type Ad = {
 };
 
 interface AdSettings {
-    showPopupAd: boolean;
     popupAds: Ad[];
-    showFooterAd: boolean;
     footerAds: Ad[];
 }
 
@@ -106,7 +104,9 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
         capacity: newPatientCapacity,
         enrolled: 0,
         logo: newLogoPreview || 'https://placehold.co/128x128.png',
-        password: 'password123'
+        password: 'password123',
+        popupAdsEnabled: false,
+        footerAdsEnabled: false,
     }])
     setNewClinicName('');
     setNewPatientCapacity(100);
@@ -191,14 +191,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const renderAdList = (list: 'popupAds' | 'footerAds', title: string) => (
     <div className="space-y-4 p-4 border rounded-lg">
         <div className="flex items-center justify-between">
-            <div className='space-y-1'>
-                <Label className="text-lg font-medium">{title}</Label>
-                 <Switch 
-                    id={`${list}-switch`}
-                    checked={list === 'popupAds' ? adSettings.showPopupAd : adSettings.showFooterAd}
-                    onCheckedChange={(checked) => setAdSettings(prev => ({ ...prev, [list === 'popupAds' ? 'showPopupAd' : 'showFooterAd']: checked }))}
-                />
-            </div>
+            <Label className="text-lg font-medium">{title}</Label>
             <Button size="sm" onClick={() => openAdDialog(null, list)}>
                 <PlusCircle className="mr-2" /> Add Ad
             </Button>
@@ -357,12 +350,12 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
             <TabsContent value="adverts">
                  <Card>
                     <CardHeader>
-                        <CardTitle>Advertisement Management</CardTitle>
-                        <CardDescription>Control the ads displayed in the client application. Ads are rotated randomly on each page load.</CardDescription>
+                        <CardTitle>Advertisement Content</CardTitle>
+                        <CardDescription>Manage the global ad content. Ad visibility is controlled for each clinic individually in the clinic's edit settings.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-8">
-                        {renderAdList('popupAds', 'Popup Ad Banner')}
-                        {renderAdList('footerAds', 'Footer Ad Banner')}
+                        {renderAdList('popupAds', 'Popup Ad Banner Content')}
+                        {renderAdList('footerAds', 'Footer Ad Banner Content')}
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -375,9 +368,9 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Edit Clinic: {clinicToEdit?.name}</DialogTitle>
-                <DialogDescription>Update the details for this clinic.</DialogDescription>
+                <DialogDescription>Update the details and settings for this clinic.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-6 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="edit-clinic-name">Clinic Name</Label>
                     <Input
@@ -424,6 +417,25 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                             </Button>
                             {editedLogoFile && <p className="text-sm text-muted-foreground">{editedLogoFile.name}</p>}
                         </div>
+                    </div>
+                </div>
+                 <div className="space-y-4 pt-4 border-t">
+                    <Label className="font-semibold">Advertisement Settings</Label>
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                        <Label htmlFor="popup-ads-enabled">Enable Popup Ad</Label>
+                        <Switch 
+                            id="popup-ads-enabled"
+                            checked={clinicToEdit?.popupAdsEnabled}
+                            onCheckedChange={(checked) => setClinicToEdit(prev => prev ? { ...prev, popupAdsEnabled: checked } : null)}
+                        />
+                    </div>
+                     <div className="flex items-center justify-between rounded-lg border p-3">
+                        <Label htmlFor="footer-ads-enabled">Enable Footer Ad</Label>
+                        <Switch 
+                            id="footer-ads-enabled"
+                            checked={clinicToEdit?.footerAdsEnabled}
+                            onCheckedChange={(checked) => setClinicToEdit(prev => prev ? { ...prev, footerAdsEnabled: checked } : null)}
+                        />
                     </div>
                 </div>
             </div>

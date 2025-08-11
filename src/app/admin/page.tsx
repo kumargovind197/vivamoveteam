@@ -38,7 +38,6 @@ export default function AdminPage() {
   // In a real app, this state would be persisted to a database (e.g., Firestore)
   // and likely managed with a global state manager or context.
   const [adSettings, setAdSettings] = useState({
-    showPopupAd: false,
     popupAds: [
       {
         id: 1,
@@ -47,7 +46,6 @@ export default function AdminPage() {
         targetUrl: 'https://example.com/supplements'
       }
     ],
-    showFooterAd: false,
     footerAds: [
         {
         id: 1,
