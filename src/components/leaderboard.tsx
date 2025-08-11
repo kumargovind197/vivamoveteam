@@ -1,29 +1,22 @@
 
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Crown, Footprints, Medal, Trophy, User } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
-import Image from 'next/image';
+import { Crown, Medal, Trophy } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-type Member = {
-    id: string;
-    memberId: string;
-    firstName: string;
-    surname: string;
-    email: string;
-    department: string;
-    monthlySteps: number;
-    quarterlySteps: number;
-    avatarUrl: string;
-};
-
-interface MemberDashboardProps {
-    members: Member[];
-}
+// In a real app, this data would be fetched from your backend.
+// It is updated once every 24 hours.
+const mockMembers = [
+  { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', monthlySteps: 285000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '2', memberId: 'EMP-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', department: 'Engineering', monthlySteps: 310500, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '3', memberId: 'EMP-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', department: 'Engineering', monthlySteps: 155000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '4', memberId: 'EMP-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', department: 'Marketing', monthlySteps: 210000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '5', memberId: 'EMP-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', department: 'Sales', monthlySteps: 180000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '6', memberId: 'EMP-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', department: 'HR', monthlySteps: 250000, avatarUrl: 'https://placehold.co/100x100.png' },
+  { id: '7', memberId: 'EMP-007', firstName: 'Alex', surname: 'Doe', email: 'member@example.com', department: 'Marketing', monthlySteps: 220000, avatarUrl: 'https://placehold.co/100x100.png' },
+];
 
 const getMedalColor = (rank: number) => {
     switch (rank) {
@@ -34,25 +27,21 @@ const getMedalColor = (rank: number) => {
     }
 }
 
-export default function MemberDashboard({ members }: MemberDashboardProps) {
-    const [timeframe, setTimeframe] = useState<'monthly' | 'quarterly'>('monthly');
-
+export default function Leaderboard() {
     const individualLeaderboard = useMemo(() => {
-        const stepKey = timeframe === 'monthly' ? 'monthlySteps' : 'quarterlySteps';
-        return [...members]
-            .sort((a, b) => b[stepKey] - a[stepKey])
+        return [...mockMembers]
+            .sort((a, b) => b.monthlySteps - a.monthlySteps)
             .slice(0, 5);
-    }, [members, timeframe]);
+    }, []);
 
     const departmentLeaderboard = useMemo(() => {
-        const stepKey = timeframe === 'monthly' ? 'monthlySteps' : 'quarterlySteps';
         const departments: Record<string, { totalSteps: number; memberCount: number }> = {};
 
-        members.forEach(member => {
+        mockMembers.forEach(member => {
             if (!departments[member.department]) {
                 departments[member.department] = { totalSteps: 0, memberCount: 0 };
             }
-            departments[member.department].totalSteps += member[stepKey];
+            departments[member.department].totalSteps += member.monthlySteps;
             departments[member.department].memberCount++;
         });
         
@@ -64,24 +53,13 @@ export default function MemberDashboard({ members }: MemberDashboardProps) {
             .sort((a, b) => b.avgSteps - a.avgSteps)
             .slice(0, 5);
 
-    }, [members, timeframe]);
+    }, []);
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <div>
-                    <h1 className="font-headline text-3xl font-bold tracking-tight">Group Leaderboard</h1>
-                    <p className="text-muted-foreground">View top performers and department rankings. Updated every 24 hours.</p>
-                </div>
-                <Select value={timeframe} onValueChange={(value) => setTimeframe(value as 'monthly' | 'quarterly')}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Select timeframe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                    </SelectContent>
-                </Select>
+        <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+                <h2 className="font-headline text-3xl font-bold tracking-tight">This Month's Leaderboard</h2>
+                <p className="text-muted-foreground">Rankings reset on the 1st of each month. Updated daily.</p>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -89,9 +67,9 @@ export default function MemberDashboard({ members }: MemberDashboardProps) {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Trophy className="text-primary" />
-                            Top 5 Individuals ({timeframe === 'monthly' ? 'This Month' : 'This Quarter'})
+                            Top 5 Individuals
                         </CardTitle>
-                         <CardDescription>The top 5 members with the most steps.</CardDescription>
+                         <CardDescription>The top 5 members with the most steps this month.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <ol className="space-y-4">
@@ -110,7 +88,7 @@ export default function MemberDashboard({ members }: MemberDashboardProps) {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-bold text-primary text-lg">
-                                            {timeframe === 'monthly' ? member.monthlySteps.toLocaleString() : member.quarterlySteps.toLocaleString()}
+                                            {member.monthlySteps.toLocaleString()}
                                         </p>
                                         <p className="text-xs text-muted-foreground">steps</p>
                                     </div>
@@ -123,9 +101,9 @@ export default function MemberDashboard({ members }: MemberDashboardProps) {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Crown className="text-primary" />
-                            Top 5 Departments ({timeframe === 'monthly' ? 'This Month' : 'This Quarter'})
+                            Top 5 Departments
                         </CardTitle>
-                        <CardDescription>The top 5 departments with the highest average steps per member.</CardDescription>
+                        <CardDescription>The top 5 departments by average steps per member.</CardDescription>
                     </CardHeader>
                     <CardContent>
                          <ol className="space-y-4">
@@ -141,7 +119,7 @@ export default function MemberDashboard({ members }: MemberDashboardProps) {
                                         <p className="font-bold text-primary text-lg">
                                             {dept.avgSteps.toLocaleString()}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">avg steps / member</p>
+                                        <p className="text-xs text-muted-foreground">avg steps</p>
                                     </div>
                                 </li>
                             ))}
