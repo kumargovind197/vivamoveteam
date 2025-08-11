@@ -7,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Speaker, Edit, Trash2 } from 'lucide-react';
+import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 // Mock data for existing clinics
 const existingClinics = [
@@ -20,6 +21,22 @@ const existingClinics = [
     { id: 'clinic-2', name: 'Heartbeat Health', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: false, footerAdsEnabled: false },
     { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: true },
 ];
+
+const mockPatientActivity = {
+    'clinic-1': [
+        { patientId: '1', patientName: 'John Smith', totalSteps: 150234, totalMinutes: 3450, lastActive: '2024-07-28' },
+        { patientId: '2', patientName: 'Emily Jones', totalSteps: 89345, totalMinutes: 2100, lastActive: '2024-07-26' },
+        { patientId: '3', patientName: 'Michael Johnson', totalSteps: 0, totalMinutes: 0, lastActive: null },
+    ],
+    'clinic-2': [
+        { patientId: '4', patientName: 'Sarah Miller', totalSteps: 210890, totalMinutes: 5200, lastActive: '2024-07-29' },
+    ],
+    'clinic-3': [
+        { patientId: '5', patientName: 'David Wilson', totalSteps: 123456, totalMinutes: 3012, lastActive: '2024-07-29' },
+        { patientId: '6', patientName: 'Jessica Brown', totalSteps: 0, totalMinutes: 0, lastActive: null },
+        { patientId: '7', patientName: 'Robert Davis', totalSteps: 0, totalMinutes: 0, lastActive: null },
+    ]
+};
 
 type Clinic = typeof existingClinics[0];
 type Ad = {
@@ -59,6 +76,8 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const [currentAdList, setCurrentAdList] = useState<'popupAds' | 'footerAds' | null>(null);
   const [adImageFile, setAdImageFile] = useState<File | null>(null);
   const [adImagePreview, setAdImagePreview] = useState<string | null>(null);
+
+  const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
 
   const { toast } = useToast();
 
@@ -223,6 +242,9 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </div>
   )
 
+  const analysisData = selectedClinicId ? mockPatientActivity[selectedClinicId as keyof typeof mockPatientActivity] || [] : [];
+  const inactivePatients = analysisData.filter(p => p.lastActive === null);
+
 
   return (
     <>
@@ -230,13 +252,14 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
        <div className="space-y-1 mb-8">
             <h1 className="font-headline text-2xl font-bold">Developer Admin Panel</h1>
             <p className="text-sm text-muted-foreground">
-                Manage clinic enrollment and application settings.
+                Manage clinic enrollment, application settings, and view analytics.
             </p>
         </div>
       <Tabs defaultValue="clinics" orientation="vertical" className="flex flex-col md:flex-row gap-8">
          <TabsList className="grid md:grid-cols-1 w-full md:w-48 shrink-0">
             <TabsTrigger value="clinics"><Building className="mr-2" />Clinics</TabsTrigger>
             <TabsTrigger value="adverts"><Speaker className="mr-2" />Adverts</TabsTrigger>
+            <TabsTrigger value="analysis"><PieChart className="mr-2" />Analysis</TabsTrigger>
          </TabsList>
         
         <div className="flex-grow">
@@ -356,6 +379,91 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                     <CardContent className="space-y-8">
                         {renderAdList('popupAds', 'Popup Ad Banner Content')}
                         {renderAdList('footerAds', 'Footer Ad Banner Content')}
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="analysis">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Clinic & Patient Analysis</CardTitle>
+                        <CardDescription>Select a clinic to view monthly patient activity reports.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="max-w-xs">
+                            <Label htmlFor="clinic-select">Select a Clinic</Label>
+                            <Select onValueChange={setSelectedClinicId}>
+                                <SelectTrigger id="clinic-select">
+                                    <SelectValue placeholder="Choose a clinic..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {clinics.map(clinic => (
+                                        <SelectItem key={clinic.id} value={clinic.id}>
+                                            {clinic.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {selectedClinicId && (
+                            <div className="space-y-8">
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2">Monthly Patient Totals</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        This report shows the total steps and active time for each patient over the last month.
+                                    </p>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Patient Name</TableHead>
+                                                <TableHead>Total Steps</TableHead>
+                                                <TableHead>Total Active Time (mins)</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {analysisData.map(patient => (
+                                                <TableRow key={patient.patientId}>
+                                                    <TableCell>{patient.patientName}</TableCell>
+                                                    <TableCell>{patient.totalSteps.toLocaleString()}</TableCell>
+                                                    <TableCell>{patient.totalMinutes.toLocaleString()}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {analysisData.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">No activity data available for this clinic.</p>}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                                        <AlertTriangle className="text-destructive" />
+                                        Inactive Patient Report
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        The following patients are enrolled but have not recorded any activity. You may consider removing them to free up patient slots.
+                                    </p>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Patient Name</TableHead>
+                                                <TableHead>Last Active</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {inactivePatients.map(patient => (
+                                                <TableRow key={patient.patientId}>
+                                                    <TableCell>{patient.patientName}</TableCell>
+                                                    <TableCell className="text-muted-foreground">Never</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button variant="destructive" size="sm">Remove Patient</Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                    {inactivePatients.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">All patients have been active recently.</p>}
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </TabsContent>

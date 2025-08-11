@@ -27,12 +27,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from './ui/card'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 const initialPatientsData = [
-  { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
-  { id: '2', uhid: 'UHID-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', weeklySteps: 42, weeklyMinutes: 57, monthlySteps: 55, monthlyMinutes: 65 },
-  { id: '3', uhid: 'UHID-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', weeklySteps: 100, weeklyMinutes: 100, monthlySteps: 90, monthlyMinutes: 93 },
-  { id: '4', uhid: 'UHID-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', weeklySteps: 28, weeklyMinutes: 14, monthlySteps: 40, monthlyMinutes: 30 },
-  { id: '5', uhid: 'UHID-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', weeklySteps: 71, weeklyMinutes: 85, monthlySteps: 65, monthlyMinutes: 70 },
-  { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', weeklySteps: 57, weeklyMinutes: 42, monthlySteps: 70, monthlyMinutes: 60 },
+  { id: '1', uhid: 'UHID-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', age: 45, gender: 'Male', weeklySteps: 85, weeklyMinutes: 100, monthlySteps: 75, monthlyMinutes: 80 },
+  { id: '2', uhid: 'UHID-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', age: 32, gender: 'Female', weeklySteps: 42, weeklyMinutes: 57, monthlySteps: 55, monthlyMinutes: 65 },
+  { id: '3', uhid: 'UHID-003', firstName: 'Michael', surname: 'Johnson', email: 'michael.johnson@example.com', age: 51, gender: 'Male', weeklySteps: 100, weeklyMinutes: 100, monthlySteps: 90, monthlyMinutes: 93 },
+  { id: '4', uhid: 'UHID-004', firstName: 'Sarah', surname: 'Miller', email: 'sarah.miller@example.com', age: 28, gender: 'Female', weeklySteps: 28, weeklyMinutes: 14, monthlySteps: 40, monthlyMinutes: 30 },
+  { id: '5', uhid: 'UHID-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', age: 67, gender: 'Male', weeklySteps: 71, weeklyMinutes: 85, monthlySteps: 65, monthlyMinutes: 70 },
+  { id: '6', uhid: 'UHID-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', age: 39, gender: 'Female', weeklySteps: 57, weeklyMinutes: 42, monthlySteps: 70, monthlyMinutes: 60 },
 ];
 
 type Patient = typeof initialPatientsData[0];
@@ -65,7 +65,7 @@ export default function PatientManagement() {
   const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null);
   const [patientToRemove, setPatientToRemove] = useState<Patient | null>(null);
   const [deleteConfirmationInput, setDeleteConfirmationInput] = useState('');
-  const [newPatient, setNewPatient] = useState({ uhid: '', firstName: '', surname: '', email: '' });
+  const [newPatient, setNewPatient] = useState({ uhid: '', firstName: '', surname: '', email: '', age: '', gender: '' });
   const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
   const [isMessageDialogOpen, setMessageDialogOpen] = useState(false);
   const [bulkMessage, setBulkMessage] = useState('');
@@ -134,11 +134,20 @@ export default function PatientManagement() {
     const { id, value } = e.target;
     setNewPatient(prev => ({ ...prev, [id]: value }));
   }
+
+  const handleSelectChange = (id: string, value: string) => {
+      setNewPatient(prev => ({ ...prev, [id]: value }));
+  }
   
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!patientToEdit) return;
     const { id, value } = e.target;
     setPatientToEdit(prev => prev ? { ...prev, [id]: value } : null);
+  }
+
+  const handleEditSelectChange = (id: 'gender', value: string) => {
+      if (!patientToEdit) return;
+      setPatientToEdit(prev => prev ? { ...prev, [id]: value } : null);
   }
 
   const handleSelectAll = (checked: boolean) => {
@@ -158,9 +167,10 @@ export default function PatientManagement() {
   };
 
   const handleAddPatient = () => {
-    if (newPatient.uhid && newPatient.firstName && newPatient.surname && newPatient.email) {
+    if (newPatient.uhid && newPatient.firstName && newPatient.surname && newPatient.email && newPatient.age && newPatient.gender) {
       const newPatientWithId = { 
           ...newPatient, 
+          age: parseInt(newPatient.age),
           id: (patientsData.length + 1).toString(),
           weeklySteps: Math.floor(Math.random() * 101),
           weeklyMinutes: Math.floor(Math.random() * 101),
@@ -174,7 +184,7 @@ export default function PatientManagement() {
         description: `${newPatient.firstName} ${newPatient.surname} has been enrolled. An invitation email would be sent.`,
       });
 
-      setNewPatient({ uhid: '', firstName: '', surname: '', email: '' });
+      setNewPatient({ uhid: '', firstName: '', surname: '', email: '', age: '', gender: '' });
       setAddPatientDialogOpen(false);
     } else {
       toast({
@@ -187,10 +197,14 @@ export default function PatientManagement() {
 
   const handleEditPatient = () => {
       if (!patientToEdit) return;
-      setPatientsData(prev => prev.map(p => p.id === patientToEdit.id ? patientToEdit : p));
+       const updatedPatient = {
+        ...patientToEdit,
+        age: typeof patientToEdit.age === 'string' ? parseInt(patientToEdit.age) : patientToEdit.age,
+      };
+      setPatientsData(prev => prev.map(p => p.id === patientToEdit.id ? updatedPatient : p));
       toast({
           title: "Patient Details Updated",
-          description: `Details for ${patientToEdit.firstName} ${patientToEdit.surname} have been saved.`,
+          description: `Details for patientToEdit.firstName} ${patientToEdit.surname} have been saved.`,
       });
       setEditPatientDialogOpen(false);
       setPatientToEdit(null);
@@ -379,6 +393,15 @@ export default function PatientManagement() {
                 <TabsTrigger value="maintenance">Clinic List Maintenance</TabsTrigger>
             </TabsList>
             <TabsContent value="all-patients">
+                 <div className="relative w-full max-w-sm mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search by UHID, name, or email..." 
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
                 <div className="rounded-lg border">
                   <Table>
                     <TableHeader>
@@ -425,7 +448,6 @@ export default function PatientManagement() {
                             </div>
                             <div className="flex justify-center">
                                  <Image 
-                                    data-ai-hint="medical logo"
                                     src="https://placehold.co/40x40.png" 
                                     alt="Clinic Logo Placeholder" 
                                     width={40} 
@@ -537,28 +559,38 @@ export default function PatientManagement() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="uhid" className="text-right">
-                UHID
-              </Label>
+              <Label htmlFor="uhid" className="text-right">UHID</Label>
               <Input id="uhid" value={newPatient.uhid} onChange={handleInputChange} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="firstName" className="text-right">
-                First Name
-              </Label>
+              <Label htmlFor="firstName" className="text-right">First Name</Label>
               <Input id="firstName" value={newPatient.firstName} onChange={handleInputChange} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="surname" className="text-right">
-                Surname
-              </Label>
+              <Label htmlFor="surname" className="text-right">Surname</Label>
               <Input id="surname" value={newPatient.surname} onChange={handleInputChange} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
+              <Label htmlFor="email" className="text-right">Email</Label>
               <Input id="email" type="email" value={newPatient.email} onChange={handleInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="age" className="text-right">Age</Label>
+              <Input id="age" type="number" value={newPatient.age} onChange={handleInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="gender" className="text-right">Gender</Label>
+                <Select onValueChange={(value) => handleSelectChange('gender', value)} value={newPatient.gender}>
+                    <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
           </div>
           <DialogFooter>
@@ -579,28 +611,38 @@ export default function PatientManagement() {
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="uhid-edit" className="text-right">
-                    UHID
-                  </Label>
+                  <Label htmlFor="uhid-edit" className="text-right">UHID</Label>
                   <Input id="uhid-edit" value={patientToEdit.uhid} className="col-span-3" disabled />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="firstName" className="text-right">
-                    First Name
-                  </Label>
+                  <Label htmlFor="firstName" className="text-right">First Name</Label>
                   <Input id="firstName" value={patientToEdit.firstName} onChange={handleEditInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="surname" className="text-right">
-                    Surname
-                  </Label>
+                  <Label htmlFor="surname" className="text-right">Surname</Label>
                   <Input id="surname" value={patientToEdit.surname} onChange={handleEditInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
+                  <Label htmlFor="email" className="text-right">Email</Label>
                   <Input id="email" type="email" value={patientToEdit.email} onChange={handleEditInputChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="age" className="text-right">Age</Label>
+                  <Input id="age" type="number" value={patientToEdit.age} onChange={handleEditInputChange} className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="gender" className="text-right">Gender</Label>
+                    <Select onValueChange={(value) => handleEditSelectChange('gender', value)} value={patientToEdit.gender}>
+                        <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Male">Male</SelectItem>
+                            <SelectItem value="Female">Female</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                            <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
               </div>
               <DialogFooter>
@@ -636,5 +678,3 @@ export default function PatientManagement() {
     </TooltipProvider>
   )
 }
-
-    
