@@ -288,7 +288,6 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
         };
     }, []);
 
-    const currentIcon = useMemo(() => icons[iconIndex], [iconIndex]);
     const currentMessage = useMemo(() => {
          if (steps === null) return "Let's get moving!";
          if (steps === 0) return "Every step counts, let's start!";
@@ -328,9 +327,9 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
                     {icons.map((item, index) => (
                         <div
                             key={index}
-                            className="absolute transition-all duration-1000 ease-in-out flex flex-col items-center gap-2"
+                            className="absolute transition-all duration-1000 ease-in-out"
                             style={{
-                                transform: `rotate(${(index - iconIndex) * 20}deg) translate(0px) rotate(-${(index - iconIndex) * 20}deg)`,
+                                transform: `rotate(${(index - iconIndex) * 18}deg) translateX(70px) rotate(-${(index - iconIndex) * 18}deg)`,
                                 opacity: index === iconIndex ? 1 : 0,
                             }}
                         >
