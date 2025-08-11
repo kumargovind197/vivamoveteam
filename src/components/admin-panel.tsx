@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, AlertTriangle } from 'lucide-react';
+import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
@@ -22,21 +22,35 @@ const existingClinics = [
     { id: 'clinic-3', name: 'StepForward Physical Therapy', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', password: 'password123', popupAdsEnabled: true, footerAdsEnabled: true },
 ];
 
-const mockPatientActivity = {
+// This now includes historical data for the CSV export feature
+const mockPatientHistoricalData = {
     'clinic-1': [
-        { patientId: '1', patientName: 'John Smith', totalSteps: 150234, totalMinutes: 3450, lastActive: '2024-07-28' },
-        { patientId: '2', patientName: 'Emily Jones', totalSteps: 89345, totalMinutes: 2100, lastActive: '2024-07-26' },
-        { patientId: '3', patientName: 'Michael Johnson', totalSteps: 0, totalMinutes: 0, lastActive: null },
+        { patientId: '1', patientName: 'John Smith', status: 'active', data: [
+            { month: '2024-05', totalSteps: 150234, totalMinutes: 3450, dailyAvgSteps: 4846, dailyAvgMinutes: 111 },
+            { month: '2024-06', totalSteps: 180456, totalMinutes: 4100, dailyAvgSteps: 6015, dailyAvgMinutes: 137 },
+            { month: '2024-07', totalSteps: 210890, totalMinutes: 5200, dailyAvgSteps: 6803, dailyAvgMinutes: 168 },
+        ]},
+        { patientId: '2', patientName: 'Emily Jones', status: 'active', data: [
+            { month: '2024-06', totalSteps: 89345, totalMinutes: 2100, dailyAvgSteps: 2978, dailyAvgMinutes: 70 },
+            { month: '2024-07', totalSteps: 110234, totalMinutes: 2800, dailyAvgSteps: 3556, dailyAvgMinutes: 90 },
+        ]},
+        { patientId: '8', patientName: 'Old Patient', status: 'unenrolled', data: [
+             { month: '2024-01', totalSteps: 50000, totalMinutes: 1000, dailyAvgSteps: 1613, dailyAvgMinutes: 32 },
+        ]}
     ],
     'clinic-2': [
-        { patientId: '4', patientName: 'Sarah Miller', totalSteps: 210890, totalMinutes: 5200, lastActive: '2024-07-29' },
+        { patientId: '4', patientName: 'Sarah Miller', status: 'active', data: [
+            { month: '2024-07', totalSteps: 210890, totalMinutes: 5200, dailyAvgSteps: 6803, dailyAvgMinutes: 168 },
+        ]},
     ],
     'clinic-3': [
-        { patientId: '5', patientName: 'David Wilson', totalSteps: 123456, totalMinutes: 3012, lastActive: '2024-07-29' },
-        { patientId: '6', patientName: 'Jessica Brown', totalSteps: 0, totalMinutes: 0, lastActive: null },
-        { patientId: '7', patientName: 'Robert Davis', totalSteps: 0, totalMinutes: 0, lastActive: null },
+        { patientId: '5', patientName: 'David Wilson', status: 'active', data: [
+            { month: '2024-06', totalSteps: 123456, totalMinutes: 3012, dailyAvgSteps: 4115, dailyAvgMinutes: 100 },
+            { month: '2024-07', totalSteps: 140000, totalMinutes: 3500, dailyAvgSteps: 4516, dailyAvgMinutes: 113 },
+        ]},
     ]
 };
+
 
 type Clinic = typeof existingClinics[0];
 type Ad = {
@@ -242,9 +256,59 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </div>
   )
 
-  const analysisData = selectedClinicId ? mockPatientActivity[selectedClinicId as keyof typeof mockPatientActivity] || [] : [];
-  const inactivePatients = analysisData.filter(p => p.lastActive === null);
+  const handleDownloadCsv = () => {
+    if (!selectedClinicId) return;
 
+    const clinicData = mockPatientHistoricalData[selectedClinicId as keyof typeof mockPatientHistoricalData] || [];
+    const clinicName = clinics.find(c => c.id === selectedClinicId)?.name || 'clinic';
+
+    if (clinicData.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: "No Data",
+            description: "There is no historical data available for the selected clinic.",
+        });
+        return;
+    }
+
+    const csvRows = [];
+    // Headers
+    const headers = ['PatientID', 'PatientName', 'Status', 'Month', 'TotalSteps', 'TotalActiveMinutes', 'DailyAverageSteps', 'DailyAverageMinutes'];
+    csvRows.push(headers.join(','));
+
+    // Data rows
+    for (const patient of clinicData) {
+        for (const monthlyRecord of patient.data) {
+            const row = [
+                patient.patientId,
+                `"${patient.patientName}"`,
+                patient.status,
+                monthlyRecord.month,
+                monthlyRecord.totalSteps,
+                monthlyRecord.totalMinutes,
+                monthlyRecord.dailyAvgSteps,
+                monthlyRecord.dailyAvgMinutes,
+            ];
+            csvRows.push(row.join(','));
+        }
+    }
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${clinicName.replace(/\s+/g, '_')}_monthly_report.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+     toast({
+        title: "Report Generated",
+        description: "Your CSV report download has started.",
+    });
+  };
 
   return (
     <>
@@ -385,11 +449,11 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
             <TabsContent value="analysis">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Clinic & Patient Analysis</CardTitle>
-                        <CardDescription>Select a clinic to view patient activity reports.</CardDescription>
+                        <CardTitle>Data Export for Research</CardTitle>
+                        <CardDescription>Select a clinic to download a CSV file of its patients' monthly historical data. This includes both active and unenrolled patients.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="max-w-xs">
+                        <div className="max-w-xs space-y-2">
                             <Label htmlFor="clinic-select">Select a Clinic</Label>
                             <Select onValueChange={setSelectedClinicId}>
                                 <SelectTrigger id="clinic-select">
@@ -404,40 +468,14 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                                 </SelectContent>
                             </Select>
                         </div>
-
+                        
                         {selectedClinicId && (
-                            <div className="space-y-8">
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
-                                        <AlertTriangle className="text-destructive" />
-                                        Inactive Patient Report
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        The following patients are enrolled but have not recorded any activity. You may consider removing them to free up patient slots.
-                                    </p>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Patient Name</TableHead>
-                                                <TableHead>Last Active</TableHead>
-                                                <TableHead className="text-right">Action</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {inactivePatients.map(patient => (
-                                                <TableRow key={patient.patientId}>
-                                                    <TableCell>{patient.patientName}</TableCell>
-                                                    <TableCell className="text-muted-foreground">Never</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button variant="destructive" size="sm">Remove Patient</Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                    {inactivePatients.length === 0 && <p className="text-sm text-center text-muted-foreground py-4">All patients have been active recently.</p>}
-                                </div>
-                            </div>
+                           <div className="pt-4 border-t">
+                                <Button onClick={handleDownloadCsv}>
+                                    <Download className="mr-2" />
+                                    Generate & Download CSV Report
+                                </Button>
+                           </div>
                         )}
                     </CardContent>
                 </Card>
@@ -579,3 +617,6 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </>
   );
 }
+
+
+    
