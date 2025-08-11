@@ -8,6 +8,7 @@ import ActivityChart from '@/components/activity-chart';
 import { User } from 'firebase/auth';
 import { Footprints, Trophy, CalendarDays,TrendingUp, BarChart3, Users } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from './ui/table';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 // --- MOCK LOCAL DEVICE STORAGE ---
 const generateInitialLocalData = () => {
