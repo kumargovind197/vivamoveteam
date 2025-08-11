@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, Download } from 'lucide-react';
+import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, Download, AlertTriangle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
@@ -33,6 +33,11 @@ const mockPatientHistoricalData = {
         { patientId: '2', patientName: 'Emily Jones', status: 'active', data: [
             { month: '2024-06', totalSteps: 89345, totalMinutes: 2100, dailyAvgSteps: 2978, dailyAvgMinutes: 70 },
             { month: '2024-07', totalSteps: 110234, totalMinutes: 2800, dailyAvgSteps: 3556, dailyAvgMinutes: 90 },
+        ]},
+        { patientId: '3', patientName: 'Inactive Patient', status: 'active', data: [
+            { month: '2024-05', totalSteps: 0, totalMinutes: 0, dailyAvgSteps: 0, dailyAvgMinutes: 0 },
+            { month: '2024-06', totalSteps: 0, totalMinutes: 0, dailyAvgSteps: 0, dailyAvgMinutes: 0 },
+            { month: '2024-07', totalSteps: 0, totalMinutes: 0, dailyAvgSteps: 0, dailyAvgMinutes: 0 },
         ]},
         { patientId: '8', patientName: 'Old Patient', status: 'unenrolled', data: [
              { month: '2024-01', totalSteps: 50000, totalMinutes: 1000, dailyAvgSteps: 1613, dailyAvgMinutes: 32 },
@@ -334,6 +339,79 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     });
   };
 
+  const handleDownloadInactiveCsv = () => {
+    if (!selectedClinicId) return;
+
+    const clinicData = mockPatientHistoricalData[selectedClinicId as keyof typeof mockPatientHistoricalData] || [];
+    const clinicName = clinics.find(c => c.id === selectedClinicId)?.name || 'clinic';
+
+    if (clinicData.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: "No Data",
+            description: "There is no patient data available for the selected clinic.",
+        });
+        return;
+    }
+
+    // Get the last 3 months as strings (e.g., '2024-07', '2024-06', '2024-05')
+    const lastThreeMonths: string[] = [];
+    const today = new Date();
+    for (let i = 0; i < 3; i++) {
+        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const year = d.getFullYear();
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        lastThreeMonths.push(`${year}-${month}`);
+    }
+
+    const inactivePatients = clinicData.filter(patient => {
+        if (patient.status !== 'active') {
+            return false; // Only check active patients
+        }
+        // Check if patient has data for the last 3 months and if it's all zero
+        const recentData = patient.data.filter(d => lastThreeMonths.includes(d.month));
+        if (recentData.length < 3) {
+            // Not enough data to determine inactivity over the full period
+            // Could be a new patient. We'll consider them active for now.
+            return false;
+        }
+        const isInactive = recentData.every(d => d.totalSteps === 0);
+        return isInactive;
+    });
+
+     if (inactivePatients.length === 0) {
+        toast({
+            title: "No Inactive Patients",
+            description: "All enrolled patients have been active in the last 3 months.",
+        });
+        return;
+    }
+    
+    const headers = ['PatientID', 'PatientName'];
+    const csvRows = [headers.join(',')];
+
+    for (const patient of inactivePatients) {
+        const row = [patient.patientId, `"${patient.patientName}"`];
+        csvRows.push(row.join(','));
+    }
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${clinicName.replace(/\s+/g, '_')}_inactive_patients.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+     toast({
+        title: "Inactive Report Generated",
+        description: `Found ${inactivePatients.length} inactive patient(s). Your download has started.`,
+    });
+  }
+
   return (
     <>
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -471,38 +549,56 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                 </Card>
             </TabsContent>
             <TabsContent value="analysis">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Data Export for Research</CardTitle>
-                        <CardDescription>Select a clinic to download a CSV file of its patients' monthly historical data. This includes both active and unenrolled patients.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="max-w-xs space-y-2">
-                            <Label htmlFor="clinic-select">Select a Clinic</Label>
-                            <Select onValueChange={setSelectedClinicId}>
-                                <SelectTrigger id="clinic-select">
-                                    <SelectValue placeholder="Choose a clinic..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {clinics.map(clinic => (
-                                        <SelectItem key={clinic.id} value={clinic.id}>
-                                            {clinic.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        
-                        {selectedClinicId && (
-                           <div className="pt-4 border-t">
-                                <Button onClick={handleDownloadCsv}>
-                                    <Download className="mr-2" />
-                                    Generate & Download CSV Report
-                                </Button>
-                           </div>
-                        )}
-                    </CardContent>
-                </Card>
+                 <div className="space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Data Export for Research</CardTitle>
+                            <CardDescription>Select a clinic to download a CSV file of its patients' monthly historical data. This includes both active and unenrolled patients.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="max-w-xs space-y-2">
+                                <Label htmlFor="clinic-select">Select a Clinic</Label>
+                                <Select onValueChange={setSelectedClinicId} value={selectedClinicId || ''}>
+                                    <SelectTrigger id="clinic-select">
+                                        <SelectValue placeholder="Choose a clinic..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {clinics.map(clinic => (
+                                            <SelectItem key={clinic.id} value={clinic.id}>
+                                                {clinic.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            
+                            {selectedClinicId && (
+                               <div className="pt-4 border-t">
+                                    <Button onClick={handleDownloadCsv}>
+                                        <Download className="mr-2" />
+                                        Generate & Download Historical Report
+                                    </Button>
+                               </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <AlertTriangle className="text-destructive"/>
+                                <span>Inactive Patient Report</span>
+                            </CardTitle>
+                            <CardDescription>Generate a CSV of currently enrolled patients who have recorded zero steps for the last three months. This report requires a clinic to be selected above.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <Button onClick={handleDownloadInactiveCsv} disabled={!selectedClinicId}>
+                                <Download className="mr-2" />
+                                Generate & Download Inactive Patient CSV
+                            </Button>
+                            {!selectedClinicId && <p className="text-xs text-muted-foreground mt-2">Please select a clinic above to enable this report.</p>}
+                        </CardContent>
+                    </Card>
+                </div>
             </TabsContent>
         </div>
       </Tabs>
@@ -641,6 +737,5 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </>
   );
 }
-
 
     
