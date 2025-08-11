@@ -276,11 +276,11 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
     useEffect(() => {
         const iconInterval = setInterval(() => {
             setIconIndex(Math.floor(Math.random() * icons.length));
-        }, 3000); 
+        }, 4000); 
 
         const messageInterval = setInterval(() => {
             setMessageIndex(Math.floor(Math.random() * motivationalMessages.length));
-        }, 5000); // Change message every 5 seconds
+        }, 15000); 
 
         return () => {
             clearInterval(iconInterval);
