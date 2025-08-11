@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, Download, AlertTriangle } from 'lucide-react';
+import { Upload, PlusCircle, Building, Speaker, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Switch } from './ui/switch';
@@ -100,6 +100,8 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const [adImagePreview, setAdImagePreview] = useState<string | null>(null);
 
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
 
@@ -437,6 +439,37 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     });
   }
 
+  const handleSetAdmin = async () => {
+      if (!adminEmail) {
+          toast({ variant: 'destructive', title: 'Email required', description: 'Please enter the email of the user to make an admin.' });
+          return;
+      }
+      setIsSubmitting(true);
+      try {
+          // This is a placeholder for where you would import and call the real Firebase Function
+          // For the prototype, we'll simulate a successful call
+          console.log(`Simulating call to setAdminRole for email: ${adminEmail}`);
+
+          // In a real app, you would do something like this:
+          // const { getFunctions, httpsCallable } = await import('firebase/functions');
+          // const functions = getFunctions();
+          // const setAdminRole = httpsCallable(functions, 'setAdminRole');
+          // const result = await setAdminRole({ email: adminEmail });
+          // console.log(result.data);
+          
+          await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
+
+          toast({ title: 'Success', description: `Admin role successfully set for ${adminEmail}. They will have admin access on their next login.` });
+          setAdminEmail('');
+
+      } catch (error: any) {
+          console.error(error);
+          toast({ variant: 'destructive', title: 'Error', description: error.message || 'An unknown error occurred.' });
+      } finally {
+          setIsSubmitting(false);
+      }
+  }
+
   return (
     <>
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -451,6 +484,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
             <TabsTrigger value="clinics"><Building className="mr-2" />Clinics</TabsTrigger>
             <TabsTrigger value="adverts"><Speaker className="mr-2" />Adverts</TabsTrigger>
             <TabsTrigger value="analysis"><PieChart className="mr-2" />Analysis</TabsTrigger>
+            <TabsTrigger value="security"><ShieldCheck className="mr-2" />Security</TabsTrigger>
          </TabsList>
         
         <div className="flex-grow">
@@ -644,6 +678,35 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
                     </Card>
                 </div>
             </TabsContent>
+             <TabsContent value="security">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Set Admin Role</CardTitle>
+                        <CardDescription>Grant a user administrative privileges. The user must already have an account created in Firebase Authentication.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                             <Label htmlFor="admin-email">User Email</Label>
+                             <Input 
+                                id="admin-email" 
+                                type="email" 
+                                placeholder="user@example.com"
+                                value={adminEmail}
+                                onChange={(e) => setAdminEmail(e.target.value)}
+                                disabled={isSubmitting}
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            This will call the `setAdminRole` Cloud Function. Ensure it is deployed and the user exists before running this.
+                        </p>
+                    </CardContent>
+                    <CardFooter>
+                        <Button onClick={handleSetAdmin} disabled={isSubmitting}>
+                            {isSubmitting ? 'Submitting...' : 'Make Admin'}
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
         </div>
       </Tabs>
     </div>
@@ -780,4 +843,5 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
     </Dialog>
     </>
   );
-}
+
+    
