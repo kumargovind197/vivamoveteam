@@ -41,6 +41,8 @@ interface AdminPanelProps {
     setAdSettings: React.Dispatch<React.SetStateAction<AdSettings>>;
 }
 
+type AdToEdit = (Omit<Ad, 'id'> & { id: number | null }) | null;
+
 
 export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProps) {
   const [clinics, setClinics] = useState(existingClinics);
@@ -55,7 +57,7 @@ export default function AdminPanel({ adSettings, setAdSettings }: AdminPanelProp
   const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
   
   const [isAdDialogOpen, setAdDialogOpen] = useState(false);
-  const [adToEdit, setAdToEdit] = useState<Omit<Ad, 'id'> & { id: number | null }> | null>(null);
+  const [adToEdit, setAdToEdit] = useState<AdToEdit>(null);
   const [currentAdList, setCurrentAdList] = useState<'popupAds' | 'footerAds' | null>(null);
   const [adImageFile, setAdImageFile] = useState<File | null>(null);
   const [adImagePreview, setAdImagePreview] = useState<string | null>(null);
