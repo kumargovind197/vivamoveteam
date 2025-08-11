@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from './ui/label';
-import { Separator } from './ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { User } from 'firebase/auth';
 
@@ -39,6 +38,7 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           {patientId ? (
+            // View when looking at a specific patient from the clinic dashboard
             <div className='flex items-center gap-4'>
                 <Button asChild variant="outline" size="icon">
                     <Link href="/clinic">
@@ -51,23 +51,24 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
                 </div>
             </div>
           ) : (
-             <Link href="/" className="flex items-center gap-3">
-              {isEnrolled && view === 'client' && (
-                <>
-                  <Image 
-                    data-ai-hint="medical logo"
-                    src="https://placehold.co/40x40.png" 
-                    alt="Clinic Logo" 
-                    width={40} 
-                    height={40} 
-                    className="rounded-md"
-                  />
-                  <Separator orientation="vertical" className="h-8" />
-                </>
-              )}
-              <HeartPulse className="h-6 w-6 text-primary" />
-              <span className="font-headline text-xl font-bold text-primary">ViVa move</span>
-            </Link>
+             // Default view for client and clinic main pages
+             <div className="flex items-center gap-3">
+                 {isEnrolled && view === 'client' ? (
+                     <Image 
+                        data-ai-hint="medical logo"
+                        src="https://placehold.co/40x40.png" 
+                        alt="Clinic Logo" 
+                        width={40} 
+                        height={40} 
+                        className="rounded-md"
+                     />
+                 ) : (
+                    // Placeholder for non-enrolled or clinic view
+                    <div className="h-10 w-10 flex items-center justify-center rounded-md bg-muted">
+                        <Building className="h-6 w-6 text-muted-foreground"/>
+                    </div>
+                 )}
+            </div>
           )}
 
 
@@ -100,6 +101,12 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
                     </Link>
                 </Button>
             )}
+
+            <Link href="/" className="hidden items-center gap-2 sm:flex">
+              <HeartPulse className="h-5 w-5 text-primary/80" />
+              <span className="font-headline text-base font-semibold text-primary/80">ViVa move</span>
+            </Link>
+
             {user && (
                  <Avatar className="h-10 w-10">
                     <AvatarImage src={user.photoURL ?? "https://placehold.co/100x100"} alt="User avatar" />
