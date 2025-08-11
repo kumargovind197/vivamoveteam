@@ -37,6 +37,8 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          
+          {/* Left-aligned elements */}
           {patientId ? (
             // View when looking at a specific patient from the clinic dashboard
             <div className='flex items-center gap-4'>
@@ -71,7 +73,7 @@ export default function AppHeader({ user, view, isEnrolled = false, onEnroll, pa
             </div>
           )}
 
-
+          {/* Right-aligned elements */}
           <div className="flex items-center gap-4">
              {view === 'client' && (
                <div className="hidden items-center gap-2 md:flex">
