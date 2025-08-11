@@ -31,7 +31,7 @@ export default function AppInfoDialog() {
              <VivaLogo />
              <div>
                 <DialogTitle className="text-xl">ViVa Health Solutions</DialogTitle>
-                <DialogDescription>Your partner in digital wellness.</DialogDescription>
+                <DialogDescription>Your partner in health and wellness.</DialogDescription>
              </div>
           </div>
         </DialogHeader>
@@ -42,20 +42,20 @@ export default function AppInfoDialog() {
             </div>
             <div className="flex justify-between">
                 <span className="text-muted-foreground">App Version:</span>
-                <span className="font-medium">1.0.0 (Alpha)</span>
+                <span className="font-medium">2.025.1</span>
             </div>
              <div className="flex justify-between">
                 <span className="text-muted-foreground">Company:</span>
-                <span className="font-medium">ViVa Health Solutions Inc.</span>
+                <span className="font-medium">ViVa Health Solutions</span>
             </div>
              <div className="flex justify-between">
                 <span className="text-muted-foreground">Contact:</span>
-                <span className="font-medium">support@viva-health.example.com</span>
+                <span className="font-medium">Your admin for support</span>
             </div>
         </div>
         <DialogFooter>
           <p className="text-xs text-muted-foreground w-full text-center">
-            &copy; {currentYear} ViVa Health Solutions Inc. All rights reserved.
+            &copy; {currentYear} ViVa Health Solutions. All rights reserved.
           </p>
         </DialogFooter>
       </DialogContent>
