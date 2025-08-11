@@ -82,14 +82,6 @@ export default function Home() {
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader user={currentUser} isEnrolled={isEnrolled} view="member"/>
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-4 text-center">
-            <Button asChild>
-                <Link href="/login">
-                    <LogIn className="mr-2" />
-                    Go to Login Page (Prototype)
-                </Link>
-            </Button>
-        </div>
         <DataCards user={currentUser} onDataFetched={setFitData} />
         <MemberDashboard view="member" isEnrolled={isEnrolled} user={currentUser} fitData={fitData} />
       </main>

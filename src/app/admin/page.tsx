@@ -37,7 +37,7 @@ const mockUser: User = {
 export default function AdminPage() {
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader user={mockUser} view="member" />
+      <AppHeader user={mockUser} view="admin" />
       <main className="flex-1">
         <AdminPanel />
       </main>

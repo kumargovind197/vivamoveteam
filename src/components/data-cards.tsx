@@ -106,7 +106,6 @@ export default function DataCards({ user, onDataFetched }: DataCardsProps) {
   }
   
   // This component now only fetches data and shows errors, display is handled elsewhere.
-  // We can show a loading skeleton if we want, but for now, null is fine.
   if (loading) {
        return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
