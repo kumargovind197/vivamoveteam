@@ -183,8 +183,9 @@ export default function PatientManagement() {
       setPatientsData(prev => [...prev, newPatientWithId]);
       
       toast({
-        title: "Patient Added Successfully",
-        description: `${newPatient.firstName} ${newPatient.surname} has been enrolled. An invitation email would be sent.`,
+        title: "Patient Registered & Invite Sent",
+        description: `An email invite for ${newPatient.firstName} ${newPatient.surname} has been sent to ${newPatient.email} with instructions to set their password and install the app.`,
+        duration: 8000,
       });
 
       setNewPatient({ uhid: '', firstName: '', surname: '', email: '', age: '', gender: '' });

@@ -90,8 +90,9 @@ export default function Home() {
   }, [adSettings]);
 
 
-  const handleEnrollment = (code: string) => {
-    if (code) {
+  const handleEnrollment = () => {
+    // This function is now just a placeholder for a successful enrollment via email link.
+    // In a real app, this might be triggered after a user clicks a magic link and sets their password.
       setIsEnrolled(true);
       toast({
         title: "Successfully Enrolled!",
@@ -100,17 +101,10 @@ export default function Home() {
         action: (
           <Button>
               <Download className="mr-2"/>
-              Install App
+              Add to Home Screen
           </Button>
         ),
       });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Enrollment Failed",
-        description: "Please enter a valid invitation code.",
-      });
-    }
   };
 
   // Render a "logged out" or "access revoked" state if the user has been deleted.
@@ -141,7 +135,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader onEnroll={handleEnrollment} user={currentUser} isEnrolled={isEnrolled} view="client"/>
+      <AppHeader user={currentUser} isEnrolled={isEnrolled} view="client"/>
       <main className="flex-1">
         {/* In a real app, a user would be redirected to /login if not authenticated */}
         <div className="container mx-auto px-4 py-4 text-center">
