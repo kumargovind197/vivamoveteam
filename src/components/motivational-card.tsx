@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -39,199 +38,7 @@ interface MotivationalCardProps {
 }
 
 const icons = [
-    { icon: <PersonStanding className="h-10 w-10" /> },
-    { icon: <Bike className="h-10 w-10" /> },
-    { icon: <Waves className="h-10 w-10" /> },
-    { icon: <Dumbbell className="h-10 w-10" /> },
-    { icon: <HeartPulse className="h-10 w-10" /> },
-    { icon: <Fish className="h-10 w-10" /> },
-    { icon: <Apple className="h-10 w-10" /> },
-    { icon: <Carrot className="h-10 w-10" /> },
-    { icon: <BrainCircuit className="h-10 w-10" /> },
-    { icon: <Leaf className="h-10 w-10" /> },
-    { icon: <Sprout className="h-10 w-10" /> },
-    { icon: <Award className="h-10 w-10" /> },
-    { icon: <Calendar className="h-10 w-10" /> },
-    { icon: <Check className="h-10 w-10" /> },
-    { icon: <ClipboardCheck className="h-10 w-10" /> },
-    { icon: <Clock className="h-10 w-10" /> },
-    { icon: <Flame className="h-10 w-10" /> },
-    { icon: <Footprints className="h-10 w-10" /> },
-    { icon: <Grape className="h-10 w-10" /> },
-    { icon: <Heart className="h-10 w-10" /> },
-    { icon: <LifeBuoy className="h-10 w-10" /> },
-    { icon: <Map className="h-10 w-10" /> },
-    { icon: <Mountain className="h-10 w-10" /> },
-    { icon: <Navigation className="h-10 w-10" /> },
-    { icon: <Rainbow className="h-10 w-10" /> },
-    { icon: <Rocket className="h-10 w-10" /> },
-    { icon: <Star className="h-10 w-10" /> },
-    { icon: <Sunrise className="h-10 w-10" /> },
-    { icon: <Sunset className="h-10 w-10" /> },
-    { icon: <Trophy className="h-10 w-10" /> },
-    { icon: <Users className="h-10 w-10" /> },
-    { icon: <Wind className="h-10 w-10" /> },
-    { icon: <Zap className="h-10 w-10" /> },
-    { icon: <Scale className="h-10 w-10" /> },
-    { icon: <Stethoscope className="h-10 w-10" /> },
-    { icon: <Soup className="h-10 w-10" /> },
-    { icon: <Salad className="h-10 w-10" /> },
-    { icon: <GlassWater className="h-10 w-10" /> },
-    { icon: <Activity className="h-10 w-10" /> },
-    { icon: <Anchor className="h-10 w-10" /> },
-    { icon: <Aperture className="h-10 w-10" /> },
-    { icon: <Axe className="h-10 w-10" /> },
-    { icon: <Baby className="h-10 w-10" /> },
-    { icon: <BadgeCheck className="h-10 w-10" /> },
-    { icon: <Banana className="h-10 w-10" /> },
-    { icon: <BarChart className="h-10 w-10" /> },
-    { icon: <Bath className="h-10 w-10" /> },
-    { icon: <BatteryFull className="h-10 w-10" /> },
-    { icon: <BedDouble className="h-10 w-10" /> },
-    { icon: <Bell className="h-10 w-10" /> },
-    { icon: <Blend className="h-10 w-10" /> },
-    { icon: <Bone className="h-10 w-10" /> },
-    { icon: <Book className="h-10 w-10" /> },
-    { icon: <Box className="h-10 w-10" /> },
-    { icon: <Brush className="h-10 w-10" /> },
-    { icon: <Building className="h-10 w-10" /> },
-    { icon: <Bus className="h-10 w-10" /> },
-    { icon: <Camera className="h-10 w-10" /> },
-    { icon: <CandlestickChart className="h-10 w-10" /> },
-    { icon: <Castle className="h-10 w-10" /> },
-    { icon: <Cat className="h-10 w-10" /> },
-    { icon: <CheckCircle className="h-10 w-10" /> },
-    { icon: <Cherry className="h-10 w-10" /> },
-    { icon: <Church className="h-10 w-10" /> },
-    { icon: <Citrus className="h-10 w-10" /> },
-    { icon: <Cloud className="h-10 w-10" /> },
-    { icon: <Clover className="h-10 w-10" /> },
-    { icon: <Cog className="h-10 w-10" /> },
-    { icon: <Compass className="h-10 w-10" /> },
-    { icon: <Computer className="h-10 w-10" /> },
-    { icon: <Cookie className="h-10 w-10" /> },
-    { icon: <Crown className="h-10 w-10" /> },
-    { icon: <CupSoda className="h-10 w-10" /> },
-    { icon: <Diamond className="h-10 w-10" /> },
-    { icon: <Dog className="h-10 w-10" /> },
-    { icon: <DoorOpen className="h-10 w-10" /> },
-    { icon: <Dribbble className="h-10 w-10" /> },
-    { icon: <Droplet className="h-10 w-10" /> },
-    { icon: <Drum className="h-10 w-10" /> },
-    { icon: <Egg className="h-10 w-10" /> },
-    { icon: <Eye className="h-10 w-10" /> },
-    { icon: <Fan className="h-10 w-10" /> },
-    { icon: <Feather className="h-10 w-10" /> },
-    { icon: <FerrisWheel className="h-10 w-10" /> },
-    { icon: <File className="h-10 w-10" /> },
-    { icon: <Film className="h-10 w-10" /> },
-    { icon: <Flag className="h-10 w-10" /> },
-    { icon: <Flower className="h-10 w-10" /> },
-    { icon: <Folder className="h-10 w-10" /> },
-    { icon: <Gamepad2 className="h-10 w-10" /> },
-    { icon: <Gauge className="h-10 w-10" /> },
-    { icon: <Gift className="h-10 w-10" /> },
-    { icon: <Globe className="h-10 w-10" /> },
-    { icon: <GraduationCap className="h-10 w-10" /> },
-    { icon: <Grid className="h-10 w-10" /> },
-    { icon: <Hand className="h-10 w-10" /> },
-    { icon: <Headphones className="h-10 w-10" /> },
-    { icon: <History className="h-10 w-10" /> },
-    { icon: <Home className="h-10 w-10" /> },
-    { icon: <Hourglass className="h-10 w-10" /> },
-    { icon: <IceCream className="h-10 w-10" /> },
-    { icon: <Image className="h-10 w-10" /> },
-    { icon: <Inbox className="h-10 w-10" /> },
-    { icon: <Infinity className="h-10 w-10" /> },
-    { icon: <Key className="h-10 w-10" /> },
-    { icon: <Landmark className="h-10 w-10" /> },
-    { icon: <Languages className="h-10 w-10" /> },
-    { icon: <Laptop className="h-10 w-10" /> },
-    { icon: <Laugh className="h-10 w-10" /> },
-    { icon: <Library className="h-10 w-10" /> },
-    { icon: <Lightbulb className="h-10 w-10" /> },
-    { icon: <Link className="h-10 w-10" /> },
-    { icon: <List className="h-10 w-10" /> },
-    { icon: <Lock className="h-10 w-10" /> },
-    { icon: <Luggage className="h-10 w-10" /> },
-    { icon: <Magnet className="h-10 w-10" /> },
-    { icon: <Mail className="h-10 w-10" /> },
-    { icon: <Martini className="h-10 w-10" /> },
-    { icon: <Medal className="h-10 w-10" /> },
-    { icon: <Megaphone className="h-10 w-10" /> },
-    { icon: <Menu className="h-10 w-10" /> },
-    { icon: <MessageCircle className="h-10 w-10" /> },
-    { icon: <Mic className="h-10 w-10" /> },
-    { icon: <Monitor className="h-10 w-10" /> },
-    { icon: <Moon className="h-10 w-10" /> },
-    { icon: <Mouse className="h-10 w-10" /> },
-    { icon: <Move className="h-10 w-10" /> },
-    { icon: <Music className="h-10 w-10" /> },
-    { icon: <Newspaper className="h-10 w-10" /> },
-    { icon: <Nut className="h-10 w-10" /> },
-    { icon: <Package className="h-10 w-10" /> },
-    { icon: <Palmtree className="h-10 w-10" /> },
-    { icon: <Pause className="h-10 w-10" /> },
-    { icon: <Pencil className="h-10 w-10" /> },
-    { icon: <Phone className="h-10 w-10" /> },
-    { icon: <PieChart className="h-10 w-10" /> },
-    { icon: <Pin className="h-10 w-10" /> },
-    { icon: <Plane className="h-10 w-10" /> },
-    { icon: <Plug className="h-10 w-10" /> },
-    { icon: <Plus className="h-10 w-10" /> },
-    { icon: <Pocket className="h-10 w-10" /> },
-    { icon: <Podcast className="h-10 w-10" /> },
-    { icon: <Power className="h-10 w-10" /> },
-    { icon: <Printer className="h-10 w-10" /> },
-    { icon: <Puzzle className="h-10 w-10" /> },
-    { icon: <Quote className="h-10 w-10" /> },
-    { icon: <RefreshCw className="h-10 w-10" /> },
-    { icon: <Reply className="h-10 w-10" /> },
-    { icon: <Rewind className="h-10 w-10" /> },
-    { icon: <RollerCoaster className="h-10 w-10" /> },
-    { icon: <Rss className="h-10 w-10" /> },
-    { icon: <Ruler className="h-10 w-10" /> },
-    { icon: <Save className="h-10 w-10" /> },
-    { icon: <Scissors className="h-10 w-10" /> },
-    { icon: <Search className="h-10 w-10" /> },
-    { icon: <Send className="h-10 w-10" /> },
-    { icon: <Server className="h-10 w-10" /> },
-    { icon: <Settings className="h-10 w-10" /> },
-    { icon: <Shield className="h-10 w-10" /> },
-    { icon: <ShoppingBag className="h-10 w-10" /> },
-    { icon: <ShoppingCart className="h-10 w-10" /> },
-    { icon: <Shrub className="h-10 w-10" /> },
-    { icon: <Shuffle className="h-10 w-10" /> },
-    { icon: <Signal className="h-10 w-10" /> },
-    { icon: <Smartphone className="h-10 w-10" /> },
-    { icon: <Smile className="h-10 w-10" /> },
-    { icon: <Speaker className="h-10 w-10" /> },
-    { icon: <Square className="h-10 w-10" /> },
-    { icon: <Sun className="h-10 w-10" /> },
-    { icon: <Swords className="h-10 w-10" /> },
-    { icon: <Tablet className="h-10 w-10" /> },
-    { icon: <Tag className="h-10 w-10" /> },
-    { icon: <TargetIcon className="h-10 w-10" /> },
-    { icon: <Tent className="h-10 w-10" /> },
-    { icon: <ThumbsDown className="h-10 w-10" /> },
-    { icon: <ThumbsUp className="h-10 w-10" /> },
-    { icon: <Timer className="h-10 w-10" /> },
-    { icon: <ToggleLeft className="h-10 w-10" /> },
-    { icon: <Train className="h-10 w-10" /> },
-    { icon: <Trash className="h-10 w-10" /> },
-    { icon: <TreePine className="h-10 w-10" /> },
-    { icon: <TrendingUp className="h-10 w-10" /> },
-    { icon: <Triangle className="h-10 w-10" /> },
-    { icon: <Truck className="h-10 w-10" /> },
-    { icon: <Umbrella className="h-10 w-10" /> },
-    { icon: <Upload className="h-10 w-10" /> },
-    { icon: <Video className="h-10 w-10" /> },
-    { icon: <Wallet className="h-10 w-10" /> },
-    { icon: <Watch className="h-10 w-10" /> },
-    { icon: <Wifi className="h-10 w-10" /> },
-    { icon: <Wine className="h-10 w-10" /> },
-    { icon: <Wrench className="h-10 w-10" /> },
-    { icon: <ZoomIn className="h-10 w-10" /> },
+    { icon: PersonStanding }, { icon: Bike }, { icon: Waves }, { icon: Dumbbell }, { icon: HeartPulse }, { icon: Fish }, { icon: Apple }, { icon: Carrot }, { icon: BrainCircuit }, { icon: Leaf }, { icon: Sprout }, { icon: Award }, { icon: Calendar }, { icon: Check }, { icon: ClipboardCheck }, { icon: Clock }, { icon: Flame }, { icon: Footprints }, { icon: Grape }, { icon: Heart }, { icon: LifeBuoy }, { icon: Map }, { icon: Mountain }, { icon: Navigation }, { icon: Rainbow }, { icon: Rocket }, { icon: Star }, { icon: Sunrise }, { icon: Sunset }, { icon: Trophy }, { icon: Users }, { icon: Wind }, { icon: Zap }, { icon: Scale }, { icon: Stethoscope }, { icon: Soup }, { icon: Salad }, { icon: GlassWater }, { icon: Activity }, { icon: Anchor }, { icon: Aperture }, { icon: Axe }, { icon: Baby }, { icon: BadgeCheck }, { icon: Banana }, { icon: BarChart }, { icon: Bath }, { icon: BatteryFull }, { icon: BedDouble }, { icon: Bell }, { icon: Blend }, { icon: Bone }, { icon: Book }, { icon: Box }, { icon: Brush }, { icon: Building }, { icon: Bus }, { icon: Camera }, { icon: CandlestickChart }, { icon: Castle }, { icon: Cat }, { icon: CheckCircle }, { icon: Cherry }, { icon: Church }, { icon: Citrus }, { icon: Cloud }, { icon: Clover }, { icon: Cog }, { icon: Compass }, { icon: Computer }, { icon: ConciergeBell }, { icon: Cookie }, { icon: Crown }, { icon: CupSoda }, { icon: Diamond }, { icon: Dog }, { icon: DoorOpen }, { icon: Dribbble }, { icon: Droplet }, { icon: Drum }, { icon: Egg }, { icon: Eye }, { icon: Fan }, { icon: Feather }, { icon: FerrisWheel }, { icon: File }, { icon: Film }, { icon: Flag }, { icon: Flower }, { icon: Folder }, { icon: Gamepad2 }, { icon: Gauge }, { icon: Gift }, { icon: Globe }, { icon: GraduationCap }, { icon: Grid }, { icon: Hand }, { icon: Headphones }, { icon: History }, { icon: Home }, { icon: Hourglass }, { icon: IceCream }, { icon: Image }, { icon: Inbox }, { icon: Infinity }, { icon: Key }, { icon: Landmark }, { icon: Languages }, { icon: Laptop }, { icon: Laugh }, { icon: Library }, { icon: Lightbulb }, { icon: Link }, { icon: List }, { icon: Lock }, { icon: Luggage }, { icon: Magnet }, { icon: Mail }, { icon: Martini }, { icon: Medal }, { icon: Megaphone }, { icon: Menu }, { icon: MessageCircle }, { icon: Mic }, { icon: Monitor }, { icon: Moon }, { icon: Mouse }, { icon: Move }, { icon: Music }, { icon: Newspaper }, { icon: Nut }, { icon: Package }, { icon: Palmtree }, { icon: Pause }, { icon: Pencil }, { icon: Phone }, { icon: PieChart }, { icon: Pin }, { icon: Plane }, { icon: Plug }, { icon: Plus }, { icon: Pocket }, { icon: Podcast }, { icon: Power }, { icon: Printer }, { icon: Puzzle }, { icon: Quote }, { icon: RefreshCw }, { icon: Reply }, { icon: Rewind }, { icon: RollerCoaster }, { icon: Rss }, { icon: Ruler }, { icon: Save }, { icon: Scissors }, { icon: Search }, { icon: Send }, { icon: Server }, { icon: Settings }, { icon: Shield }, { icon: ShoppingBag }, { icon: ShoppingCart }, { icon: Shrub }, { icon: Shuffle }, { icon: Signal }, { icon: Smartphone }, { icon: Smile }, { icon: Speaker }, { icon: Square }, { icon: Sun }, { icon: Swords }, { icon: Tablet }, { icon: Tag }, { icon: TargetIcon }, { icon: Tent }, { icon: ThumbsDown }, { icon: ThumbsUp }, { icon: Timer }, { icon: ToggleLeft }, { icon: Train }, { icon: Trash }, { icon: TreePine }, { icon: TrendingUp }, { icon: Triangle }, { icon: Truck }, { icon: Umbrella }, { icon: Upload }, { icon: Video }, { icon: Wallet }, { icon: Watch }, { icon: Wifi }, { icon: Wine }, { icon: Wrench }, { icon: ZoomIn },
 ];
 
 const motivationalMessages = [
@@ -273,15 +80,18 @@ const motivationalMessages = [
 export default function MotivationalCard({ steps }: MotivationalCardProps) {
     const [iconIndex, setIconIndex] = useState(0);
     const [messageIndex, setMessageIndex] = useState(0);
+    const [animationKey, setAnimationKey] = useState(0);
 
     useEffect(() => {
         const iconInterval = setInterval(() => {
-            setIconIndex(Math.floor(Math.random() * icons.length));
+            setIconIndex(prevIndex => (prevIndex + 1) % icons.length);
+            // By changing the key, we force React to re-render the icon component, thus re-triggering the CSS animation
+            setAnimationKey(prevKey => prevKey + 1);
         }, 4000); 
 
         const messageInterval = setInterval(() => {
             setMessageIndex(Math.floor(Math.random() * motivationalMessages.length));
-        }, 15000); 
+        }, 15000);
 
         return () => {
             clearInterval(iconInterval);
@@ -294,6 +104,8 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
          if (steps === 0) return "Every step counts, let's start!";
          return motivationalMessages[messageIndex];
     }, [steps, messageIndex]);
+
+    const IconComponent = icons[iconIndex].icon;
 
     return (
         <Card className="relative overflow-hidden bg-gradient-to-br from-primary via-accent to-orange-400 text-primary-foreground">
@@ -308,10 +120,27 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
                         background-image: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.2) 50%, transparent 80%);
                         background-size: 200% 100%;
                     }
+                    @keyframes swirl-in-out {
+                        0% {
+                            transform: translateX(100px) rotate(90deg) scale(0.5);
+                            opacity: 0;
+                        }
+                        50% {
+                            transform: translateX(0) rotate(0deg) scale(1);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: translateX(-100px) rotate(-90deg) scale(0.5);
+                            opacity: 0;
+                        }
+                    }
+                    .icon-animation {
+                        animation: swirl-in-out 4s ease-in-out forwards;
+                    }
                 `}
             </style>
             <div className="absolute inset-0 shimmer-bg" />
-            <div className="relative flex flex-col md:flex-row items-center justify-between p-6">
+            <div className="relative flex flex-col md:flex-row items-center justify-between p-6 min-h-[190px]">
                 <div className="flex flex-col gap-1 z-10 mb-4 md:mb-0 md:w-2/3">
                     <CardTitle className="flex items-center gap-2 text-lg">
                         <Footprints className="h-6 w-6" />
@@ -324,19 +153,10 @@ export default function MotivationalCard({ steps }: MotivationalCardProps) {
                         {steps?.toLocaleString() ?? <span className="text-2xl">...</span>}
                     </div>
                 </div>
-                <div className="relative w-48 h-40 flex items-center justify-center">
-                    {icons.map((item, index) => (
-                        <div
-                            key={index}
-                            className="absolute transition-all duration-1000 ease-in-out"
-                            style={{
-                                transform: `rotate(${(index - iconIndex) * 18}deg) translateX(60px) rotate(-${(index - iconIndex) * 18}deg)`,
-                                opacity: index === iconIndex ? 1 : 0.2,
-                            }}
-                        >
-                            {item.icon}
-                        </div>
-                    ))}
+                <div className="relative w-1/3 h-full flex items-center justify-center">
+                   <div key={animationKey} className="icon-animation">
+                       <IconComponent className="h-16 w-16" />
+                   </div>
                 </div>
             </div>
         </Card>
