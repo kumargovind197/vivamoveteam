@@ -28,9 +28,9 @@ export default function Home() {
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAccessRevoked, setAccessRevoked] = useState(false);
+  const [clinicData, setClinicData] = useState<typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS] | null>(null);
   
   // States for controlling ad visibility
-  const [isEnrolled, setIsEnrolled] = useState(true); // Assume enrolled for this view
   const [showPopupAd, setShowPopupAd] = useState(false);
   const [showFooterAd, setShowFooterAd] = useState(false);
 
@@ -41,6 +41,8 @@ export default function Home() {
     // SIMULATE AUTH CHECK: Check if the user still exists in our mock database.
     const userRecord = MOCK_USERS[LOGGED_IN_USER_ID as keyof typeof MOCK_USERS];
     const clinicRecord = MOCK_CLINICS[USER_CLINIC_ID as keyof typeof MOCK_CLINICS];
+    setClinicData(clinicRecord);
+
 
     if (userRecord) {
         const mockUser: User = {
@@ -58,7 +60,6 @@ export default function Home() {
         };
         setCurrentUser(mockUser);
         setAccessRevoked(false);
-        setIsEnrolled(true);
 
         // Check the clinic's ad setting from mock data
         if (clinicRecord?.adsEnabled) {
@@ -79,7 +80,6 @@ export default function Home() {
     } else {
         setCurrentUser(null);
         setAccessRevoked(true);
-        setIsEnrolled(false);
     }
   }, []);
 
@@ -121,10 +121,10 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <AppHeader user={currentUser} isEnrolled={isEnrolled} view="client" />
+      <AppHeader user={currentUser} clinic={clinicData} view="client" />
       <main className="flex-1">
         <DataCards user={currentUser} onDataFetched={setFitData} />
-        <ClientDashboard isEnrolled={isEnrolled} user={currentUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} view="client" />
+        <ClientDashboard user={currentUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} view="client" clinic={clinicData}/>
         <MessageInbox />
         <NotificationManager user={currentUser} currentSteps={fitData.steps} dailyStepGoal={dailyStepGoal}/>
         <AdBanner isPopupVisible={showPopupAd} adContent={adContent} />

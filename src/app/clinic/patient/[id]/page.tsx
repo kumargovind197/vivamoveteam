@@ -1,12 +1,13 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import AppHeader from '@/components/app-header';
 import ClientDashboard from '@/components/client-dashboard';
 import DataCards from '@/components/data-cards';
 import type { User } from 'firebase/auth';
+import { MOCK_CLINICS } from '@/lib/mock-data';
 
 // Mock user for development purposes - this would be the patient's user object
 const mockPatientUser: User = {
@@ -62,27 +63,31 @@ const mockClinicUser: User = {
   toJSON: () => ({}),
 };
 
+const USER_CLINIC_ID = 'clinic-wellness';
 
 export default function PatientDetailPage() {
   const [fitData, setFitData] = useState<{steps: number | null, activeMinutes: number | null}>({ steps: 5432, activeMinutes: 25 });
   const [dailyStepGoal, setDailyStepGoal] = useState(10000);
+  const [clinicData, setClinicData] = useState<typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS] | null>(null);
+  
   const params = useParams();
   const patientId = params.id as string;
+
+  useEffect(() => {
+    setClinicData(MOCK_CLINICS[USER_CLINIC_ID]);
+  }, []);
 
   // In a real app, you would use patientId to fetch the patient's data.
 
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* The header knows it's in a patient detail view from the 'clinic' view context */}
-      <AppHeader user={mockClinicUser} view="clinic" patientId={patientId} patientName={mockPatientUser.displayName || 'Patient'} />
+      <AppHeader user={mockClinicUser} view="clinic" clinic={clinicData} patientId={patientId} patientName={mockPatientUser.displayName || 'Patient'} />
       <main className="flex-1">
         {/* These components are for the patient being viewed */}
         <DataCards user={mockPatientUser} onDataFetched={setFitData} />
-        <ClientDashboard view="clinic" isEnrolled={true} user={mockPatientUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} />
+        <ClientDashboard view="clinic" user={mockPatientUser} fitData={fitData} dailyStepGoal={dailyStepGoal} onStepGoalChange={setDailyStepGoal} clinic={clinicData}/>
       </main>
-      {/* Ads and notifications would typically be disabled in a clinical view */}
     </div>
   );
 }
-
-    

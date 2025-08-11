@@ -30,6 +30,12 @@ const mockPatientHistoricalData = {
              { month: '2024-01', avgSteps: 1200, avgMinutes: 5 },
         ]}
     ],
+    'clinic-healthfirst': [
+        // Add mock data if needed
+    ],
+    'clinic-cityheart': [
+        // Add mock data if needed
+    ]
 };
 
 type Clinic = typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS];

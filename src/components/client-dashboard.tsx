@@ -7,17 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import ActivityChart from '@/components/activity-chart';
 import { User } from 'firebase/auth';
 import { Progress } from './ui/progress';
-import { Footprints, Flame, Target, Trophy, CalendarDays,TrendingUp, Activity, BarChart3, Clock } from 'lucide-react';
+import { Footprints, Flame, Target, Trophy } from 'lucide-react';
 import ProgressRing from './progress-ring';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Slider } from './ui/slider';
+import { MOCK_CLINICS } from '@/lib/mock-data';
 
+type Clinic = typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS];
 
 // --- MOCK LOCAL DEVICE STORAGE ---
-// In a real application, this data would be stored persistently on the user's device,
-// for example using SQLite or a library like WatermelonDB.
-// For this prototype, we'll just keep it in component state to simulate this.
 const generateInitialLocalData = () => {
     const data = [];
     const today = new Date();
@@ -50,7 +49,6 @@ const chartConfigDailyAverage = {
 };
 
 type ClientDashboardProps = {
-  isEnrolled: boolean;
   user: User | null;
   fitData: {
       steps: number | null;
@@ -59,9 +57,10 @@ type ClientDashboardProps = {
   dailyStepGoal: number;
   onStepGoalChange: (goal: number) => void;
   view: 'client' | 'clinic';
+  clinic: Clinic | null;
 };
 
-export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGoal, onStepGoalChange, view }: ClientDashboardProps) {
+export default function ClientDashboard({ user, fitData, dailyStepGoal, onStepGoalChange, view, clinic }: ClientDashboardProps) {
   const [isGoalDialogOpen, setGoalDialogOpen] = useState(false);
   const [pendingStepGoal, setPendingStepGoal] = useState(dailyStepGoal);
 
@@ -166,12 +165,12 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                 <h1 className="font-headline text-3xl font-bold tracking-tight">Welcome back, {user?.displayName?.split(' ')[0] || 'User'}!</h1>
                 <p className="text-muted-foreground">Here's your activity summary.</p>
             </div>
-            {isEnrolled && (
+            {clinic && (
                 <Card className="flex items-center gap-4 p-4 bg-transparent border-muted">
-                    <Image data-ai-hint="medical logo" src="https://placehold.co/64x64.png" alt="Clinic Logo" width={64} height={64} className="rounded-md" />
+                    <Image data-ai-hint="medical logo" src={clinic.logo} alt="Clinic Logo" width={64} height={64} className="rounded-md" />
                     <div>
                         <p className="text-sm text-muted-foreground">Enrolled with</p>
-                        <p className="font-headline font-semibold">Wellness Clinic</p>
+                        <p className="font-headline font-semibold">{clinic.name}</p>
                     </div>
                 </Card>
             )}
@@ -241,17 +240,17 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
 
           <TabsContent value="monthly">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                 <Card className="bg-orange-900/40 border-orange-500/30">
+                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Daily Step Average</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        <Footprints className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{monthlyAverageSteps.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">steps per day</p>
+                        <p className="text-xs text-muted-foreground">in the last 30 days</p>
                     </CardContent>
                 </Card>
-                 <Card className="bg-orange-900/40 border-orange-500/30">
+                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Step Goals Met</CardTitle>
                         <Trophy className="h-4 w-4 text-muted-foreground" />
@@ -263,15 +262,15 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Steps</CardTitle>
-                        <Footprints className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Avg. Active Minutes</CardTitle>
+                        <Flame className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{monthlyTotalSteps.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">in the last 30 days</p>
+                        <div className="text-2xl font-bold">{monthlyAverageMinutes}</div>
+                        <p className="text-xs text-muted-foreground">minutes per day</p>
                     </CardContent>
                 </Card>
-                 <Card className="bg-green-900/40 border-green-500/30">
+                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Current Step Goal</CardTitle>
                         <Target className="h-4 w-4 text-muted-foreground" />
@@ -281,29 +280,6 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                         <p className="text-xs text-muted-foreground">steps per day</p>
                     </CardContent>
                 </Card>
-            </div>
-             <div className="grid gap-6 md:grid-cols-3 mb-6">
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Days Goal Met</CardTitle>
-                        <Trophy className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{daysMinuteGoalMetMonthly} / {monthlyData.length}</div>
-                        <p className="text-xs text-muted-foreground">days you reached your goal</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Average Daily Active Time</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{monthlyAverageMinutes.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">minutes per day</p>
-                    </CardContent>
-                </Card>
-                <div />
             </div>
             <div className="grid gap-6 md:grid-cols-2 mt-6">
                 <Card>
@@ -317,7 +293,7 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Average Weekly Active Time</CardTitle>
+                        <CardTitle>Daily Averages by Weekday (Minutes)</CardTitle>
                         <CardDescription>Your average active minutes for each day of the week over the last month.</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[350px]">
@@ -361,5 +337,3 @@ export default function ClientDashboard({ isEnrolled, user, fitData, dailyStepGo
     </>
   );
 }
-
-    

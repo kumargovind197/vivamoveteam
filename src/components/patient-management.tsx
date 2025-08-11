@@ -462,6 +462,7 @@ export default function PatientManagement() {
                                     width={40} 
                                     height={40} 
                                     className="rounded-md"
+                                    data-ai-hint="medical logo"
                                   />
                             </div>
                             <div className="text-sm text-right">

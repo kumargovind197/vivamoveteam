@@ -4,10 +4,12 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserPlus, UserCircle, Wrench, ShieldQuestion, Hospital, ChevronLeft } from 'lucide-react';
-
+import { UserCircle, Wrench, ShieldQuestion, Hospital, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { User } from 'firebase/auth';
+import { MOCK_CLINICS } from '@/lib/mock-data';
+
+type Clinic = typeof MOCK_CLINICS[keyof typeof MOCK_CLINICS];
 
 const VivaMoveLogo = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,29 +21,27 @@ const VivaMoveLogo = () => (
 
 type AppHeaderProps = {
   user: User | null;
-  isEnrolled?: boolean;
+  clinic: Clinic | null;
   view: 'client' | 'clinic' | 'admin';
   patientId?: string;
   patientName?: string;
 };
 
-export default function AppHeader({ user, isEnrolled = false, view, patientId, patientName }: AppHeaderProps) {
+export default function AppHeader({ user, clinic, view, patientId, patientName }: AppHeaderProps) {
 
   const renderClinicBranding = () => {
-    // Show clinic branding if enrolled
-    if (isEnrolled) {
+    if (clinic) {
         return (
             <Image
                 data-ai-hint="medical logo"
-                src="https://placehold.co/40x40.png"
-                alt="Clinic Logo"
+                src={clinic.logo}
+                alt={`${clinic.name} Logo`}
                 width={40}
                 height={40}
                 className="rounded-md"
             />
         );
     }
-
     // Default icon for non-enrolled users
     return (
         <div className="h-10 w-10 flex items-center justify-center rounded-md bg-muted">
@@ -57,10 +57,15 @@ export default function AppHeader({ user, isEnrolled = false, view, patientId, p
           
           <div className="flex items-center">
             {view === 'client' && renderClinicBranding()}
-            {view === 'clinic' && !patientId && (
-                 <div className="h-10 w-10 flex items-center justify-center rounded-md bg-muted">
-                    <Hospital className="h-6 w-6 text-muted-foreground"/>
-                </div>
+            {(view === 'clinic' && !patientId && clinic) && (
+                <Image
+                    data-ai-hint="medical logo"
+                    src={clinic.logo}
+                    alt={`${clinic.name} Logo`}
+                    width={40}
+                    height={40}
+                    className="rounded-md"
+                />
             )}
              {view === 'clinic' && patientId && (
                 <Button asChild variant="outline" size="sm">
