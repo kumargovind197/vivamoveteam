@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -11,7 +11,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send, PlusCircle, XCircle } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -33,6 +33,12 @@ const initialMembersData = [
   { id: '5', memberId: 'EMP-005', firstName: 'David', surname: 'Wilson', email: 'david.wilson@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 180000 },
   { id: '6', memberId: 'EMP-006', firstName: 'Jessica', surname: 'Brown', email: 'jessica.brown@example.com', department: 'HR', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 250000 },
   { id: '7', memberId: 'EMP-007', firstName: 'Alex', surname: 'Doe', email: 'member@example.com', department: 'Marketing', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 220000 },
+  // Add more members to test pagination
+  { id: '8', memberId: 'EMP-008', firstName: 'Chris', surname: 'Green', email: 'chris.green@example.com', department: 'IT', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 190000 },
+  { id: '9', memberId: 'EMP-009', firstName: 'Patricia', surname: 'Hall', email: 'patricia.hall@example.com', department: 'Finance', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 160000 },
+  { id: '10', memberId: 'EMP-010', firstName: 'Robert', surname: 'King', email: 'robert.king@example.com', department: 'IT', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 230000 },
+  { id: '11', memberId: 'EMP-011', firstName: 'Linda', surname: 'Wright', email: 'linda.wright@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 275000 },
+  { id: '12', memberId: 'EMP-012', firstName: 'James', surname: 'Scott', email: 'james.scott@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 295000 },
 ];
 
 const mockPastLeaderboards = {
@@ -96,7 +102,7 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
                             {top5Individuals.map((member, index) => (
                                 <li key={member.id} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
                                     <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
-                                        {index < 3 ? <Medal className="h-6 w-6" /> : <span className="w-6 text-center">{index + 1}</span>}
+                                        <Medal className="h-6 w-6" />
                                     </div>
                                     <Avatar>
                                         <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
@@ -126,7 +132,7 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
                             {top5Departments.map((dept, index) => (
                                 <li key={dept.name} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
                                     <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
-                                         {index < 3 ? <Medal className="h-6 w-6" /> : <span className="w-6 text-center">{index + 1}</span>}
+                                         <Medal className="h-6 w-6" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="font-semibold">{dept.name}</p>
@@ -147,10 +153,14 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
     )
 }
 
+const ITEMS_PER_PAGE = 10;
 
 export default function MemberManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [membersData, setMembersData] = useState(initialMembersData);
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [newDepartment, setNewDepartment] = useState('');
+
   const [isAddMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   const [isEditMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<Member | null>(null);
@@ -159,9 +169,17 @@ export default function MemberManagement() {
   const [newMember, setNewMember] = useState({ memberId: '', firstName: '', surname: '', email: '', department: '' });
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [bulkMessage, setBulkMessage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   
   const maxMembers = MOCK_GROUPS['group-awesome'].capacity;
+
+  useEffect(() => {
+    // Initialize departments from member data
+    const initialDepartments = Array.from(new Set(membersData.map(m => m.department)));
+    setDepartments(initialDepartments);
+  }, [membersData]);
+
 
   const filteredMembers = useMemo(() => {
     let members = membersData;
@@ -180,6 +198,17 @@ export default function MemberManagement() {
     return members;
   }, [searchQuery, membersData]);
 
+  const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE);
+  const paginatedMembers = filteredMembers.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    // Reset to first page if search query changes and current page is out of bounds
+    if (currentPage > totalPages) {
+        setCurrentPage(1);
+    }
+  }, [searchQuery, totalPages, currentPage]);
+
+
   const currentMemberCount = membersData.length;
   const remainingSlots = maxMembers - currentMemberCount;
   const isAtCapacity = currentMemberCount >= maxMembers;
@@ -188,11 +217,20 @@ export default function MemberManagement() {
     const { id, value } = e.target;
     setNewMember(prev => ({ ...prev, [id]: value }));
   }
+
+  const handleDepartmentSelectChange = (value: string) => {
+    setNewMember(prev => ({ ...prev, department: value }));
+  }
   
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!memberToEdit) return;
     const { id, value } = e.target;
     setMemberToEdit(prev => prev ? { ...prev, [id]: value } : null);
+  }
+  
+  const handleEditDepartmentSelectChange = (value: string) => {
+    if (!memberToEdit) return;
+    setMemberToEdit(prev => prev ? { ...prev, department: value } : null);
   }
 
   const handleAddMember = () => {
@@ -263,6 +301,21 @@ export default function MemberManagement() {
       setBulkMessage('');
   };
 
+  const handleAddDepartment = () => {
+    if (newDepartment && !departments.includes(newDepartment)) {
+      setDepartments(prev => [...prev, newDepartment].sort());
+      setNewDepartment('');
+      toast({ title: "Department Added", description: `"${newDepartment}" has been added to the list.` });
+    } else if (departments.includes(newDepartment)) {
+      toast({ variant: 'destructive', title: "Duplicate Department", description: `"${newDepartment}" already exists.` });
+    }
+  };
+
+  const handleRemoveDepartment = (deptToRemove: string) => {
+    setDepartments(prev => prev.filter(d => d !== deptToRemove));
+    toast({ title: "Department Removed", description: `"${deptToRemove}" has been removed.` });
+  };
+
 
   return (
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -308,7 +361,7 @@ export default function MemberManagement() {
 
             </TabsContent>
             <TabsContent value="manage">
-                <div className="space-y-4 pt-4">
+                <div className="space-y-8 pt-4">
                      <Card>
                         <CardHeader>
                             <CardTitle>Bulk Message</CardTitle>
@@ -327,28 +380,27 @@ export default function MemberManagement() {
                         </CardContent>
                     </Card>
 
-                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                        <div className="relative w-full max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search by ID, name, or email..." 
-                            className="pl-9"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        </div>
-                        <Button onClick={() => setAddMemberDialogOpen(true)} disabled={isAtCapacity}>
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Enroll New Member
-                        </Button>
-                    </div>
-
                     <Card>
                         <CardHeader>
                             <CardTitle>Member List</CardTitle>
-                            <div className="text-sm text-muted-foreground">
-                                <p>Enrolled / Capacity: <span className="font-bold text-foreground">{currentMemberCount} / {maxMembers}</span></p>
+                             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 pt-4">
+                                <div className="relative w-full max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search by ID, name, or email..." 
+                                    className="pl-9"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                </div>
+                                <Button onClick={() => setAddMemberDialogOpen(true)} disabled={isAtCapacity}>
+                                    <UserPlus className="mr-2 h-4 w-4" />
+                                    Enroll New Member
+                                </Button>
                             </div>
+                            <CardDescription className="pt-2">
+                                Enrolled / Capacity: <span className="font-bold text-foreground">{currentMemberCount} / {maxMembers}</span>
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="rounded-lg border">
@@ -361,7 +413,7 @@ export default function MemberManagement() {
                                 </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                {filteredMembers.map(member => (
+                                {paginatedMembers.map(member => (
                                     <TableRow key={member.id}>
                                     <TableCell className="font-medium">
                                         <div className="flex items-center gap-3">
@@ -429,6 +481,62 @@ export default function MemberManagement() {
                                 </TableBody>
                             </Table>
                             </div>
+                            <div className="flex items-center justify-end space-x-2 py-4">
+                                <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                >
+                                Previous
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                >
+                                Next
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Manage Departments</CardTitle>
+                            <CardDescription>Add or remove departments available for member assignment.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div>
+                                <h4 className="text-sm font-medium mb-2">Existing Departments</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {departments.map(dept => (
+                                        <div key={dept} className="flex items-center gap-1 bg-muted rounded-full px-3 py-1 text-sm">
+                                            <span>{dept}</span>
+                                            <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => handleRemoveDepartment(dept)}>
+                                                <XCircle className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium mb-2">Add New Department</h4>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        placeholder="New department name..."
+                                        value={newDepartment}
+                                        onChange={(e) => setNewDepartment(e.target.value)}
+                                    />
+                                    <Button onClick={handleAddDepartment}>
+                                        <PlusCircle className="mr-2" /> Add
+                                    </Button>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -451,11 +559,20 @@ export default function MemberManagement() {
                             <Label htmlFor="memberId">Member ID</Label>
                             <Input id="memberId" value={newMember.memberId} onChange={handleInputChange} placeholder="e.g. EMP-008" />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="department">Department</Label>
-                            <Input id="department" value={newMember.department} onChange={handleInputChange} placeholder="e.g. Sales"/>
+                          <div className="space-y-2">
+                            <Label htmlFor="department-select">Department</Label>
+                             <Select onValueChange={handleDepartmentSelectChange} value={newMember.department}>
+                                <SelectTrigger id="department-select">
+                                    <SelectValue placeholder="Select a department" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {departments.map(dept => (
+                                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                            <div className="space-y-2">
+                        <div className="space-y-2">
                             <Label htmlFor="firstName">First Name</Label>
                             <Input id="firstName" value={newMember.firstName} onChange={handleInputChange} />
                         </div>
@@ -506,8 +623,17 @@ export default function MemberManagement() {
                   <Input id="email" type="email" value={memberToEdit.email} onChange={handleEditInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="department" className="text-right">Department</Label>
-                  <Input id="department" value={memberToEdit.department} onChange={handleEditInputChange} className="col-span-3" />
+                  <Label htmlFor="department-edit" className="text-right">Department</Label>
+                   <Select onValueChange={handleEditDepartmentSelectChange} value={memberToEdit.department}>
+                        <SelectTrigger id="department-edit" className="col-span-3">
+                            <SelectValue placeholder="Select a department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {departments.map(dept => (
+                                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
               </div>
               <DialogFooter>
@@ -520,3 +646,5 @@ export default function MemberManagement() {
     </div>
   )
 }
+
+    
