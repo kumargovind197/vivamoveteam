@@ -11,7 +11,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send, PlusCircle, XCircle } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send, PlusCircle, XCircle, LineChart } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -24,6 +24,7 @@ import Leaderboard from './leaderboard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Textarea } from './ui/textarea';
+import Link from 'next/link';
 
 const initialMembersData = [
   { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 285000 },
@@ -41,7 +42,7 @@ const initialMembersData = [
   { id: '12', memberId: 'EMP-012', firstName: 'James', surname: 'Scott', email: 'james.scott@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 295000 },
 ];
 
-const allTimeMembersForLeaderboard = [
+export const allTimeMembersForLeaderboard = [
     ...initialMembersData,
     { id: '13', memberId: 'EMP-013', firstName: 'Alice', surname: 'Wonder', department: 'HR', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 0 },
     { id: '14', memberId: 'EMP-014', firstName: 'Bob', surname: 'Builder', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 0 },
@@ -49,7 +50,7 @@ const allTimeMembersForLeaderboard = [
 ];
 
 // --- DYNAMIC MOCK DATA GENERATION for past leaderboards ---
-const generatePastLeaderboardData = () => {
+export const generatePastLeaderboardData = () => {
     const data: any = {};
     const today = new Date();
     
@@ -83,8 +84,8 @@ const generatePastLeaderboardData = () => {
             .sort((a, b) => b.avgSteps - a.avgSteps);
         
         data[monthKey] = {
-            individuals: individuals.slice(0, 5),
-            departments: departmentLeaderboard.slice(0, 5)
+            individuals: individuals.slice(0, 15), // store more for 12-month summary
+            departments: departmentLeaderboard
         };
     }
     return data;
@@ -375,20 +376,28 @@ export default function MemberManagement() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="max-w-xs">
-                            <Select onValueChange={setSelectedMonth}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a month..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.keys(mockPastLeaderboards).map(month => (
-                                        <SelectItem key={month} value={month}>
-                                            {new Date(month + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                       <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex-grow">
+                                <Select onValueChange={setSelectedMonth}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a month..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.keys(mockPastLeaderboards).map(month => (
+                                            <SelectItem key={month} value={month}>
+                                                {new Date(month + '-02').toLocaleString('default', { month: 'long', year: 'numeric' })}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <Button asChild>
+                                <Link href="/group/historical">
+                                    <LineChart className="mr-2" />
+                                    View 12-Month Rolling Leaders
+                                </Link>
+                            </Button>
+                       </div>
 
                         {selectedMonth && (
                             <PastLeaderboardDisplay month={selectedMonth} data={mockPastLeaderboards[selectedMonth as keyof typeof mockPastLeaderboards]} />
@@ -404,7 +413,7 @@ export default function MemberManagement() {
                         <CardHeader>
                             <CardTitle>Manage Departments</CardTitle>
                             <CardDescription>
-                                Add or remove departments available for member assignment. You can have a maximum of {MAX_DEPARTMENTS} departments.
+                                Add or remove departments available for member assignment. You can have a maximum of {MAX_DEPARTMENTS} departments (19 custom + 1 default).
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -417,9 +426,9 @@ export default function MemberManagement() {
                                             {dept !== DEFAULT_DEPARTMENT && (
                                                  <AlertDialog>
                                                     <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => setDepartmentToRemove(dept)}>
+                                                        <button className="h-5 w-5 rounded-full flex items-center justify-center">
                                                             <XCircle className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                                        </Button>
+                                                        </button>
                                                     </AlertDialogTrigger>
                                                     <AlertDialogContent>
                                                         <AlertDialogHeader>
@@ -708,3 +717,5 @@ export default function MemberManagement() {
     </div>
   )
 }
+
+    
