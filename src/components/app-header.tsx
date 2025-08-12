@@ -13,19 +13,14 @@ import { vivaLogoSrc } from '@/lib/logo-store';
 type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
 
 const VivaMoveLogo = () => {
-    // Use a state that re-renders on change, or rely on a global store/context
-    // For this prototype, we'll force a re-render by making AppHeader a client component
-    // that depends on the imported state.
     const [logo, setLogo] = React.useState(vivaLogoSrc);
 
     React.useEffect(() => {
-        // This is a bit of a hack for the prototype to ensure the component
-        // re-renders when the logoSrc changes in the logo-store.
         const interval = setInterval(() => {
             if (logo !== vivaLogoSrc) {
                 setLogo(vivaLogoSrc);
             }
-        }, 500); // Check for changes periodically
+        }, 500); 
         return () => clearInterval(interval);
     }, [logo]);
     
@@ -47,7 +42,7 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
     if (group) {
         return (
             <div className="flex items-center gap-4">
-                <div className="relative w-40 h-10">
+                <div className="relative w-40 h-10 bg-muted rounded-md shrink-0">
                     <Image
                         fill
                         data-ai-hint="company logo"
@@ -56,11 +51,9 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
                         className="rounded-md object-cover"
                     />
                 </div>
-                <span className="font-headline text-lg font-semibold text-foreground hidden md:block">{group.name}</span>
             </div>
         );
     }
-    // Default icon for non-enrolled users
     return (
         <div className="h-10 w-10 flex items-center justify-center rounded-md bg-muted">
             <ShieldQuestion className="h-6 w-6 text-muted-foreground"/>
@@ -118,22 +111,6 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
                 </div>
              </div>
 
-             {view === 'member' && (
-               <div className="flex items-center gap-2">
-                 <Button asChild variant="outline">
-                    <Link href="/group">
-                        <Users className="mr-2 h-4 w-4" />
-                        <span>Group Leader View</span>
-                    </Link>
-                 </Button>
-                 <Button asChild variant="outline">
-                    <Link href="/admin">
-                        <Wrench className="mr-2 h-4 w-4" />
-                        <span>Admin</span>
-                    </Link>
-                 </Button>
-               </div>
-            )}
              {(view === 'group' || view === 'admin') && (
                 <Button asChild variant="outline">
                     <Link href="/">
