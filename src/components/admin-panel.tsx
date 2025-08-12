@@ -178,7 +178,7 @@ export default function AdminPanel() {
     
     const headers = ['MemberID', 'MemberName', 'Department', 'Overall_Avg_Steps'];
     allQuarters.forEach(quarter => {
-        headers.push(`AvgSteps_${quarter}`, `TotalSteps_${quarter}`);
+        headers.push(`TotalSteps_${quarter}`);
     });
     
     const csvRows = [headers.join(',')];
@@ -198,7 +198,6 @@ export default function AdminPanel() {
 
         allQuarters.forEach(quarter => {
             const quarterData = memberDataByQuarter.get(quarter);
-            row.push(quarterData ? quarterData.avgSteps : 'NA');
             row.push(quarterData ? quarterData.totalSteps : 'NA');
         });
         
