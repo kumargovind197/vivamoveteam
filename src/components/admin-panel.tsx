@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert } from 'lucide-react';
+import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert, Palette } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -39,6 +39,11 @@ const mockMemberHistoricalData = {
 
 type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
 
+// In a real app, this would be stored in a database or a global state manager.
+// For this prototype, we'll just use a simple variable.
+let vivaLogoSrc = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgICAgICAgPHBhdGggZD0iTTEyLjI1LDE4LjVDMTIuMjUsMTguNSwxMi4yNSwxOC41LDEyLjI1LDE4LjVMMTIuNTUsMTguODRDMTMuMjYsMTkuNjMsMTQuMDEsMjAuMywxNC43OSwyMC44NEwxNS4zMiwyMS4yMkMxNS44NiwyMS41NywxNi44NCwyMS40OSwxNy4yOSwyMC45N0MxNy43NCwyMC40NSwxNy42NSwxOS40NywxNy4xMSwxOS4xMkwxNi41OCwxOC43NEMxNS44LDE4LjIsMTUuMDUsMTcuNTMsMTQuMzQsMTYuNzRMMTMuODEsMTYuMTRDMTMuNzIsMTYuMDMsMTMuNTYsMTYuMDMsMTMuNDYsNi4xM0wxMy4xOSwxNS43N0MxMi40OCwxNC45OCwxMS43MywxNC4zMSwxMC45NSwxMy43N0wxMC40MiwxMy4zOUM5Ljg4LDEzLjA0LDguOSwxMy4xMiw4LjQ1LDEzLjY0QzgsMTQuMTYsOC4wOSwxNS4xNCw4LjYzLDE1LjQ5TDkuMTYsMTUuODdDOS45NCwxNi40MSwxMC42OSwxNy4wOCwxMS40LDE3Ljg3TDExLjcsMTguMkMxMS45NiwxOC40OSwxMi4yNSwxOC41LDEyLjI1LDE4LjVaIiBmaWxsPSJoc2wodmFyKC0tcHJpbWFyeSkpIi8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik0xMC4xNSwxMC42MkwxMC4zNSwxMC44NUMxMC45OCwxMS41NSwxMS41MSwxMi4zMywxMS45MSwxMy4xNkwxMi4wNywxMy41M0MxMi4zLDE0LjA3LDEyLjk4LDE0LjMsMTMuNTIsMTQuMDdDMTQuMDYsMTMuODQsMTQuMjksMTMuMTYsMTQuMDYsMTIuNjJMMTMuOSwxMi4yNUMxMy41LDExLjQyLDEyLjk3LDEwLjY0LDEyLjM0LDkuOTRMMTIuMTQsOS43MUMxMS44OCw5LjQxLDExLjQyLDkuNDEsMTEuMTYsOS43MUwxMC43NCwxMC4xOUMxMC4wNCwxMC45Nyw5LjQzLDExLjgzLDguOTYsMTIuNzJMOC43OSwxMy4wNEM4LjU1LDEzLjUsOC44MSwxNC4wNyw5LjMsMTQuMjhDOS43OSwxNC40OSwxMC4zNiwxNC4yMywxMC41NywxMy43NEwxMC43NCwxMy40MkMxMS4yMSwxMi41MywxMS44MiwxMS42NywxMi41MiwxMC44OUwxMS4xNiw5LjcxQzEwLjksOS40MSwxMC40MSw5LjQxLDEwLjE1LECw5LjQxQzEwLjE1LDEwLjYyWk02LjQ0LDE1LjE5TDYuNTQsMTUuMjVDNi45MywxNS41MSw3LjI4LDE1LjgsNy41OCwxNi4xNEw3Ljc0LDE2LjMyQzcuOTksMTYuNiwwLjQyLDE2LjY1LDguNywxNi40QzkuMDcsMTYuMDYsOS4wMiwxNS41NCw4LjY1LDE1LjJMMC40OSwxNS4wMkM4LjE5LDE0LjY4LDcuODQsMTQuMzksNy40NSwxNC4xM0w3LjM1LDE0LjA3QzYuOTYsMTMuODEsNi40NCwxMy45Myw2LjE4LDE0LjMyQzUuOTIsMTQuNzEsNi4wNCwxNS4yMyw2LjQ0LDE1LjE5WiIgZmlsbD0iaHNsKHZhcigtLXByaW1hcnkpKSIvPgogICAgICAgICAgICA8cGF0aCBkPSJNMTIsMkM2LjQ4LDIsMiw2LjQ4LDIsMTJDMiwxNy41Miw2LjQ4LDIyLDEyLDIyQzE3LjUyLDIyLDIyLDE3LjUyLDIyLDEyQzIyLDYuNDgsMTcuNTIsMiwxMiwyWk0xMiwyMEM3LjU4LDIwLDQsMTYuNDIsNCwxMkM0LDcuNTgsNy41OCw0LDEyLDRDMTYuNDIsNCwyMCw3LjU4LDIwLDEyQzIwLDE2LjQyLDE2LjQyLDIwLDEyLDIwWiIgZmlsbD0iaHNsKHZhcigtLXByaW1hcnkpKSIvPgogICAgICAgIDwvc3ZnPg==";
+
+
 export default function AdminPanel() {
   const [groups, setGroups] = useState(Object.values(MOCK_GROUPS));
   const [newGroupName, setNewGroupName] = useState('');
@@ -58,10 +63,13 @@ export default function AdminPanel() {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [vivaLogoFile, setVivaLogoFile] = useState<File | null>(null);
+  const [vivaLogoPreview, setVivaLogoPreview] = useState<string>(vivaLogoSrc);
 
   const { toast } = useToast();
 
-  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'new' | 'edit') => {
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'new' | 'edit' | 'viva') => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -74,6 +82,9 @@ export default function AdminPanel() {
             setEditedLogoFile(file);
             setEditedLogoPreview(result);
             setGroupToEdit(prev => prev ? { ...prev, logo: result } : null);
+        } else if (type === 'viva') {
+            setVivaLogoFile(file);
+            setVivaLogoPreview(result);
         }
       };
       reader.readAsDataURL(file);
@@ -238,6 +249,19 @@ export default function AdminPanel() {
       }
   }
 
+  const handleSaveVivaLogo = () => {
+      if (!vivaLogoFile) {
+          toast({ variant: 'destructive', title: 'No logo selected', description: 'Please select a logo file to upload.' });
+          return;
+      }
+      vivaLogoSrc = vivaLogoPreview;
+      toast({ title: 'Success', description: 'The ViVa logo has been updated across the application.' });
+      // In a real app, you'd probably force a reload or use a global state manager
+      // to propagate the change instantly. For now, we can just show a toast and
+      // the change will be visible on next full page load.
+      window.location.reload(); 
+  }
+
   return (
     <>
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -252,6 +276,7 @@ export default function AdminPanel() {
             <TabsTrigger value="groups"><Building className="mr-2" />Groups</TabsTrigger>
             <TabsTrigger value="analysis"><PieChart className="mr-2" />Analysis</TabsTrigger>
             <TabsTrigger value="security"><ShieldCheck className="mr-2" />Security</TabsTrigger>
+            <TabsTrigger value="logo"><Palette className="mr-2" />ViVa Logo</TabsTrigger>
          </TabsList>
         
         <div className="flex-grow">
@@ -468,6 +493,46 @@ export default function AdminPanel() {
                     </CardFooter>
                 </Card>
             </TabsContent>
+            <TabsContent value="logo">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Customize ViVa Logo</CardTitle>
+                        <CardDescription>Upload a new logo for the 'ViVa step up challenge'. This will replace the default logo throughout the app.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label>Current Logo</Label>
+                            <div className="p-4 bg-muted rounded-md flex items-center justify-center">
+                                <img src={vivaLogoSrc} alt="Current ViVa Logo" className="h-10 w-10" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Upload New Logo</Label>
+                            <div className="flex items-center gap-4">
+                            {vivaLogoPreview && vivaLogoPreview !== vivaLogoSrc && (
+                                <img src={vivaLogoPreview} alt="New ViVa Logo Preview" className="h-16 w-auto rounded-md object-cover bg-muted" />
+                            )}
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="viva-logo-upload" className="sr-only">Upload Logo</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input id="viva-logo-upload" type="file" accept="image/*,.svg" onChange={(e) => handleLogoChange(e, 'viva')} className="hidden" />
+                                    <Button asChild variant="outline">
+                                        <label htmlFor="viva-logo-upload" className="cursor-pointer">
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Upload Image
+                                        </label>
+                                    </Button>
+                                    {vivaLogoFile && <p className="text-sm text-muted-foreground">{vivaLogoFile.name}</p>}
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter>
+                        <Button onClick={handleSaveVivaLogo}>Save New Logo</Button>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
         </div>
       </Tabs>
     </div>
@@ -542,3 +607,5 @@ export default function AdminPanel() {
     </>
   );
 }
+
+    
