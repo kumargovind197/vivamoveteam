@@ -154,12 +154,15 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
 }
 
 const ITEMS_PER_PAGE = 10;
+const DEFAULT_DEPARTMENT = 'Independent';
+
 
 export default function MemberManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [membersData, setMembersData] = useState(initialMembersData);
   const [departments, setDepartments] = useState<string[]>([]);
   const [newDepartment, setNewDepartment] = useState('');
+  const [departmentToRemove, setDepartmentToRemove] = useState<string | null>(null);
 
   const [isAddMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   const [isEditMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
@@ -177,7 +180,10 @@ export default function MemberManagement() {
   useEffect(() => {
     // Initialize departments from member data
     const initialDepartments = Array.from(new Set(membersData.map(m => m.department)));
-    setDepartments(initialDepartments);
+    if (!initialDepartments.includes(DEFAULT_DEPARTMENT)) {
+        initialDepartments.push(DEFAULT_DEPARTMENT);
+    }
+    setDepartments(initialDepartments.sort());
   }, [membersData]);
 
 
@@ -312,8 +318,14 @@ export default function MemberManagement() {
   };
 
   const handleRemoveDepartment = (deptToRemove: string) => {
+    setMembersData(prevData => 
+        prevData.map(member => 
+            member.department === deptToRemove ? { ...member, department: DEFAULT_DEPARTMENT } : member
+        )
+    );
     setDepartments(prev => prev.filter(d => d !== deptToRemove));
-    toast({ title: "Department Removed", description: `"${deptToRemove}" has been removed.` });
+    toast({ title: "Department Removed", description: `"${deptToRemove}" has been removed. Members were moved to ${DEFAULT_DEPARTMENT}.` });
+    setDepartmentToRemove(null);
   };
 
 
@@ -363,24 +375,6 @@ export default function MemberManagement() {
             <TabsContent value="manage">
                 <div className="space-y-8 pt-4">
                      <Card>
-                        <CardHeader>
-                            <CardTitle>Bulk Message</CardTitle>
-                            <CardDescription>Send a message to all members of the group.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Textarea 
-                                placeholder="Type your motivational message here..."
-                                value={bulkMessage}
-                                onChange={(e) => setBulkMessage(e.target.value)}
-                            />
-                             <Button onClick={handleSendBulkMessage}>
-                                <Send className="mr-2" />
-                                Send to All Members
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
                         <CardHeader>
                             <CardTitle>Member List</CardTitle>
                              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 pt-4">
@@ -517,9 +511,29 @@ export default function MemberManagement() {
                                     {departments.map(dept => (
                                         <div key={dept} className="flex items-center gap-1 bg-muted rounded-full px-3 py-1 text-sm">
                                             <span>{dept}</span>
-                                            <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => handleRemoveDepartment(dept)}>
-                                                <XCircle className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                            </Button>
+                                            {dept !== DEFAULT_DEPARTMENT && (
+                                                 <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => setDepartmentToRemove(dept)}>
+                                                            <XCircle className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure you want to remove the "{dept}" department?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                All members currently in this department will be moved to the "{DEFAULT_DEPARTMENT}" department. This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleRemoveDepartment(dept)}>
+                                                                Yes, Remove Department
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -537,6 +551,23 @@ export default function MemberManagement() {
                                     </Button>
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Bulk Message</CardTitle>
+                            <CardDescription>Send a message to all members of the group.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Textarea 
+                                placeholder="Type your motivational message here..."
+                                value={bulkMessage}
+                                onChange={(e) => setBulkMessage(e.target.value)}
+                            />
+                             <Button onClick={handleSendBulkMessage}>
+                                <Send className="mr-2" />
+                                Send to All Members
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
@@ -561,7 +592,7 @@ export default function MemberManagement() {
                         </div>
                           <div className="space-y-2">
                             <Label htmlFor="department-select">Department</Label>
-                             <Select onValueChange={handleDepartmentSelectChange} value={newMember.department}>
+                             <Select onValueChange={handleDepartmentSelectChange} value={newMember.department} defaultValue={DEFAULT_DEPARTMENT}>
                                 <SelectTrigger id="department-select">
                                     <SelectValue placeholder="Select a department" />
                                 </SelectTrigger>
