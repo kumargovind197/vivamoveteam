@@ -41,38 +41,57 @@ const initialMembersData = [
   { id: '12', memberId: 'EMP-012', firstName: 'James', surname: 'Scott', email: 'james.scott@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 295000 },
 ];
 
-const mockPastLeaderboards = {
-    '2024-07': {
-        individuals: [
-            { id: '1', firstName: 'Alice', surname: 'Wonder', department: 'HR', monthlySteps: 320000, avatarUrl: 'https://placehold.co/100x100.png' },
-            { id: '2', firstName: 'Bob', surname: 'Builder', department: 'Engineering', monthlySteps: 290000, avatarUrl: 'https://placehold.co/100x100.png' },
-            { id: '4', firstName: 'Sarah', surname: 'Miller', department: 'Marketing', monthlySteps: 280000, avatarUrl: 'https://placehold.co/100x100.png' },
-            { id: '6', firstName: 'Jessica', surname: 'Brown', department: 'HR', monthlySteps: 275000, avatarUrl: 'https://placehold.co/100x100.png' },
-            { id: '5', firstName: 'David', surname: 'Wilson', department: 'Sales', monthlySteps: 260000, avatarUrl: 'https://placehold.co/100x100.png' },
-        ],
-        departments: [
-            { name: 'HR', avgSteps: 297500 },
-            { name: 'Engineering', avgSteps: 260000 },
-            { name: 'Sales', avgSteps: 250000 },
-            { name: 'Marketing', avgSteps: 220000 },
-        ]
-    },
-    '2024-06': {
-        individuals: [
-            { id: '3', firstName: 'Charlie', surname: 'Chocolate', department: 'Sales', monthlySteps: 350000, avatarUrl: 'https://placehold.co/100x100.png' },
-             { id: '1', firstName: 'Alice', surname: 'Wonder', department: 'HR', monthlySteps: 310000, avatarUrl: 'https://placehold.co/100x100.png' },
-             { id: '2', firstName: 'Bob', surname: 'Builder', department: 'Engineering', monthlySteps: 305000, avatarUrl: 'https://placehold.co/100x100.png' },
-             { id: '5', firstName: 'David', surname: 'Wilson', department: 'Sales', monthlySteps: 290000, avatarUrl: 'https://placehold.co/100x100.png' },
-             { id: '6', firstName: 'Jessica', surname: 'Brown', department: 'HR', monthlySteps: 280000, avatarUrl: 'https://placehold.co/100x100.png' },
-        ],
-        departments: [
-            { name: 'Sales', avgSteps: 320000 },
-            { name: 'HR', avgSteps: 295000 },
-            { name: 'Engineering', avgSteps: 270000 },
-            { name: 'Marketing', avgSteps: 210000 },
-        ]
+const allTimeMembersForLeaderboard = [
+    ...initialMembersData,
+    { id: '13', memberId: 'EMP-013', firstName: 'Alice', surname: 'Wonder', department: 'HR', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 0 },
+    { id: '14', memberId: 'EMP-014', firstName: 'Bob', surname: 'Builder', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 0 },
+    { id: '15', memberId: 'EMP-015', firstName: 'Charlie', surname: 'Chocolate', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 0 },
+];
+
+// --- DYNAMIC MOCK DATA GENERATION for past leaderboards ---
+const generatePastLeaderboardData = () => {
+    const data: any = {};
+    const today = new Date();
+    
+    // Generate data for the last 13 months
+    for (let i = 1; i <= 13; i++) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+
+        // Shuffle members and create slightly randomized step counts for variety
+        const individuals = [...allTimeMembersForLeaderboard]
+            .map(member => ({
+                ...member,
+                monthlySteps: Math.floor(Math.random() * (350000 - 150000 + 1)) + 150000
+            }))
+            .sort((a, b) => b.monthlySteps - a.monthlySteps);
+        
+        const departments: Record<string, { totalSteps: number; memberCount: number }> = {};
+        individuals.forEach(member => {
+            if (!departments[member.department]) {
+                departments[member.department] = { totalSteps: 0, memberCount: 0 };
+            }
+            departments[member.department].totalSteps += member.monthlySteps;
+            departments[member.department].memberCount++;
+        });
+
+        const departmentLeaderboard = Object.entries(departments)
+            .map(([name, deptData]) => ({
+                name,
+                avgSteps: Math.round(deptData.totalSteps / deptData.memberCount),
+            }))
+            .sort((a, b) => b.avgSteps - a.avgSteps);
+        
+        data[monthKey] = {
+            individuals: individuals.slice(0, 5),
+            departments: departmentLeaderboard.slice(0, 5)
+        };
     }
-}
+    return data;
+};
+
+const mockPastLeaderboards = generatePastLeaderboardData();
+// --- END MOCK DATA GENERATION ---
 
 type Member = typeof initialMembersData[0];
 
@@ -352,7 +371,7 @@ export default function MemberManagement() {
                             Past Leaderboards
                         </CardTitle>
                         <CardDescription>
-                            Review final rankings from previous months.
+                            Review final rankings from previous months (last 13 months).
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
