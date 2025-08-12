@@ -111,6 +111,22 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
                 </div>
              </div>
 
+            {view === 'member' && (
+                <>
+                    <Button asChild variant="outline">
+                        <Link href="/group">
+                            <Users className="mr-2 h-4 w-4" />
+                            <span>Group Leader View</span>
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href="/admin">
+                            <Wrench className="mr-2 h-4 w-4" />
+                            <span>Admin View</span>
+                        </Link>
+                    </Button>
+                </>
+            )}
              {(view === 'group' || view === 'admin') && (
                 <Button asChild variant="outline">
                     <Link href="/">
