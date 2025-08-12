@@ -45,7 +45,7 @@ export default function AdminPanel() {
   const [newGroupId, setNewGroupId] = useState('');
   const [newGroupPassword, setNewGroupPassword] = useState('');
   const [newMemberCapacity, setNewMemberCapacity] = useState(100);
-  const [newAdsEnabled, setNewAdsEnabled] = useState(true);
+  const [newAdsEnabled, setNewAdsEnabled] = useState(false);
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
   
@@ -122,7 +122,7 @@ export default function AdminPanel() {
     setNewGroupId('');
     setNewGroupPassword('');
     setNewMemberCapacity(100);
-    setNewAdsEnabled(true);
+    setNewAdsEnabled(false);
     setNewLogoFile(null);
     setNewLogoPreview(null);
   };
