@@ -6,6 +6,7 @@ import AppHeader from '@/components/app-header';
 import MemberManagement from '@/components/member-management';
 import type { User } from 'firebase/auth';
 import { MOCK_GROUPS } from '@/lib/mock-data';
+import AppFooter from '@/components/app-footer';
 
 
 // Mock user for development purposes
@@ -50,6 +51,7 @@ export default function GroupPage() {
       <main className="flex-1">
         <MemberManagement />
       </main>
+      <AppFooter view="group" group={groupData} />
     </div>
   );
 }

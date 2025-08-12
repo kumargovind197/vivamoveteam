@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { MOCK_USERS, MOCK_GROUPS } from '@/lib/mock-data';
 import AdBanner from '@/components/ad-banner';
 import FooterAdBanner from '@/components/footer-ad-banner';
+import AppFooter from '@/components/app-footer';
 
 // This now represents the "logged-in" user's ID for the session.
 const LOGGED_IN_USER_ID = 'member@example.com';
@@ -122,13 +123,16 @@ export default function Home() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <AppHeader user={currentUser} group={groupData} view="member" />
-      <NotificationManager />
-      <main className="flex-1">
-        <DataCards user={currentUser} onDataFetched={setFitData} />
-        <ClientDashboard user={currentUser} fitData={fitData} view="member" group={groupData}/>
-        <MessageInbox />
-      </main>
-      <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />
+      <div className="flex-grow">
+        <NotificationManager />
+        <main className="flex-1">
+          <DataCards user={currentUser} onDataFetched={setFitData} />
+          <ClientDashboard user={currentUser} fitData={fitData} view="member" group={groupData}/>
+          <MessageInbox />
+        </main>
+        <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />
+      </div>
+      <AppFooter view="member" group={groupData} />
     </div>
   );
 }

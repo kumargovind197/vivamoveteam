@@ -4,7 +4,15 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from './ui/dialog';
-import { Info } from 'lucide-react';
+import { Info, Link } from 'lucide-react';
+import type { MOCK_GROUPS } from '@/lib/mock-data';
+
+type Group = typeof MOCK_GROUPS[keyof typeof MOCK_GROUPS];
+
+interface AppInfoDialogProps {
+    view: 'member' | 'group' | 'admin';
+    group?: Group | null;
+}
 
 const VivaMoveLogo = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,8 +22,14 @@ const VivaMoveLogo = () => (
     </svg>
 )
 
-export default function AppInfoDialog() {
+export default function AppInfoDialog({ view, group }: AppInfoDialogProps) {
   const currentYear = new Date().getFullYear();
+
+  const getOrganisationName = () => {
+      if (view === 'admin') return 'Main Admin';
+      if (group) return group.name;
+      return 'Not Enrolled';
+  }
 
   return (
     <Dialog>
@@ -30,27 +44,27 @@ export default function AppInfoDialog() {
           <div className="flex items-center gap-4 mb-4">
              <VivaMoveLogo />
              <div>
-                <DialogTitle className="text-xl">ViVa move</DialogTitle>
+                <DialogTitle className="text-xl">ViVa step up challenge</DialogTitle>
                 <DialogDescription>A motivational step tracking app.</DialogDescription>
              </div>
           </div>
         </DialogHeader>
         <div className="grid gap-4 py-4 text-sm">
             <div className="flex justify-between">
-                <span className="text-muted-foreground">App Name:</span>
-                <span className="font-medium">ViVa move</span>
-            </div>
-            <div className="flex justify-between">
                 <span className="text-muted-foreground">App Version:</span>
-                <span className="font-medium">1.0.0</span>
+                <span className="font-medium">2.025.2</span>
             </div>
              <div className="flex justify-between">
-                <span className="text-muted-foreground">Clinic:</span>
-                <span className="font-medium">Wellness Clinic</span>
+                <span className="text-muted-foreground">Organisation:</span>
+                <span className="font-medium">{getOrganisationName()}</span>
             </div>
              <div className="flex justify-between">
-                <span className="text-muted-foreground">Contact:</span>
-                <span className="font-medium">Your admin for support</span>
+                <span className="text-muted-foreground">Admin:</span>
+                <span className="font-medium">Contact your admin for support</span>
+            </div>
+            <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">URL:</span>
+                <span className="font-medium text-xs text-muted-foreground italic">Link will be available soon</span>
             </div>
         </div>
         <DialogFooter>
