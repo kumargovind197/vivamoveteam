@@ -18,6 +18,7 @@ import { MOCK_USERS, MOCK_GROUPS } from '@/lib/mock-data';
 import AdBanner from '@/components/ad-banner';
 import FooterAdBanner from '@/components/footer-ad-banner';
 import AppFooter from '@/components/app-footer';
+import { popupAdContent, footerAdContent } from '@/lib/ad-store';
 
 // This now represents the "logged-in" user's ID for the session.
 const LOGGED_IN_USER_ID = 'member@example.com';
@@ -84,18 +85,6 @@ export default function Home() {
     }
   }, []);
 
-  const adContent = {
-      description: 'Ad for ergonomic office chairs',
-      imageUrl: 'https://placehold.co/400x300.png',
-      targetUrl: '#',
-  };
-  const footerAdContent = {
-      description: 'Horizontal ad banner for wellness retreats',
-      imageUrl: 'https://placehold.co/728x90.png',
-      targetUrl: '#',
-  };
-
-
   // Render a "logged out" or "access revoked" state if the user has been deleted.
   if (isAccessRevoked || !currentUser) {
       return (
@@ -130,6 +119,9 @@ export default function Home() {
           <ClientDashboard user={currentUser} fitData={fitData} view="member" group={groupData}/>
           <MessageInbox />
         </main>
+        {/** We show the popup ad here as it's an overlay */}
+        <AdBanner isPopupVisible={showPopupAd} adContent={popupAdContent} />
+        {/** The footer ad is part of the main layout flow */}
         <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />
       </div>
       <AppFooter view="member" group={groupData} />

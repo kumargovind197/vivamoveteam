@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert, Palette } from 'lucide-react';
+import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert, Palette, Annoyed } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { MOCK_USERS, addGroupUser, MOCK_GROUPS } from '@/lib/mock-data';
 import { Switch } from './ui/switch';
 import { vivaLogoSrc, setVivaLogoSrc } from '@/lib/logo-store';
+import { popupAdContent, footerAdContent, setPopupAdContent, setFooterAdContent } from '@/lib/ad-store';
 import Image from 'next/image';
 
 const mockMemberHistoricalData = {
@@ -64,8 +65,32 @@ export default function AdminPanel() {
   
   const [vivaLogoFile, setVivaLogoFile] = useState<File | null>(null);
   const [vivaLogoPreview, setVivaLogoPreview] = useState<string>(vivaLogoSrc);
+  
+  // State for ad management
+  const [currentPopupAd, setCurrentPopupAd] = useState(popupAdContent);
+  const [currentFooterAd, setCurrentFooterAd] = useState(footerAdContent);
+  const [popupAdFile, setPopupAdFile] = useState<File | null>(null);
+  const [footerAdFile, setFooterAdFile] = useState<File | null>(null);
+
 
   const { toast } = useToast();
+
+  const handleGenericFileChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    setter: React.Dispatch<React.SetStateAction<File | null>>,
+    previewSetter: React.Dispatch<React.SetStateAction<any>>,
+    previewField: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setter(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        previewSetter((prev: any) => ({ ...prev, [previewField]: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'new' | 'edit' | 'viva') => {
     const file = event.target.files?.[0];
@@ -248,14 +273,22 @@ export default function AdminPanel() {
   }
 
   const handleSaveVivaLogo = () => {
-      if (!vivaLogoFile && !vivaLogoPreview) {
-          toast({ variant: 'destructive', title: 'No logo selected', description: 'Please select a logo file to upload.' });
-          return;
-      }
       setVivaLogoSrc(vivaLogoPreview);
       toast({ title: 'Success', description: 'The ViVa logo has been updated across the application.' });
       setVivaLogoFile(null);
   }
+  
+  const handleSaveAd = (type: 'popup' | 'footer') => {
+      if (type === 'popup') {
+          setPopupAdContent(currentPopupAd);
+          setPopupAdFile(null);
+      } else {
+          setFooterAdContent(currentFooterAd);
+          setFooterAdFile(null);
+      }
+       toast({ title: 'Success', description: `The ${type} ad content has been updated.` });
+  };
+
 
   return (
     <>
@@ -269,6 +302,7 @@ export default function AdminPanel() {
       <Tabs defaultValue="groups" orientation="vertical" className="flex flex-col md:flex-row gap-8">
          <TabsList className="grid md:grid-cols-1 w-full md:w-48 shrink-0">
             <TabsTrigger value="groups"><Building className="mr-2" />Groups</TabsTrigger>
+            <TabsTrigger value="adverts"><Annoyed className="mr-2" />Adverts</TabsTrigger>
             <TabsTrigger value="analysis"><PieChart className="mr-2" />Analysis</TabsTrigger>
             <TabsTrigger value="security"><ShieldCheck className="mr-2" />Security</TabsTrigger>
             <TabsTrigger value="logo"><Palette className="mr-2" />ViVa Logo</TabsTrigger>
@@ -304,7 +338,7 @@ export default function AdminPanel() {
                                         {groups.map((group) => (
                                             <TableRow key={group.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
-                                                    <div className="relative w-24 h-10 bg-muted rounded-md">
+                                                    <div className="relative w-24 h-10 bg-muted rounded-md shrink-0">
                                                         <Image src={group.logo} alt={`${group.name} logo`} fill className="object-cover rounded-md"/>
                                                     </div>
                                                     {group.name}
@@ -416,6 +450,70 @@ export default function AdminPanel() {
                     </TabsContent>
                 </Tabs>
             </TabsContent>
+            <TabsContent value="adverts">
+                 <div className="space-y-8">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Manage Pop-up Ad</CardTitle>
+                            <CardDescription>Configure the pop-up ad banner shown to members.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Current Ad Image</Label>
+                                <div className="relative w-full aspect-[4/3] max-w-xs bg-muted rounded-md">
+                                    <Image src={currentPopupAd.imageUrl} alt={currentPopupAd.description} fill className="object-cover rounded-md"/>
+                                </div>
+                            </div>
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="popup-ad-upload">Upload New Image</Label>
+                                <Input id="popup-ad-upload" type="file" accept="image/*" onChange={(e) => handleGenericFileChange(e, setPopupAdFile, setCurrentPopupAd, 'imageUrl')} />
+                                {popupAdFile && <p className="text-sm text-muted-foreground">{popupAdFile.name}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="popup-desc">Ad Description (Alt Text)</Label>
+                                <Input id="popup-desc" value={currentPopupAd.description} onChange={(e) => setCurrentPopupAd(prev => ({ ...prev, description: e.target.value }))} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="popup-url">Target URL</Label>
+                                <Input id="popup-url" type="url" value={currentPopupAd.targetUrl} onChange={(e) => setCurrentPopupAd(prev => ({ ...prev, targetUrl: e.target.value }))} />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button onClick={() => handleSaveAd('popup')}>Save Pop-up Ad</Button>
+                        </CardFooter>
+                     </Card>
+                      <Card>
+                        <CardHeader>
+                            <CardTitle>Manage Footer Ad</CardTitle>
+                            <CardDescription>Configure the footer ad banner shown to members.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           <div className="space-y-2">
+                                <Label>Current Ad Image</Label>
+                                <div className="relative w-full aspect-[728/90] max-w-2xl bg-muted rounded-md">
+                                    <Image src={currentFooterAd.imageUrl} alt={currentFooterAd.description} fill className="object-contain rounded-md"/>
+                                </div>
+                            </div>
+                            <div className="grid w-full max-w-sm items-center gap-1.5">
+                                <Label htmlFor="footer-ad-upload">Upload New Image</Label>
+                                <Input id="footer-ad-upload" type="file" accept="image/*" onChange={(e) => handleGenericFileChange(e, setFooterAdFile, setCurrentFooterAd, 'imageUrl')} />
+                                {footerAdFile && <p className="text-sm text-muted-foreground">{footerAdFile.name}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="footer-desc">Ad Description (Alt Text)</Label>
+                                <Input id="footer-desc" value={currentFooterAd.description} onChange={(e) => setCurrentFooterAd(prev => ({ ...prev, description: e.target.value }))} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="footer-url">Target URL</Label>
+                                <Input id="footer-url" type="url" value={currentFooterAd.targetUrl} onChange={(e) => setCurrentFooterAd(prev => ({ ...prev, targetUrl: e.target.value }))} />
+                            </div>
+                        </CardContent>
+                         <CardFooter>
+                            <Button onClick={() => handleSaveAd('footer')}>Save Footer Ad</Button>
+                        </CardFooter>
+                     </Card>
+                 </div>
+            </TabsContent>
             <TabsContent value="analysis">
                  <div className="space-y-8">
                     <Card>
@@ -502,7 +600,7 @@ export default function AdminPanel() {
                         <div className="space-y-2">
                             <Label>Current Logo</Label>
                             <div className="p-4 bg-muted rounded-md flex items-center justify-center">
-                                <img src={vivaLogoSrc} alt="Current ViVa Logo" className="h-10 w-10" />
+                                <img src={vivaLogoPreview} alt="Current ViVa Logo" className="h-10 w-auto" />
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -528,7 +626,7 @@ export default function AdminPanel() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button onClick={handleSaveVivaLogo} disabled={!vivaLogoFile && !vivaLogoPreview}>Save New Logo</Button>
+                        <Button onClick={handleSaveVivaLogo} disabled={!vivaLogoFile && vivaLogoPreview === vivaLogoSrc}>Save New Logo</Button>
                     </CardFooter>
                 </Card>
             </TabsContent>
@@ -577,15 +675,15 @@ export default function AdminPanel() {
                 <div className="space-y-2">
                     <Label>Group Logo</Label>
                     <div className="flex items-center gap-4">
+                        <div className="relative w-40 h-16 bg-muted rounded-md">
                         {editedLogoPreview ? (
-                            <div className="relative w-40 h-16 bg-muted rounded-md">
-                                <Image src={editedLogoPreview} alt="Group Logo Preview" fill className="object-cover rounded-md" />
-                            </div>
+                            <Image src={editedLogoPreview} alt="Group Logo Preview" fill className="object-cover rounded-md" />
                         ) : (
-                             <div className="h-16 w-40 rounded-md bg-muted flex items-center justify-center">
+                            <div className="h-full w-full flex items-center justify-center">
                                 <Building className="h-8 w-8 text-muted-foreground" />
                             </div>
                         )}
+                        </div>
                         <div className="grid w-full max-w-sm items-center gap-1.5">
                             <Input id="edit-logo-upload" type="file" accept="image/*" onChange={(e) => handleLogoChange(e, 'edit')} className="hidden" />
                             <Button asChild variant="outline">
@@ -608,3 +706,4 @@ export default function AdminPanel() {
     </>
   );
 }
+
