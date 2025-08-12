@@ -155,6 +155,7 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
 
 const ITEMS_PER_PAGE = 10;
 const DEFAULT_DEPARTMENT = 'Independent';
+const MAX_DEPARTMENTS = 20;
 
 
 export default function MemberManagement() {
@@ -218,6 +219,7 @@ export default function MemberManagement() {
   const currentMemberCount = membersData.length;
   const remainingSlots = maxMembers - currentMemberCount;
   const isAtCapacity = currentMemberCount >= maxMembers;
+  const isAtDepartmentCapacity = departments.length >= MAX_DEPARTMENTS;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -308,6 +310,10 @@ export default function MemberManagement() {
   };
 
   const handleAddDepartment = () => {
+    if (isAtDepartmentCapacity) {
+       toast({ variant: 'destructive', title: "Department Limit Reached", description: `You cannot add more than ${MAX_DEPARTMENTS} departments.` });
+       return;
+    }
     if (newDepartment && !departments.includes(newDepartment)) {
       setDepartments(prev => [...prev, newDepartment].sort());
       setNewDepartment('');
@@ -374,6 +380,66 @@ export default function MemberManagement() {
             </TabsContent>
             <TabsContent value="manage">
                 <div className="space-y-8 pt-4">
+
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Manage Departments</CardTitle>
+                            <CardDescription>
+                                Add or remove departments available for member assignment. You can have a maximum of {MAX_DEPARTMENTS} departments.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div>
+                                <h4 className="text-sm font-medium mb-2">Existing Departments ({departments.length}/{MAX_DEPARTMENTS})</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {departments.map(dept => (
+                                        <div key={dept} className="flex items-center gap-1 bg-muted rounded-full px-3 py-1 text-sm">
+                                            <span>{dept}</span>
+                                            {dept !== DEFAULT_DEPARTMENT && (
+                                                 <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => setDepartmentToRemove(dept)}>
+                                                            <XCircle className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure you want to remove the "{dept}" department?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                All members currently in this department will be moved to the "{DEFAULT_DEPARTMENT}" department. This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleRemoveDepartment(dept)}>
+                                                                Yes, Remove Department
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-medium mb-2">Add New Department</h4>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        placeholder="New department name..."
+                                        value={newDepartment}
+                                        onChange={(e) => setNewDepartment(e.target.value)}
+                                        disabled={isAtDepartmentCapacity}
+                                    />
+                                    <Button onClick={handleAddDepartment} disabled={isAtDepartmentCapacity}>
+                                        <PlusCircle className="mr-2" /> Add
+                                    </Button>
+                                </div>
+                                {isAtDepartmentCapacity && <p className="text-xs text-destructive mt-2">Department limit reached.</p>}
+                            </div>
+                        </CardContent>
+                    </Card>
+
                      <Card>
                         <CardHeader>
                             <CardTitle>Member List</CardTitle>
@@ -501,60 +567,6 @@ export default function MemberManagement() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Manage Departments</CardTitle>
-                            <CardDescription>Add or remove departments available for member assignment.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div>
-                                <h4 className="text-sm font-medium mb-2">Existing Departments</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {departments.map(dept => (
-                                        <div key={dept} className="flex items-center gap-1 bg-muted rounded-full px-3 py-1 text-sm">
-                                            <span>{dept}</span>
-                                            {dept !== DEFAULT_DEPARTMENT && (
-                                                 <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => setDepartmentToRemove(dept)}>
-                                                            <XCircle className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Are you sure you want to remove the "{dept}" department?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                All members currently in this department will be moved to the "{DEFAULT_DEPARTMENT}" department. This action cannot be undone.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleRemoveDepartment(dept)}>
-                                                                Yes, Remove Department
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium mb-2">Add New Department</h4>
-                                <div className="flex gap-2">
-                                    <Input 
-                                        placeholder="New department name..."
-                                        value={newDepartment}
-                                        onChange={(e) => setNewDepartment(e.target.value)}
-                                    />
-                                    <Button onClick={handleAddDepartment}>
-                                        <PlusCircle className="mr-2" /> Add
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
                             <CardTitle>Bulk Message</CardTitle>
                             <CardDescription>Send a message to all members of the group.</CardDescription>
                         </CardHeader>
@@ -677,5 +689,3 @@ export default function MemberManagement() {
     </div>
   )
 }
-
-    
