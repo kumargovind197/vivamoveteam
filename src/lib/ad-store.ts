@@ -11,13 +11,13 @@ interface AdContent {
 export let popupAdContent: AdContent = {
   description: 'Ad for ergonomic office chairs',
   imageUrl: 'https://placehold.co/400x300.png',
-  targetUrl: '#',
+  targetUrl: 'https://www.doctors.org.uk',
 };
 
 export let footerAdContent: AdContent = {
   description: 'Horizontal ad banner for wellness retreats',
   imageUrl: 'https://placehold.co/728x90.png',
-  targetUrl: '#',
+  targetUrl: 'https://www.doctors.org.uk',
 };
 
 export function setPopupAdContent(newContent: AdContent) {
