@@ -27,9 +27,9 @@ export let MOCK_GROUPS: Record<string, {
     password?: string;
     adsEnabled: boolean;
 }> = {
-    'group-awesome': { id: 'group-awesome', name: 'Awesome Corp', capacity: 200, enrolled: 120, logo: 'https://placehold.co/128x128.png', adsEnabled: true },
-    'group-innovate': { id: 'group-innovate', name: 'Innovate Inc', capacity: 150, enrolled: 88, logo: 'https://placehold.co/128x128.png', adsEnabled: false },
-    'group-synergy': { id: 'group-synergy', name: 'Synergy Solutions', capacity: 100, enrolled: 45, logo: 'https://placehold.co/128x128.png', adsEnabled: true },
+    'group-awesome': { id: 'group-awesome', name: 'Awesome Corp', capacity: 200, enrolled: 120, logo: 'https://placehold.co/200x50.png', adsEnabled: true },
+    'group-innovate': { id: 'group-innovate', name: 'Innovate Inc', capacity: 150, enrolled: 88, logo: 'https://placehold.co/200x50.png', adsEnabled: false },
+    'group-synergy': { id: 'group-synergy', name: 'Synergy Solutions', capacity: 100, enrolled: 45, logo: 'https://placehold.co/200x50.png', adsEnabled: true },
 };
 
 // -- MOCK MESSAGE DATABASE --

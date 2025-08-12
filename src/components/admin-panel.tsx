@@ -18,15 +18,15 @@ import { Switch } from './ui/switch';
 const mockMemberHistoricalData = {
     'group-awesome': [
         { memberId: '1', memberName: 'John Smith', department: 'Sales', data: [
-            { month: '2024-Q2', avgSteps: 8008, totalSteps: 720720 },
-            { month: '2024-Q1', avgSteps: 6015, totalSteps: 541350 },
+            { month: '2024-Q2', totalSteps: 720720 },
+            { month: '2024-Q1', totalSteps: 541350 },
         ]},
         { memberId: '2', memberName: 'Emily Jones', department: 'Engineering', data: [
-             { month: '2024-Q2', avgSteps: 12978, totalSteps: 1168020 },
-             { month: '2024-Q1', avgSteps: 10674, totalSteps: 960660 },
+             { month: '2024-Q2', totalSteps: 1168020 },
+             { month: '2024-Q1', totalSteps: 960660 },
         ]},
         { memberId: '8', memberName: 'Old Member', department: 'Marketing', status: 'unenrolled', data: [
-             { month: '2023-Q4', avgSteps: 1200, totalSteps: 108000 },
+             { month: '2023-Q4', totalSteps: 108000 },
         ]}
     ],
     'group-innovate': [
@@ -105,7 +105,7 @@ export default function AdminPanel() {
         name: newGroupName,
         capacity: newMemberCapacity,
         enrolled: 0,
-        logo: newLogoPreview || 'https://placehold.co/128x128.png',
+        logo: newLogoPreview || 'https://placehold.co/200x50.png',
         password: newGroupPassword,
         adsEnabled: newAdsEnabled
     };
@@ -176,7 +176,7 @@ export default function AdminPanel() {
     
     const allQuarters = Array.from(new Set(groupData.flatMap(p => p.data.map(d => d.month)))).sort();
     
-    const headers = ['MemberID', 'MemberName', 'Department', 'Overall_Avg_Steps'];
+    const headers = ['MemberID', 'MemberName', 'Department'];
     allQuarters.forEach(quarter => {
         headers.push(`TotalSteps_${quarter}`);
     });
@@ -184,14 +184,10 @@ export default function AdminPanel() {
     const csvRows = [headers.join(',')];
 
     for (const member of groupData) {
-        const totalAvgSteps = member.data.reduce((sum, d) => sum + d.avgSteps, 0);
-        const overallAvgSteps = member.data.length > 0 ? Math.round(totalAvgSteps / member.data.length) : 0;
-
         const row: (string | number)[] = [
             member.memberId,
             `"${member.memberName}"`,
             member.department,
-            overallAvgSteps,
         ];
 
         const memberDataByQuarter = new Map(member.data.map(d => [d.month, d]));
@@ -288,7 +284,7 @@ export default function AdminPanel() {
                                         {groups.map((group) => (
                                             <TableRow key={group.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
-                                                    <img src={group.logo} alt={`${group.name} logo`} className="h-10 w-10 rounded-md object-cover bg-muted" />
+                                                    <img src={group.logo} alt={`${group.name} logo`} className="h-10 w-auto rounded-md object-cover bg-muted" />
                                                     {group.name}
                                                 </TableCell>
                                                 <TableCell>{group.enrolled}</TableCell>
@@ -367,9 +363,9 @@ export default function AdminPanel() {
                             <Label>Group Logo</Label>
                             <div className="flex items-center gap-4">
                             {newLogoPreview ? (
-                                <img src={newLogoPreview} alt="New Group Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
+                                <img src={newLogoPreview} alt="New Group Logo Preview" className="h-16 w-auto rounded-md object-cover bg-muted" />
                             ) : (
-                                <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center">
+                                <div className="h-16 w-40 rounded-md bg-muted flex items-center justify-center">
                                 <Building className="h-8 w-8 text-muted-foreground" />
                                 </div>
                             )}
@@ -518,9 +514,9 @@ export default function AdminPanel() {
                     <Label>Group Logo</Label>
                     <div className="flex items-center gap-4">
                         {editedLogoPreview ? (
-                            <img src={editedLogoPreview} alt="Group Logo Preview" className="h-20 w-20 rounded-md object-cover bg-muted" />
+                            <img src={editedLogoPreview} alt="Group Logo Preview" className="h-16 w-auto rounded-md object-cover bg-muted" />
                         ) : (
-                             <div className="h-20 w-20 rounded-md bg-muted flex items-center justify-center">
+                             <div className="h-16 w-40 rounded-md bg-muted flex items-center justify-center">
                                 <Building className="h-8 w-8 text-muted-foreground" />
                             </div>
                         )}

@@ -32,14 +32,17 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
   const renderGroupBranding = () => {
     if (group) {
         return (
-            <Image
-                data-ai-hint="company logo"
-                src={group.logo}
-                alt={`${group.name} Logo`}
-                width={40}
-                height={40}
-                className="rounded-md"
-            />
+            <div className="flex items-center gap-4">
+                <Image
+                    data-ai-hint="company logo"
+                    src={group.logo}
+                    alt={`${group.name} Logo`}
+                    width={160}
+                    height={40}
+                    className="rounded-md object-cover"
+                />
+                <span className="font-headline text-lg font-semibold text-foreground hidden md:block">{group.name}</span>
+            </div>
         );
     }
     // Default icon for non-enrolled users
@@ -53,19 +56,22 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-card shadow-sm">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+        <div className="container flex h-20 items-center justify-between px-4 md:px-6">
           
           <div className="flex items-center">
             {view === 'member' && renderGroupBranding()}
             {(view === 'group' && !memberId && group) && (
-                <Image
-                    data-ai-hint="company logo"
-                    src={group.logo}
-                    alt={`${group.name} Logo`}
-                    width={40}
-                    height={40}
-                    className="rounded-md"
-                />
+                <div className="flex items-center gap-4">
+                     <Image
+                        data-ai-hint="company logo"
+                        src={group.logo}
+                        alt={`${group.name} Logo`}
+                        width={160}
+                        height={40}
+                        className="rounded-md object-cover"
+                    />
+                     <span className="font-headline text-lg font-semibold text-foreground hidden md:block">{group.name}</span>
+                </div>
             )}
              {view === 'group' && memberId && (
                 <Button asChild variant="outline" size="sm">
