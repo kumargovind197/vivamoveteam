@@ -37,7 +37,7 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
                     data-ai-hint="company logo"
                     src={group.logo}
                     alt={`${group.name} Logo`}
-                    width={160}
+                    width={320}
                     height={40}
                     className="rounded-md object-cover"
                 />
@@ -66,7 +66,7 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
                         data-ai-hint="company logo"
                         src={group.logo}
                         alt={`${group.name} Logo`}
-                        width={160}
+                        width={320}
                         height={40}
                         className="rounded-md object-cover"
                     />
