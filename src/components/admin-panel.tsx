@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { MOCK_USERS, addGroupUser, MOCK_GROUPS } from '@/lib/mock-data';
 import { Switch } from './ui/switch';
 import { vivaLogoSrc, setVivaLogoSrc } from '@/lib/logo-store';
+import Image from 'next/image';
 
 const mockMemberHistoricalData = {
     'group-awesome': [
@@ -247,7 +248,7 @@ export default function AdminPanel() {
   }
 
   const handleSaveVivaLogo = () => {
-      if (!vivaLogoFile) {
+      if (!vivaLogoFile && !vivaLogoPreview) {
           toast({ variant: 'destructive', title: 'No logo selected', description: 'Please select a logo file to upload.' });
           return;
       }
@@ -303,7 +304,9 @@ export default function AdminPanel() {
                                         {groups.map((group) => (
                                             <TableRow key={group.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
-                                                    <img src={group.logo} alt={`${group.name} logo`} className="h-10 w-auto rounded-md object-cover bg-muted" />
+                                                    <div className="relative w-24 h-10 bg-muted rounded-md">
+                                                        <Image src={group.logo} alt={`${group.name} logo`} fill className="object-cover rounded-md"/>
+                                                    </div>
                                                     {group.name}
                                                 </TableCell>
                                                 <TableCell>{group.enrolled}</TableCell>
@@ -382,7 +385,9 @@ export default function AdminPanel() {
                             <Label>Group Logo</Label>
                             <div className="flex items-center gap-4">
                             {newLogoPreview ? (
-                                <img src={newLogoPreview} alt="New Group Logo Preview" className="h-16 w-auto rounded-md object-cover bg-muted" />
+                                <div className="relative w-40 h-16 bg-muted rounded-md">
+                                    <Image src={newLogoPreview} alt="New Group Logo Preview" fill className="object-cover rounded-md"/>
+                                </div>
                             ) : (
                                 <div className="h-16 w-40 rounded-md bg-muted flex items-center justify-center">
                                 <Building className="h-8 w-8 text-muted-foreground" />
@@ -523,7 +528,7 @@ export default function AdminPanel() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button onClick={handleSaveVivaLogo} disabled={!vivaLogoFile}>Save New Logo</Button>
+                        <Button onClick={handleSaveVivaLogo} disabled={!vivaLogoFile && !vivaLogoPreview}>Save New Logo</Button>
                     </CardFooter>
                 </Card>
             </TabsContent>
@@ -573,7 +578,9 @@ export default function AdminPanel() {
                     <Label>Group Logo</Label>
                     <div className="flex items-center gap-4">
                         {editedLogoPreview ? (
-                            <img src={editedLogoPreview} alt="Group Logo Preview" className="h-16 w-auto rounded-md object-cover bg-muted" />
+                            <div className="relative w-40 h-16 bg-muted rounded-md">
+                                <Image src={editedLogoPreview} alt="Group Logo Preview" fill className="object-cover rounded-md" />
+                            </div>
                         ) : (
                              <div className="h-16 w-40 rounded-md bg-muted flex items-center justify-center">
                                 <Building className="h-8 w-8 text-muted-foreground" />
@@ -601,7 +608,3 @@ export default function AdminPanel() {
     </>
   );
 }
-
-    
-
-    

@@ -47,14 +47,15 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
     if (group) {
         return (
             <div className="flex items-center gap-4">
-                <Image
-                    data-ai-hint="company logo"
-                    src={group.logo}
-                    alt={`${group.name} Logo`}
-                    width={320}
-                    height={40}
-                    className="rounded-md object-cover"
-                />
+                <div className="relative w-40 h-10">
+                    <Image
+                        fill
+                        data-ai-hint="company logo"
+                        src={group.logo}
+                        alt={`${group.name} Logo`}
+                        className="rounded-md object-cover"
+                    />
+                </div>
                 <span className="font-headline text-lg font-semibold text-foreground hidden md:block">{group.name}</span>
             </div>
         );
@@ -76,14 +77,15 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
             {view === 'member' && renderGroupBranding()}
             {(view === 'group' && !memberId && group) && (
                 <div className="flex items-center gap-4">
-                     <Image
-                        data-ai-hint="company logo"
-                        src={group.logo}
-                        alt={`${group.name} Logo`}
-                        width={320}
-                        height={40}
-                        className="rounded-md object-cover"
-                    />
+                    <div className="relative w-40 h-10">
+                         <Image
+                            fill
+                            data-ai-hint="company logo"
+                            src={group.logo}
+                            alt={`${group.name} Logo`}
+                            className="rounded-md object-cover"
+                        />
+                    </div>
                      <span className="font-headline text-lg font-semibold text-foreground hidden md:block">{group.name}</span>
                 </div>
             )}
@@ -146,7 +148,3 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
     </>
   );
 }
-
-    
-
-    
