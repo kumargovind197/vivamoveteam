@@ -59,7 +59,7 @@ export let MOCK_MESSAGES: {
     },
     {
         id: 1,
-        subject: "Welcome to the Step-Up Challenge!",
+        subject: "Welcome to the ViVa step up challenge!",
         content: "Hi Alex, welcome to the challenge! We're excited to have you on board. Remember to sync your device daily. Let's get stepping!",
         received: "2 hours ago",
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),

@@ -8,7 +8,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 flex flex-col items-center gap-4">
           <Footprints className="h-12 w-12 text-primary" />
-          <h1 className="font-headline text-4xl font-bold text-primary">Step-Up Challenge</h1>
+          <h1 className="font-headline text-4xl font-bold text-primary">ViVa step up challenge</h1>
           <p className="text-muted-foreground">Please sign in to continue</p>
         </div>
         <LoginForm />

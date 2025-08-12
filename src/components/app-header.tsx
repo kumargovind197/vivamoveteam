@@ -91,7 +91,7 @@ export default function AppHeader({ user, group, view, memberId, memberName }: A
              <div className="flex items-center gap-2">
                 <VivaMoveLogo />
                 <div>
-                    <span className="block text-sm font-semibold text-primary/80">Step-Up Challenge</span>
+                    <span className="block text-sm font-semibold text-primary/80">ViVa step up challenge</span>
                     <span className="block text-[0.6rem] leading-tight text-muted-foreground">by Viva health solutions</span>
                 </div>
              </div>
