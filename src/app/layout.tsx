@@ -2,7 +2,6 @@
 import type {Metadata} from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
-import AppFooter from '@/components/app-footer';
 
 export const metadata: Metadata = {
   title: 'ViVa move',
@@ -25,7 +24,6 @@ export default function RootLayout({
         <div className="flex-grow">
           {children}
         </div>
-        <AppFooter />
         <Toaster />
       </body>
     </html>
