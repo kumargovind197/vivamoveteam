@@ -65,15 +65,8 @@ export default function Home() {
 
         // Check the group's ad setting from mock data
         if (groupRecord?.adsEnabled) {
-             // Logic to decide which ad to show, could be random or based on other factors
-            const adDecision = Math.random();
-            if (adDecision < 0.5) {
-                setShowPopupAd(true);
-                setShowFooterAd(false);
-            } else {
-                setShowPopupAd(false);
-                setShowFooterAd(true);
-            }
+            setShowPopupAd(true);
+            setShowFooterAd(true);
         } else {
             setShowPopupAd(false);
             setShowFooterAd(false);
