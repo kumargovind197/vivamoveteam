@@ -44,15 +44,17 @@ export default function AdBanner({ isPopupVisible, adContent }: AdBannerProps) {
           >
             <X className="h-4 w-4" />
           </button>
-          <Link href={adContent.targetUrl} passHref target="_blank" rel="noopener noreferrer">
+          <Link href={adContent.targetUrl} passHref legacyBehavior>
+            <a target="_blank" rel="noopener noreferrer" className="cursor-pointer">
              <Image 
                 data-ai-hint="running shoes"
                 src={adContent.imageUrl} 
                 alt={adContent.description} 
                 width={400} 
                 height={300}
-                className="rounded-lg object-cover aspect-[4/3] cursor-pointer"
+                className="rounded-lg object-cover aspect-[4/3]"
               />
+            </a>
           </Link>
         </CardContent>
       </Card>
