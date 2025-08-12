@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert, Palette, Annoyed } from 'lucide-react';
+import { Upload, Building, Edit, Trash2, PieChart, Download, AlertTriangle, ShieldCheck, BadgeCheck, BadgeAlert, Palette, Annoyed, PlusCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
@@ -15,21 +15,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { MOCK_USERS, addGroupUser, MOCK_GROUPS } from '@/lib/mock-data';
 import { Switch } from './ui/switch';
 import { vivaLogoSrc, setVivaLogoSrc } from '@/lib/logo-store';
-import { popupAdContent, footerAdContent, setPopupAdContent, setFooterAdContent } from '@/lib/ad-store';
+import { 
+    AdContent,
+    popupAdContents,
+    footerAdContents,
+    addPopupAd,
+    updatePopupAd,
+    removePopupAd,
+    addFooterAd,
+    updateFooterAd,
+    removeFooterAd
+} from '@/lib/ad-store';
 import Image from 'next/image';
 
 const mockMemberHistoricalData = {
     'group-awesome': [
         { memberId: '1', memberName: 'John Smith', department: 'Sales', data: [
-            { month: '2024-Q2', totalSteps: 720720 },
-            { month: '2024-Q1', totalSteps: 541350 },
+            { month: '2024-Q2', totalSteps: 720720, avgSteps: 8008 },
+            { month: '2024-Q1', totalSteps: 541350, avgSteps: 6015 },
         ]},
         { memberId: '2', memberName: 'Emily Jones', department: 'Engineering', data: [
-             { month: '2024-Q2', totalSteps: 1168020 },
-             { month: '2024-Q1', totalSteps: 960660 },
+             { month: '2024-Q2', totalSteps: 1168020, avgSteps: 12978 },
+             { month: '2024-Q1', totalSteps: 960660, avgSteps: 10674 },
         ]},
         { memberId: '8', memberName: 'Old Member', department: 'Marketing', status: 'unenrolled', data: [
-             { month: '2023-Q4', totalSteps: 108000 },
+             { month: '2023-Q4', totalSteps: 108000, avgSteps: 1200 },
         ]}
     ],
     'group-innovate': [
@@ -53,7 +63,7 @@ export default function AdminPanel() {
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [newLogoPreview, setNewLogoPreview] = useState<string | null>(null);
   
-  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [isGroupEditDialogOpen, setGroupEditDialogOpen] = useState(false);
   const [groupToEdit, setGroupToEdit] = useState<Group | null>(null);
   const [editedLogoFile, setEditedLogoFile] = useState<File | null>(null);
   const [editedLogoPreview, setEditedLogoPreview] = useState<string | null>(null);
@@ -67,26 +77,26 @@ export default function AdminPanel() {
   const [vivaLogoPreview, setVivaLogoPreview] = useState<string>(vivaLogoSrc);
   
   // State for ad management
-  const [currentPopupAd, setCurrentPopupAd] = useState(popupAdContent);
-  const [currentFooterAd, setCurrentFooterAd] = useState(footerAdContent);
-  const [popupAdFile, setPopupAdFile] = useState<File | null>(null);
-  const [footerAdFile, setFooterAdFile] = useState<File | null>(null);
+  const [popupAds, setPopupAds] = useState(popupAdContents);
+  const [footerAds, setFooterAds] = useState(footerAdContents);
+  const [isAdDialogOpen, setAdDialogOpen] = useState(false);
+  const [adToEdit, setAdToEdit] = useState<AdContent & { type: 'popup' | 'footer' } | null>(null);
+  const [adFile, setAdFile] = useState<File | null>(null);
 
 
   const { toast } = useToast();
 
-  const handleGenericFileChange = (
+  const handleFileChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     setter: React.Dispatch<React.SetStateAction<File | null>>,
-    previewSetter: React.Dispatch<React.SetStateAction<any>>,
-    previewField: string
+    previewSetter: (url: string) => void,
   ) => {
     const file = event.target.files?.[0];
     if (file) {
       setter(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        previewSetter((prev: any) => ({ ...prev, [previewField]: reader.result as string }));
+        previewSetter(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -161,12 +171,12 @@ export default function AdminPanel() {
     setNewLogoPreview(null);
   };
 
-  const openEditDialog = (group: Group) => {
+  const openGroupEditDialog = (group: Group) => {
       setGroupToEdit(group);
       setEditedLogoPreview(group.logo);
       setEditedAdsEnabled(group.adsEnabled);
       setEditedLogoFile(null);
-      setEditDialogOpen(true);
+      setGroupEditDialogOpen(true);
   }
 
   const handleUpdateGroup = () => {
@@ -180,7 +190,6 @@ export default function AdminPanel() {
       MOCK_GROUPS[groupToEdit.id] = updatedGroupData;
       setGroups(Object.values(MOCK_GROUPS));
       
-      // Also update the password in the mock user DB if it was changed
       if (groupToEdit.password) {
         addGroupUser(groupToEdit.id, groupToEdit.password, true);
       }
@@ -189,7 +198,7 @@ export default function AdminPanel() {
           title: "Group Updated",
           description: `Details for ${groupToEdit.name} have been successfully updated.`
       });
-      setEditDialogOpen(false);
+      setGroupEditDialogOpen(false);
       setGroupToEdit(null);
   }
 
@@ -210,7 +219,14 @@ export default function AdminPanel() {
     
     const allQuarters = Array.from(new Set(groupData.flatMap(p => p.data.map(d => d.month)))).sort();
     
-    const headers = ['MemberID', 'MemberName', 'Department'];
+    const overallAverages: Record<string, number> = {};
+    groupData.forEach(member => {
+        const totalSteps = member.data.reduce((sum, d) => sum + d.totalSteps, 0);
+        const totalDays = member.data.length * 90; // Approximation
+        overallAverages[member.memberId] = totalDays > 0 ? Math.round(totalSteps / totalDays) : 0;
+    });
+
+    const headers = ['MemberID', 'MemberName', 'Department', 'Overall_Avg_Steps'];
     allQuarters.forEach(quarter => {
         headers.push(`TotalSteps_${quarter}`);
     });
@@ -222,6 +238,7 @@ export default function AdminPanel() {
             member.memberId,
             `"${member.memberName}"`,
             member.department,
+            overallAverages[member.memberId]
         ];
 
         const memberDataByQuarter = new Map(member.data.map(d => [d.month, d]));
@@ -278,17 +295,57 @@ export default function AdminPanel() {
       setVivaLogoFile(null);
   }
   
-  const handleSaveAd = (type: 'popup' | 'footer') => {
-      if (type === 'popup') {
-          setPopupAdContent(currentPopupAd);
-          setPopupAdFile(null);
+  const openAdDialog = (ad: AdContent | null, type: 'popup' | 'footer') => {
+      if (ad) {
+          setAdToEdit({ ...ad, type });
       } else {
-          setFooterAdContent(currentFooterAd);
-          setFooterAdFile(null);
+          setAdToEdit({ id: '', description: '', imageUrl: '', targetUrl: `https://`, type });
       }
-       toast({ title: 'Success', description: `The ${type} ad content has been updated.` });
-  };
+      setAdFile(null);
+      setAdDialogOpen(true);
+  }
 
+  const handleSaveAd = () => {
+      if (!adToEdit) return;
+
+      const adData = {
+          id: adToEdit.id,
+          description: adToEdit.description,
+          imageUrl: adToEdit.imageUrl,
+          targetUrl: adToEdit.targetUrl,
+      };
+
+      if (adToEdit.type === 'popup') {
+          if (adToEdit.id) {
+              updatePopupAd(adData);
+          } else {
+              addPopupAd(adData);
+          }
+          setPopupAds([...popupAdContents]);
+      } else {
+          if (adToEdit.id) {
+              updateFooterAd(adData);
+          } else {
+              addFooterAd(adData);
+          }
+          setFooterAds([...footerAdContents]);
+      }
+      
+      toast({ title: 'Success', description: `The ${adToEdit.type} ad has been saved.` });
+      setAdDialogOpen(false);
+      setAdToEdit(null);
+  }
+  
+  const handleDeleteAd = (adId: string, type: 'popup' | 'footer') => {
+      if (type === 'popup') {
+          removePopupAd(adId);
+          setPopupAds([...popupAdContents]);
+      } else {
+          removeFooterAd(adId);
+          setFooterAds([...footerAdContents]);
+      }
+      toast({ title: 'Ad Removed', description: 'The ad has been successfully deleted.' });
+  }
 
   return (
     <>
@@ -338,7 +395,7 @@ export default function AdminPanel() {
                                         {groups.map((group) => (
                                             <TableRow key={group.id}>
                                                 <TableCell className="font-medium flex items-center gap-3">
-                                                    <div className="relative w-24 h-10 bg-muted rounded-md shrink-0">
+                                                    <div className="relative w-40 h-10 bg-muted rounded-md shrink-0">
                                                         <Image src={group.logo} alt={`${group.name} logo`} fill className="object-cover rounded-md"/>
                                                     </div>
                                                     {group.name}
@@ -352,7 +409,7 @@ export default function AdminPanel() {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <Button variant="outline" size="sm" onClick={() => openEditDialog(group)}>
+                                                    <Button variant="outline" size="sm" onClick={() => openGroupEditDialog(group)}>
                                                         <Edit className="mr-2 h-4 w-4" />
                                                         Edit
                                                     </Button>
@@ -418,15 +475,15 @@ export default function AdminPanel() {
                         <div className="space-y-2">
                             <Label>Group Logo</Label>
                             <div className="flex items-center gap-4">
+                            <div className="relative w-40 h-10 bg-muted rounded-md shrink-0">
                             {newLogoPreview ? (
-                                <div className="relative w-40 h-16 bg-muted rounded-md">
-                                    <Image src={newLogoPreview} alt="New Group Logo Preview" fill className="object-cover rounded-md"/>
-                                </div>
+                                <Image src={newLogoPreview} alt="New Group Logo Preview" fill className="object-cover rounded-md"/>
                             ) : (
-                                <div className="h-16 w-40 rounded-md bg-muted flex items-center justify-center">
-                                <Building className="h-8 w-8 text-muted-foreground" />
+                                <div className="h-full w-full flex items-center justify-center">
+                                  <Building className="h-8 w-8 text-muted-foreground" />
                                 </div>
                             )}
+                            </div>
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label htmlFor="logo-upload" className="sr-only">Upload Logo</Label>
                                 <div className="flex items-center gap-2">
@@ -453,64 +510,80 @@ export default function AdminPanel() {
             <TabsContent value="adverts">
                  <div className="space-y-8">
                      <Card>
-                        <CardHeader>
-                            <CardTitle>Manage Pop-up Ad</CardTitle>
-                            <CardDescription>Configure the pop-up ad banner shown to members.</CardDescription>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>Manage Pop-up Ads</CardTitle>
+                                <CardDescription>Manage the rotating pop-up ads shown to members.</CardDescription>
+                            </div>
+                            <Button onClick={() => openAdDialog(null, 'popup')}><PlusCircle className="mr-2"/>Add New</Button>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <Label>Current Ad Image</Label>
-                                <div className="relative w-full aspect-[4/3] max-w-xs bg-muted rounded-md">
-                                    <Image src={currentPopupAd.imageUrl} alt={currentPopupAd.description} fill className="object-cover rounded-md"/>
-                                </div>
-                            </div>
-                            <div className="grid w-full max-w-sm items-center gap-1.5">
-                                <Label htmlFor="popup-ad-upload">Upload New Image</Label>
-                                <Input id="popup-ad-upload" type="file" accept="image/*" onChange={(e) => handleGenericFileChange(e, setPopupAdFile, setCurrentPopupAd, 'imageUrl')} />
-                                {popupAdFile && <p className="text-sm text-muted-foreground">{popupAdFile.name}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="popup-desc">Ad Description (Alt Text)</Label>
-                                <Input id="popup-desc" value={currentPopupAd.description} onChange={(e) => setCurrentPopupAd(prev => ({ ...prev, description: e.target.value }))} />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="popup-url">Target URL</Label>
-                                <Input id="popup-url" type="url" value={currentPopupAd.targetUrl} onChange={(e) => setCurrentPopupAd(prev => ({ ...prev, targetUrl: e.target.value }))} />
-                            </div>
+                        <CardContent>
+                           <Table>
+                               <TableHeader>
+                                   <TableRow>
+                                       <TableHead>Preview</TableHead>
+                                       <TableHead>Description</TableHead>
+                                       <TableHead>Target URL</TableHead>
+                                       <TableHead className="text-right">Actions</TableHead>
+                                   </TableRow>
+                               </TableHeader>
+                               <TableBody>
+                                   {popupAds.map(ad => (
+                                       <TableRow key={ad.id}>
+                                           <TableCell>
+                                               <div className="relative w-24 h-20 bg-muted rounded-md">
+                                                   <Image src={ad.imageUrl} alt={ad.description} fill className="object-cover rounded-md"/>
+                                               </div>
+                                           </TableCell>
+                                           <TableCell>{ad.description}</TableCell>
+                                           <TableCell><a href={ad.targetUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-xs block">{ad.targetUrl}</a></TableCell>
+                                           <TableCell className="text-right space-x-2">
+                                               <Button variant="outline" size="sm" onClick={() => openAdDialog(ad, 'popup')}><Edit className="mr-2"/>Edit</Button>
+                                               <Button variant="destructive" size="sm" onClick={() => handleDeleteAd(ad.id, 'popup')}><Trash2 className="mr-2"/>Delete</Button>
+                                           </TableCell>
+                                       </TableRow>
+                                   ))}
+                               </TableBody>
+                           </Table>
                         </CardContent>
-                        <CardFooter>
-                            <Button onClick={() => handleSaveAd('popup')}>Save Pop-up Ad</Button>
-                        </CardFooter>
                      </Card>
                       <Card>
-                        <CardHeader>
-                            <CardTitle>Manage Footer Ad</CardTitle>
-                            <CardDescription>Configure the footer ad banner shown to members.</CardDescription>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                             <div>
+                                <CardTitle>Manage Footer Ads</CardTitle>
+                                <CardDescription>Manage the rotating footer ads shown to members.</CardDescription>
+                            </div>
+                             <Button onClick={() => openAdDialog(null, 'footer')}><PlusCircle className="mr-2"/>Add New</Button>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                           <div className="space-y-2">
-                                <Label>Current Ad Image</Label>
-                                <div className="relative w-full aspect-[728/90] max-w-2xl bg-muted rounded-md">
-                                    <Image src={currentFooterAd.imageUrl} alt={currentFooterAd.description} fill className="object-contain rounded-md"/>
-                                </div>
-                            </div>
-                            <div className="grid w-full max-w-sm items-center gap-1.5">
-                                <Label htmlFor="footer-ad-upload">Upload New Image</Label>
-                                <Input id="footer-ad-upload" type="file" accept="image/*" onChange={(e) => handleGenericFileChange(e, setFooterAdFile, setCurrentFooterAd, 'imageUrl')} />
-                                {footerAdFile && <p className="text-sm text-muted-foreground">{footerAdFile.name}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="footer-desc">Ad Description (Alt Text)</Label>
-                                <Input id="footer-desc" value={currentFooterAd.description} onChange={(e) => setCurrentFooterAd(prev => ({ ...prev, description: e.target.value }))} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="footer-url">Target URL</Label>
-                                <Input id="footer-url" type="url" value={currentFooterAd.targetUrl} onChange={(e) => setCurrentFooterAd(prev => ({ ...prev, targetUrl: e.target.value }))} />
-                            </div>
+                        <CardContent>
+                            <Table>
+                               <TableHeader>
+                                   <TableRow>
+                                       <TableHead>Preview</TableHead>
+                                       <TableHead>Description</TableHead>
+                                       <TableHead>Target URL</TableHead>
+                                       <TableHead className="text-right">Actions</TableHead>
+                                   </TableRow>
+                               </TableHeader>
+                               <TableBody>
+                                   {footerAds.map(ad => (
+                                       <TableRow key={ad.id}>
+                                           <TableCell>
+                                               <div className="relative w-48 h-12 bg-muted rounded-md">
+                                                   <Image src={ad.imageUrl} alt={ad.description} fill className="object-contain rounded-md"/>
+                                               </div>
+                                           </TableCell>
+                                           <TableCell>{ad.description}</TableCell>
+                                           <TableCell><a href={ad.targetUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-xs block">{ad.targetUrl}</a></TableCell>
+                                           <TableCell className="text-right space-x-2">
+                                               <Button variant="outline" size="sm" onClick={() => openAdDialog(ad, 'footer')}><Edit className="mr-2"/>Edit</Button>
+                                               <Button variant="destructive" size="sm" onClick={() => handleDeleteAd(ad.id, 'footer')}><Trash2 className="mr-2"/>Delete</Button>
+                                           </TableCell>
+                                       </TableRow>
+                                   ))}
+                               </TableBody>
+                           </Table>
                         </CardContent>
-                         <CardFooter>
-                            <Button onClick={() => handleSaveAd('footer')}>Save Footer Ad</Button>
-                        </CardFooter>
                      </Card>
                  </div>
             </TabsContent>
@@ -634,8 +707,8 @@ export default function AdminPanel() {
       </Tabs>
     </div>
 
-    {/* Edit Group Dialog */}
-    <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+    {/* Group Edit Dialog */}
+    <Dialog open={isGroupEditDialogOpen} onOpenChange={setGroupEditDialogOpen}>
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>Edit Group: {groupToEdit?.name}</DialogTitle>
@@ -675,7 +748,7 @@ export default function AdminPanel() {
                 <div className="space-y-2">
                     <Label>Group Logo</Label>
                     <div className="flex items-center gap-4">
-                        <div className="relative w-40 h-16 bg-muted rounded-md">
+                        <div className="relative w-40 h-10 bg-muted rounded-md shrink-0">
                         {editedLogoPreview ? (
                             <Image src={editedLogoPreview} alt="Group Logo Preview" fill className="object-cover rounded-md" />
                         ) : (
@@ -698,12 +771,51 @@ export default function AdminPanel() {
                 </div>
             </div>
             <DialogFooter>
-                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setGroupEditDialogOpen(false)}>Cancel</Button>
                 <Button onClick={handleUpdateGroup}>Save Changes</Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    {/* Ad Edit/Create Dialog */}
+    <Dialog open={isAdDialogOpen} onOpenChange={setAdDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{adToEdit?.id ? 'Edit' : 'Add'} {adToEdit?.type} Ad</DialogTitle>
+                <DialogDescription>
+                    Upload an image and provide the details for the ad banner.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label>Ad Preview</Label>
+                    <div className={`relative bg-muted rounded-md flex items-center justify-center ${adToEdit?.type === 'popup' ? 'w-full aspect-[4/3] max-w-xs' : 'w-full aspect-[728/90] max-w-2xl'}`}>
+                        {adToEdit?.imageUrl ? 
+                            <Image src={adToEdit.imageUrl} alt={adToEdit.description || 'Ad preview'} fill className={adToEdit.type === 'popup' ? 'object-cover' : 'object-contain'}/>
+                            : <span className="text-sm text-muted-foreground">Upload an image to see a preview</span>
+                        }
+                    </div>
+                </div>
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="ad-upload">Upload New Image</Label>
+                    <Input id="ad-upload" type="file" accept="image/*" onChange={(e) => handleFileChange(e, setAdFile, (url) => setAdToEdit(prev => prev ? { ...prev, imageUrl: url } : null))} />
+                    {adFile && <p className="text-sm text-muted-foreground">{adFile.name}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="ad-desc">Description (Alt Text)</Label>
+                    <Input id="ad-desc" value={adToEdit?.description || ''} onChange={(e) => setAdToEdit(prev => prev ? { ...prev, description: e.target.value } : null)} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="ad-url">Target URL</Label>
+                    <Input id="ad-url" type="url" value={adToEdit?.targetUrl || ''} onChange={(e) => setAdToEdit(prev => prev ? { ...prev, targetUrl: e.target.value } : null)} />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setAdDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleSaveAd}>Save Ad</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
     </>
   );
 }
-

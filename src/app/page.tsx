@@ -18,7 +18,7 @@ import { MOCK_USERS, MOCK_GROUPS } from '@/lib/mock-data';
 import AdBanner from '@/components/ad-banner';
 import FooterAdBanner from '@/components/footer-ad-banner';
 import AppFooter from '@/components/app-footer';
-import { popupAdContent, footerAdContent } from '@/lib/ad-store';
+import { popupAdContents, footerAdContents } from '@/lib/ad-store';
 
 // This now represents the "logged-in" user's ID for the session.
 const LOGGED_IN_USER_ID = 'member@example.com';
@@ -65,8 +65,8 @@ export default function Home() {
 
         // Check the group's ad setting from mock data
         if (groupRecord?.adsEnabled) {
-            setShowPopupAd(true);
-            setShowFooterAd(true);
+            setShowPopupAd(popupAdContents.length > 0);
+            setShowFooterAd(footerAdContents.length > 0);
         } else {
             setShowPopupAd(false);
             setShowFooterAd(false);
@@ -113,9 +113,9 @@ export default function Home() {
           <MessageInbox />
         </main>
         {/** We show the popup ad here as it's an overlay */}
-        <AdBanner isPopupVisible={showPopupAd} adContent={popupAdContent} />
+        <AdBanner isVisible={showPopupAd} adContents={popupAdContents} />
         {/** The footer ad is part of the main layout flow */}
-        <FooterAdBanner isVisible={showFooterAd} adContent={footerAdContent} />
+        <FooterAdBanner isVisible={showFooterAd} adContents={footerAdContents} />
       </div>
       <AppFooter view="member" group={groupData} />
     </div>
