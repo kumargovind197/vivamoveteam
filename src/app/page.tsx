@@ -92,7 +92,7 @@ export default function Home() {
                 <CardContent>
                     <p className="text-muted-foreground">Your access has been revoked by the group administrator. If you believe this is an error, please contact your group admin.</p>
                      <Button asChild className="mt-6 w-full">
-                        <Link href="/login">
+                        <Link href="/">
                             Return to Login
                         </Link>
                     </Button>
