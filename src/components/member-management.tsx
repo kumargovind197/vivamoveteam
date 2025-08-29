@@ -11,7 +11,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table"
-import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send, PlusCircle, XCircle, LineChart } from "lucide-react"
+import { Search, UserPlus, Edit, Trash2, Trophy, History, Medal, Send, PlusCircle, XCircle, LineChart, Router } from "lucide-react"
 import { Button, buttonVariants } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
@@ -28,7 +28,8 @@ import Link from 'next/link';
 import { collection, addDoc,  doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot} from "firebase/firestore";
 import { db } from "@/lib/firebase"; 
 import { arrayUnion, arrayRemove } from "firebase/firestore";
-
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
 const initialMembersData = [
   { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 285000 },
   { id: '2', memberId: 'EMP-002', firstName: 'Emily', surname: 'Jones', email: 'emily.jones@example.com', department: 'Engineering', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 310500 },
@@ -202,7 +203,22 @@ const [membersData, setMembersData] = useState<Member[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const maxMembers = MOCK_GROUPS['group-awesome'].capacity;
+ const [currentUser, setCurrentUser] = useState<any>(null);
 
+ const router = useRouter();
+  const auth = getAuth();
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.push("/login"); // agar login nahi h to login page par bhej do
+      } else {
+        setCurrentUser(user);
+      }
+     
+    });
+
+    return () => unsubscribe();
+  }, [auth, router]);
   useEffect(() => {
     // Initialize departments from member data
     const initialDepartments = Array.from(new Set(membersData.map(m => m.department)));
