@@ -10,7 +10,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { MOCK_USERS } from '@/lib/mock-data';
-
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "@/lib/firebase"; // apna firebase config import karo
+import { doc, getDoc } from "firebase/firestore";
+import { isAdmin } from './admin-panel';
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,34 +22,70 @@ export default function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate network delay
-    setTimeout(() => {
-      const lowerCaseEmail = email.toLowerCase();
-      // Find the user key case-insensitively
-      const userKey = Object.keys(MOCK_USERS).find(key => key.toLowerCase() === lowerCaseEmail);
-      const user = userKey ? MOCK_USERS[userKey as keyof typeof MOCK_USERS] : undefined;
-      
-      if (user && user.password === password) {
-        toast({
-          title: "Login Successful",
-          description: `Redirecting to ${user.role} dashboard...`,
-        });
-        router.push(user.redirect);
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Invalid email or password. Please try again.",
-        });
-        setIsLoading(false);
-      }
-    }, 1000);
-  };
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
 
+
+
+  try {
+
+    if (email === "admin123@gmail.com" && password === "admin123!") {
+  sessionStorage.setItem("isAdmin", "true"); // ✅ Add this line
+  router.push("/admin");
+  return;
+}
+
+    // Firebase Auth sign-in
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Get user data from Firestore
+    const userDoc = await getDoc(doc(db, "Newusers", user.uid));
+    if (!userDoc.exists()) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "User profile not found in database.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const userData = userDoc.data();
+    const role = userData.role;
+
+    if (role === "groupLeader") {
+      toast({
+        title: "Login Successful",
+        description: "Redirecting to Group Leader dashboard...",
+      });
+      router.push("/group");
+    } else if (role === "member") {
+      toast({
+        title: "Login Successful",
+        description: "Redirecting to Member dashboard...",
+      });
+      router.push("/");
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "No valid role assigned to your account.",
+      });
+    }
+  } catch (error: any) {
+    console.error("Login error:", error);
+    toast({
+      variant: "destructive",
+      title: "Login Failed",
+      description: error.message || "Something went wrong.",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handlePasswordRecovery = () => {
     if (!email) {
         toast({
@@ -70,6 +109,7 @@ export default function LoginForm() {
         title: 'Password Recovery Email Sent',
         description: `If an account exists for ${email}, a recovery link has been sent.`,
     });
+    
   }
 
   return (
@@ -121,6 +161,19 @@ export default function LoginForm() {
             {isLoading ? 'Signing In...' : 'Sign In'}
             {!isLoading && <LogIn className="ml-2" />}
           </Button>
+           <div className="text-center text-sm text-muted-foreground">
+            {/* Added "Sign up" button */}
+            Don't have an account?{' '}
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => router.push('/signup')}
+              className="p-0 h-auto text-primary"
+            >
+              Sign up
+             
+            </Button> 
+            </div>
            <Button 
             type="button" 
             variant="link" 

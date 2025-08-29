@@ -25,6 +25,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Textarea } from './ui/textarea';
 import Link from 'next/link';
+import { collection, addDoc,  doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot} from "firebase/firestore";
+import { db } from "@/lib/firebase"; 
+import { arrayUnion, arrayRemove } from "firebase/firestore";
 
 const initialMembersData = [
   { id: '1', memberId: 'EMP-001', firstName: 'John', surname: 'Smith', email: 'john.smith@example.com', department: 'Sales', avatarUrl: 'https://placehold.co/100x100.png', monthlySteps: 285000 },
@@ -105,8 +108,10 @@ const getMedalColor = (rank: number) => {
     }
 }
 
+
 function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof mockPastLeaderboards[keyof typeof mockPastLeaderboards] }) {
-    const top5Individuals = data.individuals.slice(0, 5);
+   
+  const top5Individuals = data.individuals.slice(0, 5);
     const top5Departments = data.departments.slice(0, 5);
 
     return (
@@ -117,56 +122,58 @@ function PastLeaderboardDisplay({ month, data }: { month: string, data: typeof m
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">Top 5 Individuals</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                         <ol className="space-y-4">
-                            {top5Individuals.map((member, index) => (
-                                <li key={member.id} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
-                                    <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
-                                        <Medal className="h-6 w-6" />
-                                    </div>
-                                    <Avatar>
-                                        <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
-                                        <AvatarFallback>{member.firstName[0]}{member.surname[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1">
-                                        <p className="font-semibold">{member.firstName} {member.surname}</p>
-                                        <p className="text-sm text-muted-foreground">{member.department}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-bold text-primary text-lg">
-                                            {member.monthlySteps.toLocaleString()}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">steps</p>
-                                    </div>
-                                </li>
-                            ))}
-                        </ol>
-                    </CardContent>
+                  <CardContent>
+  <ol className="space-y-4">
+    {top5Departments.map((dept: Department, index: number) => (
+      <li key={dept.name} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
+        <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
+          <Medal className="h-6 w-6" />
+        </div>
+        <div className="flex-1">
+          <p className="font-semibold">{dept.name}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-bold text-primary text-lg">
+            {dept.avgSteps.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground">avg steps</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</CardContent>
+
                 </Card>
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">Top 5 Departments</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                         <ol className="space-y-4">
-                            {top5Departments.map((dept, index) => (
-                                <li key={dept.name} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
-                                    <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
-                                         <Medal className="h-6 w-6" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-semibold">{dept.name}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-bold text-primary text-lg">
-                                            {dept.avgSteps.toLocaleString()}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">avg steps</p>
-                                    </div>
-                                </li>
-                            ))}
-                        </ol>
-                    </CardContent>
+                 <CardContent>
+  <ol className="space-y-4">
+    {top5Individuals.map((member: Member, index: number) => (
+      <li key={member.id} className="flex items-center gap-4 p-2 -m-2 rounded-lg">
+        <div className={`flex items-center justify-center w-8 font-bold text-lg ${getMedalColor(index + 1)}`}>
+          <Medal className="h-6 w-6" />
+        </div>
+        <Avatar>
+          <AvatarImage src={member.avatarUrl} alt={`${member.firstName} ${member.surname}`} />
+          <AvatarFallback>{member.firstName[0]}{member.surname[0]}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <p className="font-semibold">{member.firstName} {member.surname}</p>
+          <p className="text-sm text-muted-foreground">{member.department}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-bold text-primary text-lg">
+            {member.monthlySteps.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground">steps</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</CardContent>
+
                 </Card>
             </div>
         </div>
@@ -180,11 +187,10 @@ const MAX_DEPARTMENTS = 20;
 
 export default function MemberManagement() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [membersData, setMembersData] = useState(initialMembersData);
   const [departments, setDepartments] = useState<string[]>([]);
   const [newDepartment, setNewDepartment] = useState('');
   const [departmentToRemove, setDepartmentToRemove] = useState<string | null>(null);
-
+const [membersData, setMembersData] = useState<Member[]>([]);
   const [isAddMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
   const [isEditMemberDialogOpen, setEditMemberDialogOpen] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<Member | null>(null);
@@ -195,7 +201,6 @@ export default function MemberManagement() {
   const [bulkMessage, setBulkMessage] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
-  
   const maxMembers = MOCK_GROUPS['group-awesome'].capacity;
 
   useEffect(() => {
@@ -239,7 +244,19 @@ export default function MemberManagement() {
   const currentMemberCount = membersData.length;
   const remainingSlots = maxMembers - currentMemberCount;
   const isAtCapacity = currentMemberCount >= maxMembers;
-  const isAtDepartmentCapacity = departments.length >= MAX_DEPARTMENTS;
+  const isAtDepartmentCapacity = (departments.filter(d => d !== DEFAULT_DEPARTMENT).length) >= (MAX_DEPARTMENTS - 1);
+
+
+  // Firestore se realtime members fetch
+useEffect(() => {
+  const membersRef = collection(db, "enrolledMembers");
+  const unsubscribe = onSnapshot(membersRef, (snapshot) => {
+    const members = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as Member[];
+    setMembersData(members);
+  });
+
+  return () => unsubscribe();
+}, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -260,56 +277,89 @@ export default function MemberManagement() {
     if (!memberToEdit) return;
     setMemberToEdit(prev => prev ? { ...prev, department: value } : null);
   }
-
-  const handleAddMember = () => {
-    if (newMember.memberId && newMember.firstName && newMember.surname && newMember.email && newMember.department) {
-      const newMemberWithId = { 
-          ...newMember,
-          id: (membersData.length + 1).toString(),
-          avatarUrl: 'https://placehold.co/100x100.png',
-          monthlySteps: 0,
+const handleAddMember = async () => {
+  if (newMember.memberId && newMember.firstName && newMember.surname && newMember.email && newMember.department) {
+    try {
+      const newMemberData = {
+        ...newMember,
+        avatarUrl: "https://placehold.co/100x100.png",
+        monthlySteps: 0,
+        createdAt: new Date(),
       };
-      setMembersData(prev => [...prev, newMemberWithId]);
-      
+
+      // Firestore me save
+      await addDoc(collection(db, "enrolledMembers"), newMemberData);
+
       toast({
         title: "Member Registered & Invite Sent",
-        description: `An email invite for ${newMember.firstName} ${newMember.surname} has been sent to ${newMember.email}. It contains a secure, one-time link to set their password and instructions for downloading the app.`,
+        description: `An email invite for ${newMember.firstName} ${newMember.surname} has been sent to ${newMember.email}.`,
         duration: 8000,
       });
 
-      setNewMember({ memberId: '', firstName: '', surname: '', email: '', department: '' });
+      setNewMember({ memberId: "", firstName: "", surname: "", email: "", department: "" });
       setAddMemberDialogOpen(false);
-    } else {
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Validation Error",
-        description: "Please fill out all fields to add a member.",
+        title: "Error",
+        description: error.message,
       });
     }
+  } else {
+    toast({
+      variant: "destructive",
+      title: "Validation Error",
+      description: "Please fill out all fields to add a member.",
+    });
   }
+};
 
-  const handleEditMember = () => {
-      if (!memberToEdit) return;
-       const updatedMember = { ...memberToEdit };
-      setMembersData(prev => prev.map(p => p.id === memberToEdit.id ? updatedMember : p));
-      toast({
-          title: "Member Details Updated",
-          description: `Details for ${memberToEdit.firstName} ${memberToEdit.surname} have been saved.`,
-      });
-      setEditMemberDialogOpen(false);
-      setMemberToEdit(null);
-  }
+ const handleEditMember = async () => {
+  if (!memberToEdit) return;
+  try {
+    const memberRef = doc(db, "enrolledMembers", memberToEdit.id);
+    await updateDoc(memberRef, {
+      firstName: memberToEdit.firstName,
+      surname: memberToEdit.surname,
+      email: memberToEdit.email,
+      department: memberToEdit.department,
+    });
 
-  const handleRemoveMember = (member: Member) => {
-      setMembersData(prev => prev.filter(p => p.id !== member.id));
-      removeUser(member.email);
-      toast({
-        title: "Member Removed & Account Disabled",
-        description: `${member.firstName} ${member.surname} has been removed and their access revoked.`,
-      });
-      setMemberToRemove(null);
-      setDeleteConfirmationInput('');
+    toast({
+      title: "Member Details Updated",
+      description: `Details for ${memberToEdit.firstName} ${memberToEdit.surname} have been saved.`,
+    });
+
+    setEditMemberDialogOpen(false);
+    setMemberToEdit(null);
+  } catch (error: any) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message,
+    });
   }
+};
+
+const handleRemoveMember = async (member: Member) => {
+  try {
+    await deleteDoc(doc(db, "enrolledMembers", member.id));
+
+    toast({
+      title: "Member Removed & Account Disabled",
+      description: `${member.firstName} ${member.surname} has been removed.`,
+    });
+
+    setMemberToRemove(null);
+    setDeleteConfirmationInput("");
+  } catch (error: any) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message,
+    });
+  }
+};
 
   const handleSendBulkMessage = () => {
       if (!bulkMessage.trim()) {
@@ -329,30 +379,110 @@ export default function MemberManagement() {
       setBulkMessage('');
   };
 
-  const handleAddDepartment = () => {
-    if (isAtDepartmentCapacity) {
-       toast({ variant: 'destructive', title: "Department Limit Reached", description: `You cannot add more than ${MAX_DEPARTMENTS} departments.` });
-       return;
-    }
-    if (newDepartment && !departments.includes(newDepartment)) {
-      setDepartments(prev => [...prev, newDepartment].sort());
-      setNewDepartment('');
-      toast({ title: "Department Added", description: `"${newDepartment}" has been added to the list.` });
-    } else if (departments.includes(newDepartment)) {
-      toast({ variant: 'destructive', title: "Duplicate Department", description: `"${newDepartment}" already exists.` });
-    }
-  };
 
-  const handleRemoveDepartment = (deptToRemove: string) => {
-    setMembersData(prevData => 
-        prevData.map(member => 
-            member.department === deptToRemove ? { ...member, department: DEFAULT_DEPARTMENT } : member
-        )
+// ✅ Add Department (with Firestore)
+const handleAddDepartment = async () => {
+  if (isAtDepartmentCapacity) {
+    toast({
+      variant: 'destructive',
+      title: "Department Limit Reached",
+      description: `You cannot add more than ${MAX_DEPARTMENTS} departments.`
+    });
+    return;
+  }
+
+  if (!newDepartment) return;
+
+  try {
+    const settingsRef = doc(db, "addnewdepartment", "departments");
+    const snapshot = await getDoc(settingsRef);
+
+    let existingDepartments: string[] = [];
+    if (snapshot.exists()) {
+      existingDepartments = snapshot.data().list || [];
+    }
+
+    if (existingDepartments.includes(newDepartment)) {
+      toast({
+        variant: 'destructive',
+        title: "Duplicate Department",
+        description: `"${newDepartment}" already exists.`
+      });
+      return;
+    }
+
+    // ✅ Use setDoc if doc does not exist
+    if (!snapshot.exists()) {
+      await setDoc(settingsRef, {
+        list: [newDepartment]
+      });
+    } else {
+      await updateDoc(settingsRef, {
+        list: arrayUnion(newDepartment)
+      });
+    }
+
+    setDepartments(prev => [...prev, newDepartment].sort());
+    setNewDepartment('');
+
+    toast({
+      title: "Department Added",
+      description: `"${newDepartment}" has been added.`
+    });
+  } catch (err) {
+    console.error(err);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Could not add department."
+    });
+  }
+};
+
+// ✅ Remove Department (with Firestore)
+const handleRemoveDepartment = async (deptToRemove: string) => {
+  try {
+    const settingsRef = doc(db, "addnewdepartment", "departments");
+    const snapshot = await getDoc(settingsRef);
+
+    if (!snapshot.exists()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No departments found."
+      });
+      return;
+    }
+
+    // Move members to default department before deletion
+    setMembersData(prevData =>
+      prevData.map(member =>
+        member.department === deptToRemove
+          ? { ...member, department: DEFAULT_DEPARTMENT }
+          : member
+      )
     );
+
+    await updateDoc(settingsRef, {
+      list: arrayRemove(deptToRemove)
+    });
+
     setDepartments(prev => prev.filter(d => d !== deptToRemove));
-    toast({ title: "Department Removed", description: `"${deptToRemove}" has been removed. Members were moved to ${DEFAULT_DEPARTMENT}.` });
     setDepartmentToRemove(null);
-  };
+
+    toast({
+      title: "Department Removed",
+      description: `"${deptToRemove}" removed. Members were moved to ${DEFAULT_DEPARTMENT}.`
+    });
+  } catch (err) {
+    console.error(err);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Could not remove department."
+    });
+  }
+};
 
 
   return (

@@ -13,8 +13,8 @@ import {
     Cherry, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChevronsDown, ChevronsLeft, 
     ChevronsRight, ChevronsUp, Church, Citrus, Clapperboard, Cloud, Clover, Code, Cog, Coins, 
     Compass, Computer, ConciergeBell, Cookie, Crown, CupSoda, Diamond, Disc, Dog, DollarSign, DoorClosed, 
-    DoorOpen, Draft, Dribbble, Droplet, Drum, Ear, Egg, Euro, Eye, Fan, Feather, FerrisWheel, Figma, File,
-    Film, Filter, Flag, Flower, Folder, Football, Forklift, Frame, Frown, Fuel, FunctionSquare, Gamepad2,
+    DoorOpen, Dribbble, Droplet, Drum, Ear, Egg, Euro, Eye, Fan, Feather, FerrisWheel, Figma, File,
+    Film, Filter, Flag, Flower, Folder, Forklift, Frame, Frown, Fuel, FunctionSquare, Gamepad2,
     Gauge, Gavel, Gem, Ghost, Gift, GitBranch, GitCommit, GitFork, GitMerge, GitPullRequest, Github,
     Gitlab, Globe, Grab, GraduationCap, Grid, Grip, Hammer, Hand, HandMetal, Hash, Haze, Heading,
     Headphones, HeartCrack, Heater, HelpCircle, Hexagon, Highlighter, History, Home, Hop, Hourglass,
@@ -35,6 +35,7 @@ import {
 
 interface MotivationalCardProps {
     steps: number | null;
+    name: string;
 }
 
 const icons = [

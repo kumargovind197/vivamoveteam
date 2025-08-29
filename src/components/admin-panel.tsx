@@ -1,7 +1,7 @@
 
 "use client";
-
-import { useState } from 'react';
+import { useRouter } from 'next/navigation'; 
+import { useState,useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,8 @@ import {
     removeFooterAd
 } from '@/lib/ad-store';
 import Image from 'next/image';
+import { collection, addDoc ,setDoc,doc,getDoc, updateDoc,getDocs, deleteDoc,onSnapshot} from "firebase/firestore";
+import { db } from "@/lib/firebase"; // adjust path if needed
 
 const mockMemberHistoricalData = {
     'group-awesome': [
@@ -74,7 +76,7 @@ export default function AdminPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [vivaLogoFile, setVivaLogoFile] = useState<File | null>(null);
-  const [vivaLogoPreview, setVivaLogoPreview] = useState<string>(vivaLogoSrc);
+const [vivaLogoPreview, setVivaLogoPreview] = useState<string | null>(vivaLogoSrc ?? null);
   
   // State for ad management
   const [popupAds, setPopupAds] = useState(popupAdContents);
@@ -82,7 +84,60 @@ export default function AdminPanel() {
   const [isAdDialogOpen, setAdDialogOpen] = useState(false);
   const [adToEdit, setAdToEdit] = useState<AdContent & { type: 'popup' | 'footer' } | null>(null);
   const [adFile, setAdFile] = useState<File | null>(null);
+  // ⬇️ Paste useEffect right here
 
+
+  const router = useRouter();
+useEffect(() => {
+  const isAdmin = sessionStorage.getItem("isAdmin");
+  if (isAdmin !== "true") {
+    router.push("/login");
+  }
+}, []);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "EnrolledNewgroup"));
+        const fetchedGroups: Group[] = [];
+
+        querySnapshot.forEach((doc) => {
+          fetchedGroups.push(doc.data() as Group);
+        });
+
+        setGroups(fetchedGroups); // this updates your state with Firestore data
+      } catch (error) {
+        console.error("Error fetching groups from Firestore:", error);
+      }
+    };
+
+    fetchGroups();
+  }, []); // empty dependency = run only once on mount
+useEffect(() => {
+  const popupCol = collection(db, "NewAd_popup");
+  const footerCol = collection(db, "NewAd_footer");
+
+  const unsubPopup = onSnapshot(popupCol, (snap) => {
+    const ads: AdContent[] = snap.docs.map((d: any) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+    setPopupAds(ads);
+  });
+
+  const unsubFooter = onSnapshot(footerCol, (snap) => {
+    const ads: AdContent[] = snap.docs.map((d: any) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+    setFooterAds(ads);
+  });
+
+  return () => {
+    unsubPopup();
+    unsubFooter();
+  };
+}, []);
 
   const { toast } = useToast();
 
@@ -123,83 +178,124 @@ export default function AdminPanel() {
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleEnrollGroup = async () => {
+  if (!newGroupName || !newMemberCapacity || !newGroupId || !newGroupPassword) {
+    toast({
+      variant: "destructive",
+      title: "Validation Error",
+      description: "Please fill out all required fields.",
+    });
+    return;
+  }
 
-  const handleEnrollGroup = () => {
-    if (!newGroupName || !newMemberCapacity || !newGroupId || !newGroupPassword) {
-         toast({
-            variant: "destructive",
-            title: "Validation Error",
-            description: "Please fill out all required fields.",
-        });
-        return;
-    }
-    
-    const userAdded = addGroupUser(newGroupId, newGroupPassword);
-    if (!userAdded) {
-        toast({
-            variant: "destructive",
-            title: "Enrollment Failed",
-            description: `A user with the Group ID '${newGroupId}' already exists. Please choose a different ID.`,
-        });
-        return;
-    }
-    
-    const newGroup: Group = {
-        id: newGroupId,
-        name: newGroupName,
-        capacity: newMemberCapacity,
-        enrolled: 0,
-        logo: newLogoPreview || 'https://placehold.co/200x50.png',
-        password: newGroupPassword,
-        adsEnabled: newAdsEnabled
-    };
+  const userAdded = addGroupUser(newGroupId, newGroupPassword);
+  if (!userAdded) {
+    toast({
+      variant: "destructive",
+      title: "Enrollment Failed",
+      description: `A user with the Group ID '${newGroupId}' already exists. Please choose a different ID.`,
+    });
+    return;
+  }
 
-    MOCK_GROUPS[newGroupId] = newGroup;
-    setGroups(Object.values(MOCK_GROUPS));
+  const newGroup: Group = {
+    id: newGroupId,
+    name: newGroupName,
+    capacity: newMemberCapacity,
+    enrolled: 0,
+    logo: newLogoPreview || "https://placehold.co/200x50.png",
+    password: newGroupPassword,
+    adsEnabled: newAdsEnabled,
+  };
+
+  try {
+    // ✅ Save using newGroupId as the document ID
+    await setDoc(doc(db, "EnrolledNewgroup", newGroupId), newGroup);
+
+    setGroups((prev) => [...prev, newGroup]);
 
     toast({
       title: "Group Enrolled",
-      description: `${newGroupName} has been successfully created. You can now log in with the new credentials.`,
+      description: `${newGroupName} has been saved to Firestore.`,
     });
 
-    setNewGroupName('');
-    setNewGroupId('');
-    setNewGroupPassword('');
+    // Reset form
+    setNewGroupName("");
+    setNewGroupId("");
+    setNewGroupPassword("");
     setNewMemberCapacity(100);
     setNewAdsEnabled(false);
     setNewLogoFile(null);
     setNewLogoPreview(null);
+  } catch (error: any) {
+    console.error("Error saving group:", error);
+    toast({
+      variant: "destructive",
+      title: "Error Saving Group",
+      description: error.message || "Something went wrong.",
+    });
+  }
+};
+
+
+const handleUpdateGroup = async () => {
+  if (!groupToEdit) return;
+
+  const updatedGroupData = {
+    ...groupToEdit,
+    adsEnabled: editedAdsEnabled,
   };
 
+  try {
+    const docRef = doc(db, "EnrolledNewgroup", groupToEdit.id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: `No group found with ID "${groupToEdit.id}".`,
+      });
+      return;
+    }
+
+    await updateDoc(docRef, updatedGroupData);
+
+    if (groupToEdit.password) {
+      addGroupUser(groupToEdit.id, groupToEdit.password, true);
+    }
+
+    toast({
+      title: "Group Updated",
+      description: `Details for "${groupToEdit.name}" have been updated.`,
+    });
+    const querySnapshot = await getDocs(collection(db, "EnrolledNewgroup"));
+const updatedGroups: Group[] = [];
+
+querySnapshot.forEach((doc) => {
+  updatedGroups.push(doc.data() as Group);
+});
+
+setGroups(updatedGroups);
+
+    setGroupEditDialogOpen(false);
+    setGroupToEdit(null);
+  } catch (error: any) {
+    console.error("Error updating group:", error);
+    toast({
+      variant: "destructive",
+      title: "Update Failed",
+      description: error.message || "Could not update group data.",
+    });
+  }
+};
   const openGroupEditDialog = (group: Group) => {
       setGroupToEdit(group);
       setEditedLogoPreview(group.logo);
       setEditedAdsEnabled(group.adsEnabled);
       setEditedLogoFile(null);
       setGroupEditDialogOpen(true);
-  }
-
-  const handleUpdateGroup = () => {
-      if (!groupToEdit) return;
-      
-      const updatedGroupData = {
-          ...groupToEdit,
-          adsEnabled: editedAdsEnabled
-      };
-
-      MOCK_GROUPS[groupToEdit.id] = updatedGroupData;
-      setGroups(Object.values(MOCK_GROUPS));
-      
-      if (groupToEdit.password) {
-        addGroupUser(groupToEdit.id, groupToEdit.password, true);
-      }
-
-      toast({
-          title: "Group Updated",
-          description: `Details for ${groupToEdit.name} have been successfully updated.`
-      });
-      setGroupEditDialogOpen(false);
-      setGroupToEdit(null);
   }
 
   const handleDownloadCsv = () => {
@@ -289,12 +385,38 @@ export default function AdminPanel() {
       }
   }
 
-  const handleSaveVivaLogo = () => {
-      setVivaLogoSrc(vivaLogoPreview);
-      toast({ title: 'Success', description: 'The ViVa logo has been updated across the application.' });
-      setVivaLogoFile(null);
+const handleSaveVivaLogo = async () => {
+  if (!vivaLogoPreview) {
+    toast({
+      variant: "destructive",
+      title: "Logo Missing",
+      description: "Please upload a logo before saving.",
+    });
+    return;
   }
-  
+
+  try {
+    const docRef = doc(db, "settings", "vivaLogo");
+    await setDoc(docRef, { logoUrl: vivaLogoPreview });
+
+    // ✅ No more type error — guaranteed to be string
+    setVivaLogoSrc(vivaLogoPreview);
+
+    toast({
+      title: "Success",
+      description: "The ViVa logo has been updated and saved to Firestore.",
+    });
+    setVivaLogoFile(null);
+  } catch (error: any) {
+    console.error("Error saving ViVa logo:", error);
+    toast({
+      variant: "destructive",
+      title: "Error Saving Logo",
+      description: error.message || "Failed to save ViVa logo to Firestore.",
+    });
+  }
+};
+
   const openAdDialog = (ad: AdContent | null, type: 'popup' | 'footer') => {
       if (ad) {
           setAdToEdit({ ...ad, type });
@@ -304,48 +426,43 @@ export default function AdminPanel() {
       setAdFile(null);
       setAdDialogOpen(true);
   }
+const handleSaveAd = async () => {
+  if (!adToEdit) return;
 
-  const handleSaveAd = () => {
-      if (!adToEdit) return;
+  const adData: AdContent = {
+    id: adToEdit.id || new Date().getTime().toString(),
+    description: adToEdit.description,
+    imageUrl: adToEdit.imageUrl,
+    targetUrl: adToEdit.targetUrl,
+  };
 
-      const adData = {
-          id: adToEdit.id,
-          description: adToEdit.description,
-          imageUrl: adToEdit.imageUrl,
-          targetUrl: adToEdit.targetUrl,
-      };
+  const collectionName = adToEdit.type === 'popup' ? "NewAd_popup" : "NewAd_footer";
 
-      if (adToEdit.type === 'popup') {
-          if (adToEdit.id) {
-              updatePopupAd(adData);
-          } else {
-              addPopupAd(adData);
-          }
-          setPopupAds([...popupAdContents]);
-      } else {
-          if (adToEdit.id) {
-              updateFooterAd(adData);
-          } else {
-              addFooterAd(adData);
-          }
-          setFooterAds([...footerAdContents]);
-      }
-      
-      toast({ title: 'Success', description: `The ${adToEdit.type} ad has been saved.` });
-      setAdDialogOpen(false);
-      setAdToEdit(null);
+  try {
+    await setDoc(doc(db, collectionName, adData.id), {
+      ...adData
+    });
+    toast({ title: "Success", description: `${adToEdit.type} ad saved.` });
+    setAdDialogOpen(false);
+    setAdToEdit(null);
+  } catch (error: any) {
+    console.error("Error saving ad:", error);
+    toast({ variant: "destructive", title: "Error", description: error.message || "Failed to save ad." });
   }
-  
-  const handleDeleteAd = (adId: string, type: 'popup' | 'footer') => {
-      if (type === 'popup') {
-          removePopupAd(adId);
-          setPopupAds([...popupAdContents]);
-      } else {
-          removeFooterAd(adId);
-          setFooterAds([...footerAdContents]);
-      }
-      toast({ title: 'Ad Removed', description: 'The ad has been successfully deleted.' });
+};
+
+const handleDeleteAd = async (adId: string, type: 'popup' | 'footer') => {
+  const collectionName = type === 'popup' ? "NewAd_popup" : "NewAd_footer";
+  try {
+    await deleteDoc(doc(db, collectionName, adId));
+    toast({ title: "Ad Removed", description: `${type} ad deleted.` });
+  } catch (error: any) {
+    console.error("Error deleting ad:", error);
+    toast({ variant: "destructive", title: "Error", description: error.message || "Failed to delete ad." });
   }
+};
+
+
 
   return (
     <>
@@ -673,7 +790,12 @@ export default function AdminPanel() {
                         <div className="space-y-2">
                             <Label>Current Logo</Label>
                             <div className="p-4 bg-muted rounded-md flex items-center justify-center">
-                                <img src={vivaLogoPreview} alt="Current ViVa Logo" className="h-10 w-auto" />
+                               <Image
+  src={vivaLogoPreview || 'https://placehold.co/200x50.png'}
+  alt="ViVa Logo"
+  width={200}
+  height={50}
+/>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -818,4 +940,7 @@ export default function AdminPanel() {
     </Dialog>
     </>
   );
+}
+export function isAdmin(email: string, password: string): boolean {
+  return email.trim() === "admin123@gmail.com" && password.trim() === "admin123!";
 }
